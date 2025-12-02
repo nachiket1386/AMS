@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Assignments - AMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-title-desktop hidden md:block text-black">Manage Employee Assignments</h1>
+        <h1 class="text-title-mobile md:hidden text-black">Assignments</h1>
+        <p class="text-sm text-black/70 mt-1">Assign employees to supervisors via CSV upload</p>
+    </div>
+
+    {% if user.role == 'root' %}
+    <!-- CSV Upload Section (Root Only) -->
+    <div class="bg-white border border-light-blue rounded-2xl p-6 md:p-8">
+        <h2 class="text-xl font-bold text-black mb-4">Bulk Upload Assignments</h2>
+        
+        <div class="mb-6 bg-light-blue/10 border border-light-blue/30 p-4 rounded-xl">
+            <p class="text-xs font-semibold text-black/70 uppercase mb-2">CSV Format</p>
+            <code class="text-xs text-black block bg-white p-3 rounded-lg font-mono border border-light-blue/20">
+                username,ep_no,access_from,access_to<br>
+                user1_name,EMP001,2024-01-01,2024-12-31<br>
+                user1_name,EMP002,,<br>
+                supervisor2,EMP003,2024-06-01,
+            </code>
+            <div class="text-xs text-black/70 mt-3 space-y-1">
+                <p>• <strong>username</strong>: User1 username (required)</p>
+                <p>• <strong>ep_no</strong>: Employee number (required)</p>
+                <p>• <strong>access_from</strong>: Start date YYYY-MM-DD (optional)</p>
+                <p>• <strong>access_to</strong>: End date YYYY-MM-DD (optional)</p>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold text-black/70 uppercase mb-2">
+                    Upload CSV File <span class="text-black">*</span>
+                </label>
+                <input 
+                    type="file" 
+                    name="csv_file" 
+                    accept=".csv"
+                    required
+                    class="w-full px-4 py-3 bg-white border-2 border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-dark-blue transition-all duration-200 text-black text-sm"
+                >
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-3">
+                <button 
+                    type="submit"
+                    class="flex-1 px-6 py-3.5 bg-dark-blue text-cream rounded-xl font-bold hover:bg-black active:scale-[0.98] transition-all duration-200 text-sm"
+                >
+                    Upload & Create Assignments
+                </button>
+                <a 
+                    href="#" 
+                    onclick="downloadTemplate(); return false;"
+                    class="md:flex-none px-6 py-3.5 bg-light-blue text-black rounded-xl font-bold hover:bg-light-blue/70 active:scale-[0.98] transition-all duration-200 text-center text-sm"
+                >
+                    Download Template
+                </a>
+            </div>
+        </form>
+    </div>
+    {% elif user.role == 'admin' %}
+    <!-- Manual Assignment Form (Admin Only) -->
+    <div class="bg-white border border-light-blue rounded-2xl p-6 md:p-8">
+        <h2 class="text-xl font-bold text-black mb-4">Create Assignment</h2>
+        
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Left: EP Numbers -->
+                <div>
+                    <label class="block text-xs font-semibold text-black/70 uppercase mb-2">
+                        Employee Numbers <span class="text-black">*</span>
+                    </label>
+                    <textarea 
+                        name="ep_nos" 
+                        rows="6" 
+                        required
+                        placeholder="Enter EP numbers (one per line)&#10;Example:&#10;EMP001&#10;EMP002&#10;EMP003"
+                        class="w-full px-4 py-3 bg-white border-2 border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-dark-blue transition-all duration-200 text-black placeholder:text-black/40 text-sm font-mono"
+                    ></textarea>
+                    <p class="text-xs text-black/60 mt-2">Enter one EP number per line</p>
+                </div>
+                
+                <!-- Right: Assign To -->
+                <div>
+                    <label class="block text-xs font-semibold text-black/70 uppercase mb-2">
+                        Assign To (User1) <span class="text-black">*</span>
+                    </label>
+                    <select 
+                        name="user_id" 
+                        required
+                        class="w-full px-4 py-3 bg-white border-2 border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-dark-blue transition-all duration-200 text-black text-sm mb-4"
+                    >
+                        <option value="">Select User1...</option>
+                        {% for user1 in user1_list %}
+                        <option value="{{ user1.id }}">{{ user1.username }} ({{ user1.email }})</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <label class="block text-xs font-semibold text-black/70 uppercase mb-2 mt-4">
+                        Access Period (Optional)
+                    </label>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-black/60 mb-1">From Date</label>
+                            <input 
+                                type="date" 
+                                name="access_from"
+                                class="w-full px-4 py-2.5 bg-white border-2 border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-dark-blue transition-all duration-200 text-black text-sm"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-xs text-black/60 mb-1">To Date</label>
+                            <input 
+                                type="date" 
+                                name="access_to"
+                                class="w-full px-4 py-2.5 bg-white border-2 border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-dark-blue transition-all duration-200 text-black text-sm"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-3 pt-4">
+                <button 
+                    type="submit"
+                    class="flex-1 px-6 py-3.5 bg-dark-blue text-cream rounded-xl font-bold hover:bg-black active:scale-[0.98] transition-all duration-200 text-sm"
+                >
+                    Create Assignments
+                </button>
+                <button 
+                    type="reset"
+                    class="md:flex-none px-6 py-3.5 bg-light-blue text-black rounded-xl font-bold hover:bg-light-blue/70 active:scale-[0.98] transition-all duration-200 text-center text-sm"
+                >
+                    Clear Form
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Assignments List -->
+    <div class="bg-white border border-light-blue rounded-2xl p-6 md:p-8">
+        <h2 class="text-xl font-bold text-black mb-5">Current Assignments <span class="text-black/60">({{ page_obj.paginator.count }})</span></h2>
+        
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="text-xs font-semibold uppercase bg-light-blue text-black">
+                    <tr>
+                        <th class="px-4 py-3">Supervisor</th>
+                        <th class="px-4 py-3">Employee</th>
+                        <th class="px-4 py-3">Access Period</th>
+                        <th class="px-4 py-3">Source</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-light-blue/30">
+                    {% for assignment in page_obj %}
+                    <tr class="hover:bg-light-blue/10 transition-colors duration-200">
+                        <td class="px-4 py-3 font-semibold">{{ assignment.user.username }}</td>
+                        <td class="px-4 py-3 font-bold">{{ assignment.ep_no }}</td>
+                        <td class="px-4 py-3 text-black/70">{{ assignment.get_date_range_display }}</td>
+                        <td class="px-4 py-3">
+                            {% if assignment.source == 'request' %}
+                            <span class="badge-late">Request</span>
+                            {% else %}
+                            <span class="badge-present">Admin</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if assignment.is_active %}
+                            <span class="badge-present">Active</span>
+                            {% else %}
+                            <span class="badge-absent">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if assignment.is_active %}
+                            <form method="post" action="{% url 'core:remove_assignment' assignment.id %}" onsubmit="return confirm('Remove this assignment?');">
+                                {% csrf_token %}
+                                <button type="submit" class="px-3 py-1.5 bg-black text-cream rounded-lg font-bold hover:bg-black/80 active:scale-95 transition-all duration-200 text-xs">
+                                    Remove
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-black/40 text-xs">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-12 text-center text-black/60">
+                            No assignments yet. Upload a CSV to create assignments.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden space-y-3">
+            {% for assignment in page_obj %}
+            <div class="bg-light-blue/10 border border-light-blue rounded-xl p-4">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-3 py-1 bg-dark-blue text-cream rounded-lg text-sm font-bold">
+                            {{ assignment.user.username }}
+                        </span>
+                        <svg class="w-4 h-4 text-black/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                        <span class="font-bold text-black">{{ assignment.ep_no }}</span>
+                    </div>
+                    {% if assignment.is_active %}
+                    <span class="badge-present">Active</span>
+                    {% else %}
+                    <span class="badge-absent">Inactive</span>
+                    {% endif %}
+                </div>
+                
+                <div class="text-sm space-y-2 mb-3">
+                    <div class="flex justify-between">
+                        <span class="text-xs font-semibold text-black/60 uppercase">Access</span>
+                        <span class="text-black">{{ assignment.get_date_range_display }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs font-semibold text-black/60 uppercase">Source</span>
+                        {% if assignment.source == 'request' %}
+                        <span class="badge-late">Request</span>
+                        {% else %}
+                        <span class="badge-present">Admin</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs font-semibold text-black/60 uppercase">Assigned By</span>
+                        <span class="text-black">{{ assignment.assigned_by.username }}</span>
+                    </div>
+                </div>
+                
+                {% if assignment.is_active %}
+                <form method="post" action="{% url 'core:remove_assignment' assignment.id %}" onsubmit="return confirm('Remove this assignment?');" class="pt-3 border-t border-light-blue/30">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full px-4 py-2.5 bg-black text-cream rounded-xl font-bold hover:bg-black/80 active:scale-95 transition-all duration-200 text-sm">
+                        Remove Assignment
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center py-12 text-black/60">
+                <svg class="w-16 h-16 mx-auto mb-4 text-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <p>No assignments yet</p>
+                <p class="text-xs mt-1">Upload a CSV to create assignments</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center items-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-xl font-semibold hover:bg-light-blue transition-colors duration-200">
+            Previous
+        </a>
+        {% endif %}
+        
+        <span class="px-4 py-2 bg-dark-blue text-cream rounded-xl font-bold">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-xl font-semibold hover:bg-light-blue transition-colors duration-200">
+            Next
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function downloadTemplate() {
+    const csv = 'username,ep_no,access_from,access_to\nuser1_example,EMP001,2024-01-01,2024-12-31\nuser1_example,EMP002,,\n';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'assignment_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

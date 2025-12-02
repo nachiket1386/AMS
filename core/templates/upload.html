@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload CSV - Attendance Management System{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div>
+            <h1 class="text-title-desktop hidden md:block text-black">Upload Attendance Data</h1>
+            <h1 class="text-title-mobile md:hidden text-black">Upload Data</h1>
+            <p class="text-sm text-black/70 mt-1">Upload CSV, XLS, or XLSX files</p>
+        </div>
+        <a href="{% url 'core:download_template' %}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-cream bg-dark-blue rounded-xl hover:bg-black active:scale-[0.98] transition-all duration-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Download Template
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            <div class="bg-cream border border-light-blue rounded-2xl p-6 md:p-8">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <label class="text-sm font-semibold text-black/80">CSV File</label>
+                        <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-light-blue border-dashed rounded-2xl hover:border-dark-blue transition-colors">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <div class="flex text-sm text-black/80 justify-center">
+                                    <label for="csv_file" class="relative cursor-pointer bg-transparent rounded-md font-medium text-dark-blue hover:text-black focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-dark-blue">
+                                        <span>Upload a file</span>
+                                        <input id="csv_file" name="csv_file" type="file" class="sr-only" accept=".csv,.xls,.xlsx" required onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''">
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-black/60">CSV, XLS, or XLSX up to 10MB</p>
+                                <p id="file-name" class="text-sm text-black/80 font-semibold mt-2"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" id="uploadBtn" class="w-full py-4 text-base font-semibold text-cream bg-dark-blue rounded-xl hover:bg-black transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-dark-blue/50">
+                        <span id="btnText">Upload File</span>
+                        <span id="btnLoader" class="hidden">
+                            <svg class="animate-spin h-5 w-5 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Uploading...
+                        </span>
+                    </button>
+                    
+                    <!-- Progress Display -->
+                    <div id="progressContainer" class="hidden mt-4 p-4 bg-light-blue/30 rounded-xl">
+                        <div class="space-y-3">
+                            <!-- Main Progress Text -->
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-semibold text-black">Status:</span>
+                                <span id="progressText" class="text-sm font-bold text-dark-blue">Uploading...</span>
+                            </div>
+                            
+                            <!-- Detailed Stats -->
+                            <div class="grid grid-cols-3 gap-2 text-xs">
+                                <div class="bg-white/50 rounded-lg p-2 text-center">
+                                    <div class="font-semibold text-dark-blue" id="uploadedCount">0</div>
+                                    <div class="text-black/60">Uploaded</div>
+                                </div>
+                                <div class="bg-white/50 rounded-lg p-2 text-center">
+                                    <div class="font-semibold text-black" id="pendingCount">0</div>
+                                    <div class="text-black/60">Pending</div>
+                                </div>
+                                <div class="bg-white/50 rounded-lg p-2 text-center">
+                                    <div class="font-semibold text-dark-blue" id="totalCount">0</div>
+                                    <div class="text-black/60">Total</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-black/70">Progress</span>
+                                    <span id="percentageText" class="font-bold text-dark-blue">0%</span>
+                                </div>
+                                <div class="w-full bg-cream rounded-full h-3 overflow-hidden">
+                                    <div id="progressBar" class="bg-dark-blue h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Recent Uploads -->
+            {% if recent_logs %}
+            <div class="mt-8 bg-cream border border-light-blue rounded-2xl p-6 md:p-8">
+                <h2 class="text-xl font-bold text-black mb-6">Recent Uploads</h2>
+                <div class="space-y-3">
+                    {% for log in recent_logs %}
+                    <div class="flex items-center justify-between p-4 bg-cream border border-light-blue/50 rounded-xl">
+                        <div class="flex-1">
+                            <p class="font-semibold text-black">{{ log.filename }}</p>
+                            <p class="text-sm text-black/70">By {{ log.user.username }} • {{ log.uploaded_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div class="flex gap-2 text-sm">
+                            <span class="px-2 py-1 bg-dark-blue/10 text-dark-blue rounded-lg font-semibold">✓ {{ log.success_count }}</span>
+                            <span class="px-2 py-1 bg-light-blue/30 text-black rounded-lg font-semibold">↻ {{ log.updated_count }}</span>
+                            {% if log.error_count > 0 %}
+                            <span class="px-2 py-1 bg-black/10 text-black rounded-lg font-semibold">✗ {{ log.error_count }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'core:upload_logs' %}" class="inline-block mt-4 text-sm font-semibold text-dark-blue hover:text-black">View All Logs →</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <div class="bg-light-blue border border-dark-blue/50 p-6 rounded-2xl space-y-4 h-full">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-bold text-black">Format Requirements</h3>
+                </div>
+                <div class="space-y-4 text-sm text-black/90">
+                    <div>
+                        <h4 class="font-semibold mb-1">📋 Required Columns</h4>
+                        <p class="font-mono text-xs">EP NO, EP NAME, COMPANY NAME, DATE, SHIFT, STATUS</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-1">📝 Optional Columns</h4>
+                        <p class="font-mono text-xs">IN, OUT, IN (2), OUT (2), IN (3), OUT (3), OVERSTAY, OVERTIME, OVERTIME TO MANDAYS</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-1">✅ Format Rules</h4>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Date: YYYY-MM-DD or DD-MM-YYYY</li>
+                            <li>Time: HH:MM or HH:MM (N)</li>
+                            <li>Status: P, A, PH, L, -0.5, -1</li>
+                            <li>No future dates allowed</li>
+                            <li>Duplicates will be updated</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-1">📊 Column Matching</h4>
+                        <p class="text-xs">Only columns that match the expected format will be uploaded. Extra columns will be automatically skipped.</p>
+                    </div>
+                    <div class="pt-4 border-t border-dark-blue/20">
+                        <p class="text-xs text-black/70">💡 <strong>Tip:</strong> Download the sample CSV file to see the correct format.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let progressInterval = null;
+let uploadStartTime = null;
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('csv_file');
+    if (fileInput.files.length > 0) {
+        const uploadBtn = document.getElementById('uploadBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressText = document.getElementById('progressText');
+        
+        // Disable button and show loading state
+        uploadBtn.disabled = true;
+        uploadBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        btnText.classList.add('hidden');
+        btnLoader.classList.remove('hidden');
+        
+        // Show progress container immediately
+        progressContainer.classList.remove('hidden');
+        progressText.textContent = 'Uploading file to server...';
+        
+        // Record start time
+        uploadStartTime = Date.now();
+        
+        // Start polling for progress immediately
+        startProgressPolling();
+    }
+});
+
+function startProgressPolling() {
+    progressInterval = setInterval(checkProgress, 1000); // Check every 1 second
+}
+
+function checkProgress() {
+    fetch('{% url "core:upload_progress" %}')
+        .then(response => response.json())
+        .then(data => {
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            const uploadedCount = document.getElementById('uploadedCount');
+            const pendingCount = document.getElementById('pendingCount');
+            const totalCount = document.getElementById('totalCount');
+            const percentageText = document.getElementById('percentageText');
+            
+            if (data.status === 'starting') {
+                // Show elapsed time while waiting for processing to start
+                const elapsed = Math.floor((Date.now() - uploadStartTime) / 1000);
+                progressText.textContent = `Uploading file to server... (${elapsed}s)`;
+                progressBar.style.width = '5%';
+                percentageText.textContent = '0%';
+                uploadedCount.textContent = '0';
+                pendingCount.textContent = '?';
+                totalCount.textContent = '?';
+            } else if (data.status === 'processing') {
+                const processed = data.processed || 0;
+                const total = data.total || 0;
+                const percentage = data.percentage || 0;
+                const pending = total - processed;
+                
+                progressText.textContent = `Processing data...`;
+                progressBar.style.width = `${Math.max(5, percentage)}%`;
+                percentageText.textContent = `${percentage}%`;
+                uploadedCount.textContent = processed.toLocaleString();
+                pendingCount.textContent = pending.toLocaleString();
+                totalCount.textContent = total.toLocaleString();
+            } else if (data.status === 'complete') {
+                const processed = data.processed || 0;
+                const total = data.total || 0;
+                
+                progressText.textContent = `Complete!`;
+                progressBar.style.width = '100%';
+                percentageText.textContent = '100%';
+                uploadedCount.textContent = processed.toLocaleString();
+                pendingCount.textContent = '0';
+                totalCount.textContent = total.toLocaleString();
+                
+                // Stop polling
+                clearInterval(progressInterval);
+                
+                // Reload page after 2 seconds to show results
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else if (data.status === 'no_upload') {
+                // Still uploading file to server
+                const elapsed = Math.floor((Date.now() - uploadStartTime) / 1000);
+                progressText.textContent = `Uploading file to server... (${elapsed}s)`;
+                progressBar.style.width = '5%';
+                percentageText.textContent = '0%';
+                uploadedCount.textContent = '0';
+                pendingCount.textContent = '?';
+                totalCount.textContent = '?';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking progress:', error);
+            // Continue polling even on error
+        });
+}
+</script>
+{% endblock %}

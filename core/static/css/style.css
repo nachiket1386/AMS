@@ -1,0 +1,221 @@
+/* Custom styles for Attendance Management System */
+
+:root {
+    --primary-color: #4A70A9;
+    --secondary-color: #8FABD4;
+    --success-color: #4A70A9;
+    --danger-color: #000000;
+    --warning-color: #8FABD4;
+    --info-color: #8FABD4;
+    --light-bg: #EFECE3;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #EFECE3;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.card {
+    border: 1px solid #8FABD4;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+    margin-bottom: 1.5rem;
+    background-color: #fff;
+}
+
+.card-header {
+    background-color: #8FABD4;
+    color: #000000;
+    border-bottom: 2px solid #4A70A9;
+    font-weight: 600;
+}
+
+.table {
+    background-color: #fff;
+}
+
+.table thead th {
+    border-bottom: 2px solid #4A70A9;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #000000;
+    background-color: #8FABD4;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #EFECE3;
+}
+
+.btn {
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.alert {
+    border: none;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: #4A70A9;
+    background-color: #EFECE3;
+    color: #000000;
+}
+
+.alert-danger {
+    border-left-color: #000000;
+    background-color: #EFECE3;
+    color: #000000;
+}
+
+.alert-warning {
+    border-left-color: #8FABD4;
+    background-color: #EFECE3;
+    color: #000000;
+}
+
+.alert-info {
+    border-left-color: #8FABD4;
+    background-color: #EFECE3;
+    color: #000000;
+}
+
+.pagination {
+    margin-top: 1rem;
+}
+
+.pagination .page-link {
+    color: #4A70A9;
+    border: 1px solid #8FABD4;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #4A70A9;
+    border-color: #4A70A9;
+    color: #EFECE3;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #4A70A9;
+    box-shadow: 0 0 0 0.2rem rgba(74, 112, 169, 0.25);
+}
+
+/* Dashboard cards */
+.card.text-white .card-body {
+    padding: 1.5rem;
+}
+
+.card.text-white h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.card.text-white h5 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Table actions */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .card.text-white h2 {
+        font-size: 2rem;
+    }
+    
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Status badges */
+.badge.bg-success {
+    background-color: #4A70A9 !important;
+    color: #EFECE3 !important;
+}
+
+.badge.bg-danger {
+    background-color: #000000 !important;
+    color: #EFECE3 !important;
+}
+
+.badge.bg-warning {
+    background-color: #8FABD4 !important;
+    color: #000000 !important;
+}
+
+.badge.bg-info {
+    background-color: #8FABD4 !important;
+    color: #000000 !important;
+}
+
+/* Form improvements */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #000000;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #000000;
+}
+
+/* Card hover effect */
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+/* Navigation active state */
+.nav-link.active {
+    font-weight: 600;
+}

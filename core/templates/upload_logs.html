@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Logs - Attendance Management System{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div>
+        <h1 class="text-2xl md:text-4xl font-extrabold text-black flex items-center gap-3">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+            Upload Logs
+        </h1>
+        <p class="text-black/70 mt-1 hidden md:block">Track all CSV upload activities and results.</p>
+    </div>
+
+    {% if page_obj %}
+    <div class="bg-cream border border-light-blue rounded-2xl p-0 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-black">
+                <thead class="text-xs text-black uppercase bg-light-blue">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">
+                            <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            File Name
+                        </th>
+                        <th scope="col" class="px-6 py-4">
+                            <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            Uploaded By
+                        </th>
+                        <th scope="col" class="px-6 py-4">
+                            <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Date & Time
+                        </th>
+                        <th scope="col" class="px-6 py-4 text-center">Metrics</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in page_obj %}
+                    <tr class="bg-cream border-b border-light-blue hover:bg-light-blue/40 transition-colors">
+                        <td class="px-6 py-4 font-semibold text-black">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                </svg>
+                                {{ log.filename }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">{{ log.user.username }}</td>
+                        <td class="px-6 py-4">{{ log.uploaded_at|date:"M d, Y H:i:s" }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2 flex-wrap">
+                                <span class="px-2 py-1 bg-dark-blue/10 text-dark-blue rounded-lg text-xs font-semibold inline-flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    {{ log.success_count }}
+                                </span>
+                                <span class="px-2 py-1 bg-light-blue/50 text-black rounded-lg text-xs font-semibold inline-flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    {{ log.updated_count }}
+                                </span>
+                                {% if log.error_count > 0 %}
+                                <span class="px-2 py-1 bg-black/10 text-black rounded-lg text-xs font-semibold inline-flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                    {{ log.error_count }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% if log.error_messages %}
+                            <details class="mt-2">
+                                <summary class="cursor-pointer text-xs text-dark-blue hover:text-black font-semibold">View Errors</summary>
+                                <div class="mt-2 p-3 bg-black/5 rounded-lg text-xs text-black/80 max-h-40 overflow-y-auto">
+                                    <pre class="whitespace-pre-wrap">{{ log.error_messages }}</pre>
+                                </div>
+                            </details>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center items-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page=1" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">Previous</a>
+        {% endif %}
+        
+        <span class="px-4 py-2 bg-dark-blue text-cream rounded-lg font-semibold">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="bg-cream border border-light-blue rounded-2xl p-8 text-center">
+        <p class="text-black/70">No upload logs found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

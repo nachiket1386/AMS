@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Restore Preview{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Restore Preview</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5>Preview Summary</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-center p-3 bg-light rounded">
+                        <h3 class="text-success">{{ preview.summary.add_count }}</h3>
+                        <p class="mb-0">Records to Add</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center p-3 bg-light rounded">
+                        <h3 class="text-warning">{{ preview.summary.update_count }}</h3>
+                        <p class="mb-0">Records to Update</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center p-3 bg-light rounded">
+                        <h3 class="text-secondary">{{ preview.summary.skip_count }}</h3>
+                        <p class="mb-0">Records to Skip</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center p-3 bg-light rounded">
+                        <h3 class="text-danger">{{ preview.summary.conflict_count }}</h3>
+                        <p class="mb-0">Conflicts</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <p><strong>Backup File:</strong> {{ filename }}</p>
+                <p><strong>Merge Strategy:</strong> {{ merge_strategy|title }}</p>
+                <p><strong>Total Records in Backup:</strong> {{ total_records }}</p>
+            </div>
+        </div>
+    </div>
+    
+    {% if preview.summary.conflict_count > 0 %}
+    <div class="alert alert-warning">
+        <h5>⚠️ Conflicts Detected</h5>
+        <p>{{ preview.summary.conflict_count }} record(s) exist in both backup and database with different data.</p>
+        <p>With <strong>{{ merge_strategy|title }}</strong> strategy, the {{ merge_strategy|cut:"_wins" }} data will be used.</p>
+    </div>
+    {% endif %}
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Apply Restore</h5>
+        </div>
+        <div class="card-body">
+            <p>Review the summary above. When ready, click the button below to apply the restore operation.</p>
+            
+            <form method="post" action="{% url 'core:restore_apply' %}">
+                {% csrf_token %}
+                <input type="hidden" name="merge_strategy" value="{{ merge_strategy }}">
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Apply Restore
+                    </button>
+                    <a href="{% url 'core:restore_data' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if preview.to_add|length > 0 and preview.to_add|length <= 10 %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Sample Records to Add ({{ preview.to_add|length }})</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>EP NO</th>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in preview.to_add|slice:":10" %}
+                        <tr>
+                            <td>{{ record.ep_no }}</td>
+                            <td>{{ record.ep_name }}</td>
+                            <td>{{ record.company_name }}</td>
+                            <td>{{ record.date }}</td>
+                            <td><span class="badge bg-primary">{{ record.status }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

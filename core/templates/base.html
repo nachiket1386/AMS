@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{% block title %}Attendance Management System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com?v=3.4.1"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'cream': '#EFECE3',
+              'light-blue': '#8FABD4',
+              'dark-blue': '#4A70A9',
+              'black': '#000000',
+            },
+            borderRadius: {
+              'standard': '0.5rem',    // 8px for buttons/inputs
+              'card': '1rem',          // 16px for cards
+              'dock': '2rem',          // 32px for mobile dock
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Design System Foundation */
+      :root {
+        --cream: #EFECE3;
+        --light-blue: #8FABD4;
+        --dark-blue: #4A70A9;
+        --black: #000000;
+      }
+      
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: var(--cream);
+        font-family: 'Inter', sans-serif;
+      }
+      
+      /* Color Utilities */
+      .bg-cream { background-color: var(--cream); }
+      .bg-light-blue { background-color: var(--light-blue); }
+      .bg-dark-blue { background-color: var(--dark-blue); }
+      .bg-black { background-color: var(--black); }
+      .text-cream { color: var(--cream); }
+      .text-light-blue { color: var(--light-blue); }
+      .text-dark-blue { color: var(--dark-blue); }
+      .text-black { color: var(--black); }
+      .border-cream { border-color: var(--cream); }
+      .border-light-blue { border-color: var(--light-blue); }
+      .border-dark-blue { border-color: var(--dark-blue); }
+      .border-black { border-color: var(--black); }
+      
+      /* Typography Scale */
+      .text-display { font-size: 3rem; font-weight: 800; letter-spacing: -0.025em; }
+      .text-title-desktop { font-size: 2.25rem; font-weight: 800; }
+      .text-title-mobile { font-size: 1.125rem; font-weight: 700; }
+      .text-card-number { font-size: 1.875rem; font-weight: 700; }
+      .text-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+      
+      /* Border Radius */
+      .rounded-standard { border-radius: 0.5rem; }
+      .rounded-card { border-radius: 1rem; }
+      .rounded-dock { border-radius: 2rem; }
+      
+      /* Button Styles */
+      .btn-primary {
+        background-color: var(--dark-blue);
+        color: var(--cream);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+      .btn-primary:hover {
+        background-color: var(--black);
+      }
+      .btn-primary:active {
+        transform: scale(0.95);
+      }
+      
+      .btn-secondary {
+        background-color: var(--light-blue);
+        color: var(--black);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+      .btn-secondary:hover {
+        background-color: rgba(143, 171, 212, 0.8);
+      }
+      .btn-secondary:active {
+        transform: scale(0.95);
+      }
+      
+      /* Status Badges */
+      .badge-present {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        background-color: var(--dark-blue);
+        color: var(--cream);
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      
+      .badge-late {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        background-color: var(--light-blue);
+        color: var(--black);
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      
+      .badge-absent {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        background-color: transparent;
+        border: 2px solid var(--black);
+        color: var(--black);
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      
+      /* Desktop Navigation */
+      .nav-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        color: var(--black);
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+      }
+      .nav-link:hover {
+        background-color: rgba(143, 171, 212, 0.2);
+        color: var(--dark-blue);
+      }
+      .nav-link.active {
+        color: var(--dark-blue);
+        background-color: rgba(74, 112, 169, 0.1);
+      }
+      
+      /* Dropdown Menu */
+      .dropdown {
+        position: relative;
+      }
+      .dropdown::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: 0.5rem;
+        display: none;
+      }
+      .dropdown:hover::after {
+        display: block;
+      }
+      .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        background-color: white;
+        border: 1px solid var(--light-blue);
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+        min-width: 16rem;
+        z-index: 50;
+        overflow: hidden;
+      }
+      .dropdown:hover .dropdown-menu,
+      .dropdown-menu:hover,
+      .dropdown:focus-within .dropdown-menu {
+        display: block;
+        animation: slideDown 0.2s ease-out;
+      }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .dropdown-menu a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.25rem;
+        color: var(--black);
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        border-bottom: 1px solid rgba(143, 171, 212, 0.1);
+        white-space: nowrap;
+      }
+      .dropdown-menu a:last-child {
+        border-bottom: none;
+      }
+      .dropdown-menu a:hover {
+        background-color: rgba(143, 171, 212, 0.2);
+        padding-left: 1.5rem;
+      }
+      
+      /* Mobile Navigation */
+      .mobile-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        border-radius: 0;
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 50;
+      }
+      
+      .dock-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem;
+        color: var(--black);
+        transition: all 0.2s ease;
+      }
+      .dock-item.active {
+        color: var(--dark-blue);
+      }
+      .dock-item:active {
+        transform: scale(0.95);
+      }
+      .dock-item svg {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+      .dock-item span {
+        font-size: 0.625rem;
+        font-weight: 600;
+        margin-top: 0.25rem;
+      }
+      
+      /* Bottom Sheet */
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        border-radius: 1.5rem 1.5rem 0 0;
+        padding: 1.5rem;
+        padding-bottom: 6rem;
+        box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.15);
+        z-index: 40;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-out;
+      }
+      .bottom-sheet.active {
+        transform: translateY(0);
+      }
+      
+      /* Hover Effects */
+      .hover-light-blue:hover {
+        background-color: rgba(143, 171, 212, 0.2);
+      }
+      
+      /* Card Styles */
+      .card {
+        background-color: white;
+        border: 1px solid var(--light-blue);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+      }
+      .card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* Form Inputs */
+      .input-field {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: var(--cream);
+        border: 1px solid var(--light-blue);
+        border-radius: 0.5rem;
+        color: var(--black);
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+      }
+      .input-field:focus {
+        outline: none;
+        border-color: var(--dark-blue);
+        box-shadow: 0 0 0 3px rgba(74, 112, 169, 0.1);
+      }
+      
+      /* Mobile Header Scroll Behavior */
+      .mobile-header {
+        transition: transform 0.3s ease-in-out;
+      }
+      .mobile-header.hidden {
+        transform: translateY(-100%);
+      }
+      
+      /* Custom Scrollbar for Tables */
+      .scrollbar-thin::-webkit-scrollbar {
+        height: 8px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-track {
+        background-color: var(--cream);
+        border-radius: 4px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-thumb {
+        background-color: var(--light-blue);
+        border-radius: 4px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        background-color: var(--dark-blue);
+      }
+      
+      /* Responsive Utilities */
+      @media (max-width: 768px) {
+        .text-title-desktop { font-size: 1.125rem; font-weight: 700; }
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-screen font-sans bg-cream">
+    {% if user.is_authenticated %}
+    <!-- Mobile Header -->
+    <header id="mobileHeader" class="mobile-header fixed top-0 left-0 right-0 z-50 bg-cream border-b border-light-blue md:hidden">
+        <div class="px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 rounded-lg bg-dark-blue text-cream">
+                        {% if request.resolver_match.url_name == 'dashboard' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        {% elif request.resolver_match.url_name == 'upload' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        {% elif request.resolver_match.url_name == 'attendance_list' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        {% elif request.resolver_match.url_name == 'upload_logs' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        {% elif request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        {% else %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <span class="text-lg font-bold text-black">
+                        {% if request.resolver_match.url_name == 'dashboard' %}
+                            Dashboard
+                        {% elif request.resolver_match.url_name == 'upload' %}
+                            Upload
+                        {% elif request.resolver_match.url_name == 'attendance_list' %}
+                            Attendance
+                        {% elif request.resolver_match.url_name == 'upload_logs' %}
+                            Logs
+                        {% elif request.resolver_match.url_name == 'user_list' %}
+                            Users
+                        {% elif request.resolver_match.url_name == 'user_create' %}
+                            Create User
+                        {% elif request.resolver_match.url_name == 'user_edit' %}
+                            Edit User
+                        {% elif request.resolver_match.url_name == 'user_delete' %}
+                            Delete User
+                        {% elif request.resolver_match.url_name == 'attendance_edit' %}
+                            Edit Record
+                        {% else %}
+                            Attendance System
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center bg-cream/50 rounded-full gap-2 px-3 py-2">
+                        <div class="w-8 h-8 rounded-full bg-dark-blue flex items-center justify-center text-cream font-bold text-sm">
+                            {{ user.username.0|upper }}
+                        </div>
+                    </div>
+                    <a href="{% url 'core:logout' %}" class="flex items-center justify-center w-10 h-10 rounded-full bg-dark-blue text-cream hover:bg-black transition-colors" title="Logout">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Desktop Navbar -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-cream border-b border-light-blue hidden md:block">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl font-extrabold text-dark-blue tracking-tight">AMS</span>
+                </div>
+                
+                <nav class="flex items-center gap-0.5">
+                    <a href="{% url 'core:dashboard' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <span class="hidden xl:inline">Dashboard</span>
+                    </a>
+                    {% if user.role == 'root' or user.role == 'admin' %}
+                    <a href="{% url 'core:upload' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'upload' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <span class="hidden xl:inline">Upload</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'core:attendance_list' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'attendance_list' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        <span class="hidden xl:inline">Data</span>
+                    </a>
+                    {% if user.role == 'user1' %}
+                    <a href="{% url 'core:request_access' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'request_access' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span class="hidden xl:inline">Request</span>
+                    </a>
+                    <a href="{% url 'core:my_requests' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'my_requests' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        <span class="hidden xl:inline">Requests</span>
+                    </a>
+                    {% endif %}
+                    {% if user.role == 'admin' or user.role == 'root' %}
+                    <!-- Desktop Admin Dropdown -->
+                    <div class="dropdown hidden md:block">
+                        <button class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'approve_requests' or request.resolver_match.url_name == 'manage_assignments' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'upload_logs' or request.resolver_match.url_name == 'backup_data' or request.resolver_match.url_name == 'restore_data' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span class="hidden xl:inline">Admin</span>
+                            <svg class="w-3.5 h-3.5 hidden xl:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="{% url 'core:approve_requests' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Approve Requests</span>
+                            </a>
+                            <a href="{% url 'core:manage_assignments' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                <span>Manage Assignments</span>
+                            </a>
+                            <a href="{% url 'core:user_list' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                <span>Users</span>
+                            </a>
+                            {% if user.role == 'root' %}
+                            <a href="{% url 'core:upload_logs' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                                <span>Upload Logs</span>
+                            </a>
+                            <a href="{% url 'core:backup_data' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                                <span>Backup Data</span>
+                            </a>
+                            <a href="{% url 'core:restore_data' %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <span>Restore Data</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </nav>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center bg-cream/60 rounded-full gap-2.5 px-3.5 py-2 border border-dark-blue/20 shadow-sm">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-dark-blue to-black flex items-center justify-center text-cream font-bold text-sm shadow-md">
+                            {{ user.username.0|upper }}
+                        </div>
+                        <div class="hidden xl:block">
+                            <p class="text-sm font-bold text-black leading-tight">{{ user.username }}</p>
+                            <p class="text-xs text-black/60">{{ user.get_role_display }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'core:logout' %}" class="flex items-center justify-center w-10 h-10 rounded-full bg-dark-blue text-cream hover:bg-black transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105" title="Logout">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="{% if user.is_authenticated %}pt-20 md:pt-24 pb-24 md:pb-8{% else %}pt-8 pb-8{% endif %}">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                        <div class="bg-cream border-l-4 {% if message.tags == 'success' %}border-dark-blue{% elif message.tags == 'error' %}border-black{% else %}border-light-blue{% endif %} p-4 rounded-lg">
+                            <p class="text-black">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation - Floating Dock -->
+    <nav class="md:hidden mobile-dock">
+        <div class="flex justify-around items-center h-16 px-2">
+            <a href="{% url 'core:dashboard' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-xs mt-0.5 font-bold">Home</span>
+            </a>
+            {% if user.role == 'root' or user.role == 'admin' %}
+            <a href="{% url 'core:upload' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'upload' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <span class="text-xs mt-0.5 font-bold">Upload</span>
+            </a>
+            {% endif %}
+            <a href="{% url 'core:attendance_list' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'attendance_list' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <span class="text-xs mt-0.5 font-bold">Data</span>
+            </a>
+            {% if user.role == 'user1' %}
+            <a href="{% url 'core:request_access' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'request_access' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span class="text-xs mt-0.5 font-bold">Request</span>
+            </a>
+            <a href="{% url 'core:my_requests' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'my_requests' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <span class="text-xs mt-0.5 font-bold">My Req</span>
+            </a>
+            {% endif %}
+            {% if user.role == 'admin' or user.role == 'root' %}
+            <button onclick="toggleAdminSheet()" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name in 'approve_requests,manage_assignments,user_list,upload_logs,backup_data,restore_data' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span class="text-xs mt-0.5 font-bold">Admin</span>
+            </button>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Mobile Admin Bottom Sheet -->
+    {% if user.is_authenticated and user.role in 'admin,root' %}
+    <div id="adminBottomSheet" class="bottom-sheet md:hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-black">Admin Functions</h3>
+            <button onclick="toggleAdminSheet()" class="w-8 h-8 rounded-full bg-light-blue/20 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'core:approve_requests' %}" class="flex flex-col items-center gap-2 p-4 bg-cream rounded-card border border-light-blue hover-light-blue">
+                <svg class="w-8 h-8 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-xs font-semibold text-black text-center">Approve Requests</span>
+            </a>
+            <a href="{% url 'core:manage_assignments' %}" class="flex flex-col items-center gap-2 p-4 bg-cream rounded-card border border-light-blue hover-light-blue">
+                <svg class="w-8 h-8 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <span class="text-xs font-semibold text-black text-center">Manage Assignments</span>
+            </a>
+            <a href="{% url 'core:user_list' %}" class="flex flex-col items-center gap-2 p-4 bg-cream rounded-card border border-light-blue hover-light-blue">
+                <svg class="w-8 h-8 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <span class="text-xs font-semibold text-black text-center">Users</span>
+            </a>
+            {% if user.role == 'root' %}
+            <a href="{% url 'core:upload_logs' %}" class="flex flex-col items-center gap-2 p-4 bg-cream rounded-card border border-light-blue hover-light-blue">
+                <svg class="w-8 h-8 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span class="text-xs font-semibold text-black text-center">Upload Logs</span>
+            </a>
+            <a href="{% url 'core:backup_data' %}" class="flex flex-col items-center gap-2 p-4 bg-cream rounded-card border border-light-blue hover-light-blue">
+                <svg class="w-8 h-8 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                <span class="text-xs font-semibold text-black text-center">Backup Data</span>
+            </a>
+            <a href="{% url 'core:restore_data' %}" class="flex flex-col items-center gap-2 p-4 bg-cream rounded-card border border-light-blue hover-light-blue">
+                <svg class="w-8 h-8 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span class="text-xs font-semibold text-black text-center">Restore Data</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function toggleAdminSheet() {
+            const sheet = document.getElementById('adminBottomSheet');
+            sheet.classList.toggle('active');
+        }
+        
+        // Close bottom sheet when clicking outside
+        document.addEventListener('click', function(event) {
+            const sheet = document.getElementById('adminBottomSheet');
+            const adminButton = event.target.closest('[onclick*="toggleAdminSheet"]');
+            if (sheet && !sheet.contains(event.target) && !adminButton && sheet.classList.contains('active')) {
+                sheet.classList.remove('active');
+            }
+        });
+    </script>
+    {% endif %}
+
+    <!-- Mobile Header Scroll Behavior -->
+    <script>
+        (function() {
+            const mobileHeader = document.getElementById('mobileHeader');
+            if (!mobileHeader) return;
+            
+            let lastScrollTop = 0;
+            let scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
+            
+            window.addEventListener('scroll', function() {
+                let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Scrolling down
+                if (scrollTop > lastScrollTop && scrollTop > scrollThreshold) {
+                    mobileHeader.classList.add('hidden');
+                } 
+                // Scrolling up
+                else if (scrollTop < lastScrollTop) {
+                    mobileHeader.classList.remove('hidden');
+                }
+                
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            }, false);
+        })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

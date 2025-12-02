@@ -1,0 +1,21 @@
+EP NO,EP NAME,COMPANY NAME,DATE,SHIFT,OVERSTAY,STATUS,IN,OUT,IN (2),OUT (2),IN (3),OUT (3),OVERTIME,OVERTIME TO MANDAYS
+EMP001,John Doe,Sample Company,2024-01-15,Day,0,P,09:00,17:30,,,,,0,0
+EMP002,Jane Smith,Sample Company,2024-01-15,Day,0,P,08:45,17:15,,,,,0,0
+EMP003,Bob Johnson,Sample Company,2024-01-15,Night,0,P,22:00,06:00,,,,,0,0
+EMP004,Alice Williams,Sample Company,2024-01-15,Day,0,A,,,,,,,0,0
+EMP005,Charlie Brown,Sample Company,2024-01-15,Day,0,P,09:15,17:45,,,,,0,0
+EMP001,John Doe,Sample Company,2024-01-16,Day,0,P,09:05,17:35,,,,,0,0
+EMP002,Jane Smith,Sample Company,2024-01-16,Day,0,P,08:50,17:20,,,,,0,0
+EMP003,Bob Johnson,Sample Company,2024-01-16,Night,0,P,22:00,06:00,,,,,0,0
+EMP004,Alice Williams,Sample Company,2024-01-16,Day,0,P,09:00,17:00,,,,,0,0
+EMP005,Charlie Brown,Sample Company,2024-01-16,Day,0,L,,,,,,,0,0
+EMP006,David Lee,Tech Corp,2024-01-15,Day,0,P,09:00,18:00,,,,,1,0.125
+EMP007,Emma Davis,Tech Corp,2024-01-15,Day,0,P,08:30,17:00,,,,,0,0
+EMP008,Frank Miller,Tech Corp,2024-01-15,Day,0,P,09:00,17:30,,,,,0,0
+EMP009,Grace Wilson,Tech Corp,2024-01-15,Day,0,HD,09:00,13:00,,,,,0,0
+EMP010,Henry Moore,Tech Corp,2024-01-15,Day,0,P,09:00,17:30,,,,,0,0
+EMP006,David Lee,Tech Corp,2024-01-16,Day,0,P,09:00,17:30,,,,,0,0
+EMP007,Emma Davis,Tech Corp,2024-01-16,Day,0,P,08:30,17:00,,,,,0,0
+EMP008,Frank Miller,Tech Corp,2024-01-16,Day,0,WO,,,,,,,0,0
+EMP009,Grace Wilson,Tech Corp,2024-01-16,Day,0,P,09:00,17:30,,,,,0,0
+EMP010,Henry Moore,Tech Corp,2024-01-16,Day,0,P,09:00,17:30,,,,,0,0

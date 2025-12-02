@@ -1,0 +1,4 @@
+username,ep_no,access_from,access_to
+user1_example,EMP001,2024-01-01,2024-12-31
+user1_example,EMP002,,
+supervisor2,EMP003,2024-06-01,

@@ -1,0 +1,5 @@
+{
+  "name": "Attendance Management System",
+  "description": "A modern, professional UI for a multi-user attendance management system with role-based access and CSV upload functionality. It features a data-focused, enterprise-grade design with responsive layouts for desktop, tablet, and mobile.",
+  "requestFramePermissions": []
+}
