@@ -110,35 +110,41 @@
       .badge-present {
         display: inline-flex;
         align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
+        justify-content: center;
+        padding: 0.125rem 0.5rem;
+        border-radius: 0.375rem;
         background-color: var(--dark-blue);
         color: var(--cream);
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         font-weight: 600;
+        min-width: 2rem;
       }
       
       .badge-late {
         display: inline-flex;
         align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
+        justify-content: center;
+        padding: 0.125rem 0.5rem;
+        border-radius: 0.375rem;
         background-color: var(--light-blue);
         color: var(--black);
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         font-weight: 600;
+        min-width: 2rem;
       }
       
       .badge-absent {
         display: inline-flex;
         align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
+        justify-content: center;
+        padding: 0.125rem 0.5rem;
+        border-radius: 0.375rem;
         background-color: transparent;
-        border: 2px solid var(--black);
+        border: 1.5px solid var(--black);
         color: var(--black);
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         font-weight: 600;
+        min-width: 2rem;
       }
       
       /* Desktop Navigation */
@@ -353,7 +359,7 @@
     {% if user.is_authenticated %}
     <!-- Mobile Header -->
     <header id="mobileHeader" class="mobile-header fixed top-0 left-0 right-0 z-50 bg-cream border-b border-light-blue md:hidden">
-        <div class="px-4">
+        <div class="px-2">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-2">
                     <div class="p-2 rounded-lg bg-dark-blue text-cream">
@@ -424,7 +430,7 @@
 
     <!-- Desktop Navbar -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-cream border-b border-light-blue hidden md:block">
-        <div class="max-w-7xl mx-auto px-8">
+        <div class="mx-auto px-4">
             <div class="flex items-center justify-between h-20">
                 <div class="flex items-center gap-3">
                     <span class="text-2xl font-extrabold text-dark-blue tracking-tight">AMS</span>
@@ -444,6 +450,16 @@
                     <a href="{% url 'core:attendance_list' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'attendance_list' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                         <span class="hidden xl:inline">Data</span>
+                    </a>
+                    {% if user.role == 'root' or user.role == 'admin' %}
+                    <a href="{% url 'core:upload_mandays' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'upload_mandays' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="hidden xl:inline">Upload Mandays</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'core:mandays_list' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'mandays_list' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span class="hidden xl:inline">Mandays</span>
                     </a>
                     {% if user.role == 'user1' %}
                     <a href="{% url 'core:request_access' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'request_access' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
@@ -514,7 +530,7 @@
     </header>
 
     <main class="{% if user.is_authenticated %}pt-20 md:pt-24 pb-24 md:pb-8{% else %}pt-8 pb-8{% endif %}">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto px-2 sm:px-3 lg:px-4">
             {% if messages %}
                 <div class="mb-6 space-y-2">
                     {% for message in messages %}
@@ -545,6 +561,10 @@
             <a href="{% url 'core:attendance_list' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'attendance_list' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                 <span class="text-xs mt-0.5 font-bold">Data</span>
+            </a>
+            <a href="{% url 'core:mandays_list' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'mandays_list' or request.resolver_match.url_name == 'upload_mandays' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span class="text-xs mt-0.5 font-bold">Mandays</span>
             </a>
             {% if user.role == 'user1' %}
             <a href="{% url 'core:request_access' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'request_access' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">

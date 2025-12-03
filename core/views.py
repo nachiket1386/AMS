@@ -256,6 +256,70 @@ def attendance_list_view(request):
         # Filter for records without overstay (empty, "00:00", or "-")
         queryset = queryset.filter(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
         logger.info("Applied no_overstay filter")
+    elif overstay_filter.startswith('range_'):
+        # Filter for records with overstay in a specific range (e.g., range_1_2 for 1-2 hours)
+        try:
+            parts = overstay_filter.split('_')
+            min_hours = int(parts[1])
+            max_hours = int(parts[2])
+            
+            # Get all records with overstay
+            all_records = queryset.exclude(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
+            
+            # Filter by parsing overstay time
+            filtered_ids = []
+            for record in all_records.iterator(chunk_size=500):
+                try:
+                    # Parse overstay format (e.g., "02:30", "1:15", "00:45")
+                    overstay_str = str(record.overstay).strip()
+                    if ':' in overstay_str:
+                        parts = overstay_str.split(':')
+                        overstay_hours = int(parts[0])
+                        overstay_minutes = int(parts[1]) if len(parts) > 1 else 0
+                        total_hours = overstay_hours + (overstay_minutes / 60.0)
+                        
+                        if min_hours <= total_hours < max_hours:
+                            filtered_ids.append(record.id)
+                except (ValueError, AttributeError):
+                    continue
+            
+            # Handle filtered results
+            if filtered_ids:
+                matching_records = list(queryset.filter(pk__in=filtered_ids[:999]).select_related('company'))
+                
+                if len(filtered_ids) > 999:
+                    for i in range(999, len(filtered_ids), 999):
+                        batch_ids = filtered_ids[i:i+999]
+                        matching_records.extend(list(queryset.filter(pk__in=batch_ids).select_related('company')))
+                
+                matching_records.sort(key=lambda x: (x.date, x.ep_no), reverse=True)
+                
+                logger.info(f"Applied overstay range {min_hours}-{max_hours} hours filter, found {len(matching_records)} records")
+                
+                paginator = Paginator(matching_records, 50)
+                page_number = request.GET.get('page')
+                page_obj = paginator.get_page(page_number)
+                
+                for record in page_obj:
+                    if record.shift and '(' in str(record.shift):
+                        record.shift_code = str(record.shift).split('(')[0].strip()
+                    else:
+                        record.shift_code = str(record.shift) if record.shift else '-'
+                
+                companies = Company.objects.all() if request.user.role == 'root' else []
+                
+                context = {
+                    'page_obj': page_obj,
+                    'companies': companies,
+                    'can_edit': can_edit_record(request.user),
+                    'can_delete': can_delete_record(request.user),
+                }
+                return render(request, 'attendance_list.html', context)
+            else:
+                queryset = queryset.none()
+                logger.info(f"Applied overstay range {min_hours}-{max_hours} hours filter, found 0 records")
+        except (ValueError, IndexError):
+            logger.warning(f"Invalid overstay range filter format: {overstay_filter}")
     elif overstay_filter.startswith('gt_'):
         # Filter for records with overstay greater than X hours
         try:
@@ -298,7 +362,6 @@ def attendance_list_view(request):
                 logger.info(f"Applied overstay > {hours} hours filter, found {len(matching_records)} records")
                 
                 # Use manual pagination with the list
-                from django.core.paginator import Paginator
                 paginator = Paginator(matching_records, 50)
                 page_number = request.GET.get('page')
                 page_obj = paginator.get_page(page_number)
@@ -399,6 +462,42 @@ def attendance_export_view(request):
         queryset = queryset.exclude(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
     elif overstay_filter == 'no_overstay':
         queryset = queryset.filter(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
+    elif overstay_filter and overstay_filter.startswith('range_'):
+        # Filter for records with overstay in a specific range
+        try:
+            parts = overstay_filter.split('_')
+            min_hours = int(parts[1])
+            max_hours = int(parts[2])
+            all_records = queryset.exclude(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
+            
+            filtered_ids = []
+            for record in all_records.iterator(chunk_size=500):
+                try:
+                    overstay_str = str(record.overstay).strip()
+                    if ':' in overstay_str:
+                        parts = overstay_str.split(':')
+                        overstay_hours = int(parts[0])
+                        overstay_minutes = int(parts[1]) if len(parts) > 1 else 0
+                        total_hours = overstay_hours + (overstay_minutes / 60.0)
+                        
+                        if min_hours <= total_hours < max_hours:
+                            filtered_ids.append(record.id)
+                except (ValueError, AttributeError):
+                    continue
+            
+            if filtered_ids:
+                chunk_size = 900
+                id_chunks = [filtered_ids[i:i + chunk_size] for i in range(0, len(filtered_ids), chunk_size)]
+                
+                q_objects = Q()
+                for chunk in id_chunks:
+                    q_objects |= Q(id__in=chunk)
+                
+                queryset = queryset.filter(q_objects)
+            else:
+                queryset = queryset.none()
+        except (ValueError, IndexError):
+            pass
     elif overstay_filter and overstay_filter.startswith('gt_'):
         # Filter for records with overstay greater than X hours
         try:
@@ -617,6 +716,42 @@ def export_csv_view(request):
         queryset = queryset.exclude(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
     elif overstay_filter == 'no_overstay':
         queryset = queryset.filter(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
+    elif overstay_filter and overstay_filter.startswith('range_'):
+        # Filter for records with overstay in a specific range
+        try:
+            parts = overstay_filter.split('_')
+            min_hours = int(parts[1])
+            max_hours = int(parts[2])
+            all_records = queryset.exclude(Q(overstay='') | Q(overstay='00:00') | Q(overstay='-') | Q(overstay__isnull=True))
+            
+            filtered_ids = []
+            for record in all_records.iterator(chunk_size=500):
+                try:
+                    overstay_str = str(record.overstay).strip()
+                    if ':' in overstay_str:
+                        parts = overstay_str.split(':')
+                        overstay_hours = int(parts[0])
+                        overstay_minutes = int(parts[1]) if len(parts) > 1 else 0
+                        total_hours = overstay_hours + (overstay_minutes / 60.0)
+                        
+                        if min_hours <= total_hours < max_hours:
+                            filtered_ids.append(record.id)
+                except (ValueError, AttributeError):
+                    continue
+            
+            if filtered_ids:
+                chunk_size = 900
+                id_chunks = [filtered_ids[i:i + chunk_size] for i in range(0, len(filtered_ids), chunk_size)]
+                
+                q_objects = Q()
+                for chunk in id_chunks:
+                    q_objects |= Q(id__in=chunk)
+                
+                queryset = queryset.filter(q_objects)
+            else:
+                queryset = queryset.none()
+        except (ValueError, IndexError):
+            pass
     elif overstay_filter and overstay_filter.startswith('gt_'):
         # Filter for records with overstay greater than X hours
         try:
@@ -1413,3 +1548,276 @@ def remove_assignment_view(request, assignment_id):
             messages.error(request, 'Error removing assignment.')
     
     return redirect('core:manage_assignments')
+
+
+
+# Manday Summary Views
+
+@role_required(['root', 'admin'])
+def upload_mandays_view(request):
+    """Handle manday CSV/Excel file upload and processing"""
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        csv_file = request.FILES['csv_file']
+        
+        # Validate file extension
+        allowed_extensions = ['.csv', '.xls', '.xlsx']
+        if not any(csv_file.name.lower().endswith(ext) for ext in allowed_extensions):
+            logger.warning(f'Invalid manday file upload attempt by {request.user.username}: {csv_file.name}')
+            messages.error(request, 'Please upload a valid CSV, XLS, or XLSX file.')
+            return redirect('core:upload_mandays')
+        
+        logger.info(f'Manday CSV upload started by {request.user.username}: {csv_file.name}')
+        
+        # Create a unique upload ID for this session
+        from django.core.cache import cache
+        upload_id = f"manday_upload_{request.user.id}_{int(timezone.now().timestamp())}"
+        
+        # Initialize progress in cache
+        cache.set(upload_id, {'processed': 0, 'total': 0, 'status': 'starting'}, timeout=3600)
+        
+        # Store upload_id in session
+        request.session['current_manday_upload_id'] = upload_id
+        
+        # Process CSV with progress callback
+        from .manday_processor import MandayProcessor
+        from .models import MandayUploadLog
+        processor = MandayProcessor()
+        
+        # Set progress callback
+        def progress_callback(processed, total):
+            cache.set(upload_id, {
+                'processed': processed,
+                'total': total,
+                'status': 'processing',
+                'percentage': int((processed / total) * 100) if total > 0 else 0
+            }, timeout=3600)
+        
+        processor.progress_callback = progress_callback
+        result = processor.process_csv(csv_file, request.user)
+        
+        # Mark as complete
+        cache.set(upload_id, {
+            'processed': result.get('processed_rows', 0),
+            'total': result.get('total_rows', 0),
+            'status': 'complete',
+            'percentage': 100
+        }, timeout=3600)
+        
+        # Create upload log
+        error_messages = '\n'.join(result['errors']) if result['errors'] else ''
+        upload_log = MandayUploadLog.objects.create(
+            user=request.user,
+            filename=csv_file.name,
+            success_count=result['success_count'],
+            updated_count=result['updated_count'],
+            error_count=result['error_count'],
+            error_messages=error_messages
+        )
+        
+        # Log results
+        logger.info(
+            f'Manday CSV processing completed by {request.user.username}: '
+            f'Created={result["success_count"]}, Updated={result["updated_count"]}, Errors={result["error_count"]}'
+        )
+        
+        if result['error_count'] > 0:
+            logger.error(f'Manday CSV processing errors for {csv_file.name}: {error_messages[:200]}...')
+        
+        # Display results
+        if result['success']:
+            messages.success(
+                request,
+                f'Manday data processed successfully! Created: {result["success_count"]}, Updated: {result["updated_count"]}'
+            )
+        else:
+            messages.warning(
+                request,
+                f'Manday data processed with errors. Created: {result["success_count"]}, Updated: {result["updated_count"]}, Errors: {result["error_count"]}'
+            )
+            if result['errors']:
+                for error in result['errors'][:5]:  # Show first 5 errors
+                    messages.error(request, error)
+                if len(result['errors']) > 5:
+                    messages.info(request, f'... and {len(result["errors"]) - 5} more errors. Check upload logs for details.')
+        
+        return redirect('core:upload_mandays')
+    
+    # Get recent upload logs for current user
+    from .models import MandayUploadLog
+    if request.user.role == 'root':
+        recent_logs = MandayUploadLog.objects.all()[:10]
+    else:
+        recent_logs = MandayUploadLog.objects.filter(user__company=request.user.company)[:10]
+    
+    context = {
+        'recent_logs': recent_logs
+    }
+    return render(request, 'upload_mandays.html', context)
+
+
+@login_required
+@company_access_required
+def mandays_list_view(request):
+    """List manday records with filtering and pagination"""
+    from .services.access_control_service import AccessControlService
+    from .models import MandaySummaryRecord
+    
+    # Base queryset based on user role
+    if request.user.role == 'root':
+        queryset = MandaySummaryRecord.objects.all()
+    elif request.user.role == 'user1':
+        # User1: Filter by company and assigned employees
+        queryset = MandaySummaryRecord.objects.filter(company=request.user.company)
+        # Note: For mandays, we don't filter by employee assignments like attendance
+        # This is a business decision - adjust if needed
+    else:
+        # Admin: Filter by company only
+        queryset = MandaySummaryRecord.objects.filter(company=request.user.company)
+    
+    # Apply filters
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+    company_id = request.GET.get('company', '').strip()
+    ep_no = request.GET.get('ep_no', '').strip()
+    
+    logger.info(f"Manday Filters - EP NO: '{ep_no}', Date From: '{date_from}', Date To: '{date_to}'")
+    
+    # Only apply date filters if values are provided
+    if date_from:
+        queryset = queryset.filter(punch_date__gte=date_from)
+        logger.info(f"Applied date_from filter: {date_from}")
+    if date_to:
+        queryset = queryset.filter(punch_date__lte=date_to)
+        logger.info(f"Applied date_to filter: {date_to}")
+    if company_id and request.user.role == 'root':
+        queryset = queryset.filter(company_id=company_id)
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+        logger.info(f"Applied ep_no filter: {ep_no}")
+    
+    # Order by date descending and ep_no
+    queryset = queryset.order_by('-punch_date', 'ep_no')
+    
+    logger.info(f"Filters applied, proceeding to pagination")
+    
+    # Pagination
+    paginator = Paginator(queryset.select_related('company'), 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get companies for filter (root only)
+    companies = Company.objects.all() if request.user.role == 'root' else []
+    
+    context = {
+        'page_obj': page_obj,
+        'companies': companies,
+    }
+    return render(request, 'mandays_list.html', context)
+
+
+@login_required
+@company_access_required
+def mandays_export_view(request):
+    """Export manday records to XLSX with same filters as list view"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from io import BytesIO
+    from .models import MandaySummaryRecord
+    
+    # Base queryset based on user role
+    if request.user.role == 'root':
+        queryset = MandaySummaryRecord.objects.all()
+    elif request.user.role == 'user1':
+        queryset = MandaySummaryRecord.objects.filter(company=request.user.company)
+    else:
+        queryset = MandaySummaryRecord.objects.filter(company=request.user.company)
+    
+    # Apply same filters as list view
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    company_id = request.GET.get('company')
+    ep_no = request.GET.get('ep_no')
+    
+    if date_from:
+        queryset = queryset.filter(punch_date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(punch_date__lte=date_to)
+    if company_id and request.user.role == 'root':
+        queryset = queryset.filter(company_id=company_id)
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Manday Summary"
+    
+    # Header styling
+    header_fill = PatternFill(start_color="4A70A9", end_color="4A70A9", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Write headers in correct order
+    headers = ['EP NO', 'PUNCH DATE', 'COMPANY', 'MANDAYS', 'REGULAR MANDAY HR', 'OT', 'TRADE', 'CONTRACT', 'PLANT', 'PLANT DESC']
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alignment
+    
+    # Write data in correct column order
+    for row_num, record in enumerate(queryset.select_related('company'), 2):
+        ws.cell(row=row_num, column=1, value=record.ep_no)
+        ws.cell(row=row_num, column=2, value=record.punch_date.strftime('%d-%m-%Y') if record.punch_date else '')
+        ws.cell(row=row_num, column=3, value=record.company.name if record.company else '')
+        ws.cell(row=row_num, column=4, value=float(record.mandays) if record.mandays else 0)
+        ws.cell(row=row_num, column=5, value=float(record.regular_manday_hr) if record.regular_manday_hr else 0)
+        ws.cell(row=row_num, column=6, value=float(record.ot) if record.ot else 0)
+        ws.cell(row=row_num, column=7, value=record.trade or '')
+        ws.cell(row=row_num, column=8, value=record.contract or '')
+        ws.cell(row=row_num, column=9, value=record.plant or '')
+        ws.cell(row=row_num, column=10, value=record.plant_desc or '')
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    # Create response
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="mandays_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    
+    return response
+
+
+@role_required(['root', 'admin'])
+def download_mandays_template(request):
+    """Download empty CSV template with headers for manday upload"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="mandays_template.csv"'
+    
+    writer = csv.writer(response)
+    # Write header row with all required and optional columns
+    writer.writerow([
+        'epNo', 'punchDate', 'mandays', 'regularMandayHr', 'ot',
+        'trade', 'skill', 'contract', 'plant', 'plantDesc'
+    ])
+    
+    logger.info(f'Manday CSV template downloaded by {request.user.username}')
+    return response

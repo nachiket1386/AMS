@@ -64,10 +64,10 @@
                         <option value="">All</option>
                         <option value="has_overstay" {% if request.GET.overstay_filter == 'has_overstay' %}selected{% endif %}>Has Overstay</option>
                         <option value="no_overstay" {% if request.GET.overstay_filter == 'no_overstay' %}selected{% endif %}>No Overstay</option>
-                        <option value="gt_1" {% if request.GET.overstay_filter == 'gt_1' %}selected{% endif %}>> 1 Hour</option>
-                        <option value="gt_2" {% if request.GET.overstay_filter == 'gt_2' %}selected{% endif %}>> 2 Hours</option>
-                        <option value="gt_3" {% if request.GET.overstay_filter == 'gt_3' %}selected{% endif %}>> 3 Hours</option>
-                        <option value="gt_4" {% if request.GET.overstay_filter == 'gt_4' %}selected{% endif %}>> 4 Hours</option>
+                        <option value="range_1_2" {% if request.GET.overstay_filter == 'range_1_2' %}selected{% endif %}>1-2 Hours</option>
+                        <option value="range_2_3" {% if request.GET.overstay_filter == 'range_2_3' %}selected{% endif %}>2-3 Hours</option>
+                        <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4 Hours</option>
+                        <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5 Hours</option>
                         <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>> 5 Hours</option>
                     </select>
                 </div>
@@ -108,10 +108,10 @@
                         <option value="">All</option>
                         <option value="has_overstay" {% if request.GET.overstay_filter == 'has_overstay' %}selected{% endif %}>Has Overstay</option>
                         <option value="no_overstay" {% if request.GET.overstay_filter == 'no_overstay' %}selected{% endif %}>No Overstay</option>
-                        <option value="gt_1" {% if request.GET.overstay_filter == 'gt_1' %}selected{% endif %}>> 1 Hour</option>
-                        <option value="gt_2" {% if request.GET.overstay_filter == 'gt_2' %}selected{% endif %}>> 2 Hours</option>
-                        <option value="gt_3" {% if request.GET.overstay_filter == 'gt_3' %}selected{% endif %}>> 3 Hours</option>
-                        <option value="gt_4" {% if request.GET.overstay_filter == 'gt_4' %}selected{% endif %}>> 4 Hours</option>
+                        <option value="range_1_2" {% if request.GET.overstay_filter == 'range_1_2' %}selected{% endif %}>1-2 Hours</option>
+                        <option value="range_2_3" {% if request.GET.overstay_filter == 'range_2_3' %}selected{% endif %}>2-3 Hours</option>
+                        <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4 Hours</option>
+                        <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5 Hours</option>
                         <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>> 5 Hours</option>
                     </select>
                 </div>
@@ -152,10 +152,10 @@
             <span class="px-3 py-1 bg-dark-blue text-cream rounded-lg text-xs font-semibold">
                 {% if request.GET.overstay_filter == 'has_overstay' %}Has Overstay
                 {% elif request.GET.overstay_filter == 'no_overstay' %}No Overstay
-                {% elif request.GET.overstay_filter == 'gt_1' %}Overstay > 1 Hour
-                {% elif request.GET.overstay_filter == 'gt_2' %}Overstay > 2 Hours
-                {% elif request.GET.overstay_filter == 'gt_3' %}Overstay > 3 Hours
-                {% elif request.GET.overstay_filter == 'gt_4' %}Overstay > 4 Hours
+                {% elif request.GET.overstay_filter == 'range_1_2' %}Overstay: 1-2 Hours
+                {% elif request.GET.overstay_filter == 'range_2_3' %}Overstay: 2-3 Hours
+                {% elif request.GET.overstay_filter == 'range_3_4' %}Overstay: 3-4 Hours
+                {% elif request.GET.overstay_filter == 'range_4_5' %}Overstay: 4-5 Hours
                 {% elif request.GET.overstay_filter == 'gt_5' %}Overstay > 5 Hours
                 {% endif %}
             </span>
@@ -167,10 +167,10 @@
         </div>
     </div>
 
-    <!-- Mobile & Tablet Card Stack View (< lg) -->
-    <div class="lg:hidden space-y-4">
+    <!-- Mobile & Tablet Card Stack View (< xl) -->
+    <div class="xl:hidden space-y-4">
         {% for record in page_obj %}
-        <div class="{% if record.overstay|has_excessive_overstay %}bg-red-50{% else %}bg-white{% endif %} border border-light-blue rounded-2xl p-5 active:scale-[0.98] transition-transform duration-200">
+        <div class="{% if record.overstay|has_excessive_overstay %}bg-red-50{% else %}bg-white{% endif %} border border-light-blue rounded-2xl p-5 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200">
             <!-- Top Row: Name/EP NO and Status Badge -->
             <div class="flex justify-between items-start mb-4">
                 <div class="flex-1">
@@ -198,7 +198,7 @@
             <!-- Time Pairs Section -->
             <div class="bg-light-blue/20 rounded-xl p-3 mb-4">
                 <div class="text-xs font-semibold text-black/70 uppercase mb-1">Time Pairs</div>
-                <div class="font-mono text-sm font-semibold text-black">{{ record|format_time_pairs }}</div>
+                <div class="font-mono text-base font-bold text-black">{{ record|format_time_pairs }}</div>
             </div>
             
             <!-- Info Grid -->
@@ -243,8 +243,8 @@
         {% endfor %}
     </div>
 
-    <!-- Desktop Table View (lg and up) -->
-    <div class="bg-white border border-light-blue rounded-2xl overflow-hidden hidden lg:block">
+    <!-- Desktop Table View (xl and up) -->
+    <div class="bg-white border border-light-blue rounded-2xl overflow-hidden hidden xl:block">
         <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-light-blue scrollbar-track-cream">
             <table class="w-full text-left text-black text-sm min-w-max">
                 <thead class="text-xs font-semibold uppercase bg-light-blue text-black">
@@ -271,7 +271,7 @@
                         <td class="px-4 py-3 font-medium whitespace-nowrap">{{ record.ep_name }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ record.date|date:"d/m/y" }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ record.shift_code }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap font-mono text-xs">{{ record|format_time_pairs }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap font-mono text-base font-semibold">{{ record|format_time_pairs }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ record.hours|default:"-" }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ record.overstay|format_overstay }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">
