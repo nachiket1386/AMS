@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Permissions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>🔐 Upload Permissions Management</h2>
+    <p class="text-muted">Manage user permissions for Excel file uploads</p>
+    
+    <!-- Grant Permission Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Grant New Permission</h5>
+        </div>
+        <div class="card-body">
+            <form id="grantForm">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>User</label>
+                        <select id="userId" class="form-control" required>
+                            <option value="">Select User...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>File Type</label>
+                        <select id="fileType" class="form-control" required>
+                            <option value="punchrecord">Punch Record</option>
+                            <option value="arc_summary">ARC Summary</option>
+                            <option value="overtime">Overtime</option>
+                            <option value="partial_day">Partial Day</option>
+                            <option value="regularization">Regularization</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-block">Grant Permission</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Permissions List -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Current Permissions</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>File Type</th>
+                            <th>Status</th>
+                            <th>Granted By</th>
+                            <th>Granted At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="permissionsBody">
+                        <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+loadPermissions();
+loadUsers();
+
+document.getElementById('grantForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const response = await fetch('/api/excel/permissions/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            user_id: document.getElementById('userId').value,
+            file_type: document.getElementById('fileType').value
+        })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+        alert('Permission granted successfully');
+        loadPermissions();
+        document.getElementById('grantForm').reset();
+    } else {
+        alert('Error: ' + data.error);
+    }
+});
+
+async function loadPermissions() {
+    const response = await fetch('/api/excel/permissions/');
+    const data = await response.json();
+    
+    if (data.success) {
+        displayPermissions(data.data);
+    }
+}
+
+function displayPermissions(permissions) {
+    const tbody = document.getElementById('permissionsBody');
+    tbody.innerHTML = '';
+    
+    if (permissions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No permissions found</td></tr>';
+        return;
+    }
+    
+    permissions.forEach(perm => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${perm.user}</td>
+            <td><span class="badge badge-info">${perm.file_type}</span></td>
+            <td><span class="badge badge-${perm.can_upload ? 'success' : 'danger'}">${perm.can_upload ? 'Allowed' : 'Denied'}</span></td>
+            <td>${perm.granted_by}</td>
+            <td>${new Date(perm.granted_at).toLocaleString()}</td>
+            <td>
+                <button class="btn btn-sm btn-danger" onclick="revokePermission(${perm.id})">Revoke</button>
+            </td>
+        `;
+    });
+}
+
+async function revokePermission(id) {
+    if (!confirm('Are you sure you want to revoke this permission?')) return;
+    
+    const response = await fetch(`/api/excel/permissions/?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+        alert('Permission revoked');
+        loadPermissions();
+    }
+}
+
+async function loadUsers() {
+    // This would need a users API endpoint
+    // For now, populate manually or via existing user list
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

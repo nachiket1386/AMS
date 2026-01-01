@@ -1,0 +1,4 @@
+epNo,punchDate,mandays,regularMandayHr,ot,trade,skill
+EMP001,2024-01-15,1.00,08:30,02:15,Electrician,Senior
+EMP002,2024-01-15,1.00,09:00,01:30,Plumber,Junior
+EMP003,2024-01-15,0.50,04:15,00:00,Welder,Mid

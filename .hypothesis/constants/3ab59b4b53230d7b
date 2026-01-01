@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\admin.py
+# hypothesis_version: 6.148.2
+
+['Additional Details', 'Attendance Admin', 'Attendance Details', 'Custom Fields', 'Date and Hours', 'Employee Information', 'Error Details', 'Overtime', 'Records', 'Results', 'Time Details', 'Timestamps', 'Upload Information', 'Users', 'classes', 'collapse', 'company', 'company__name', 'contract', 'created_at', 'date', 'email', 'ep_name', 'ep_no', 'error_count', 'error_messages', 'fields', 'filename', 'first_name', 'in_time', 'in_time_2', 'in_time_3', 'is_active', 'is_staff', 'last_name', 'mandays', 'name', 'ot', 'out_time', 'out_time_2', 'out_time_3', 'overstay', 'overtime', 'overtime_to_mandays', 'plant', 'plant_desc', 'punch_date', 'record_count', 'regular_manday_hr', 'role', 'root', 'shift', 'status', 'success_count', 'trade', 'updated_at', 'updated_count', 'uploaded_at', 'user', 'user__username', 'user_count', 'username']

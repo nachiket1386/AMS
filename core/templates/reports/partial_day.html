@@ -1,0 +1,63 @@
+{% extends 'reports/base_report.html' %}
+
+{% block report_title %}Partial Day Report{% endblock %}
+
+{% block report_icon %}
+<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+</svg>
+{% endblock %}
+
+{% block report_heading %}📅 Partial Day Report{% endblock %}
+{% block report_description %}Records with partial day (PD) status{% endblock %}
+
+{% block report_content %}
+<div class="bg-white border border-light-blue rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-black text-sm min-w-max">
+            <thead class="text-xs font-bold uppercase bg-dark-blue text-cream">
+                <tr>
+                    <th class="px-3 py-2 whitespace-nowrap">EP NO</th>
+                    <th class="px-3 py-2 whitespace-nowrap">NAME</th>
+                    <th class="px-3 py-2 whitespace-nowrap">CONTRACTOR</th>
+                    <th class="px-3 py-2 whitespace-nowrap text-center">DATE</th>
+                    <th class="px-3 py-2 whitespace-nowrap text-center">SHIFT</th>
+                    <th class="px-3 py-2 whitespace-nowrap text-center">HOURS</th>
+                    <th class="px-3 py-2 whitespace-nowrap text-center">IN TIME</th>
+                    <th class="px-3 py-2 whitespace-nowrap text-center">OUT TIME</th>
+                    <th class="px-3 py-2 whitespace-nowrap text-center">STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in page_obj %}
+                <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/50">
+                    <td class="px-3 py-2 font-bold text-dark-blue">{{ record.ep_no }}</td>
+                    <td class="px-3 py-2 font-semibold">{{ record.ep_name }}</td>
+                    <td class="px-3 py-2 text-xs">{{ record.company.name }}</td>
+                    <td class="px-3 py-2 text-center">{{ record.date|date:"d/m/Y" }}</td>
+                    <td class="px-3 py-2 text-center text-xs">{{ record.shift|default:"-" }}</td>
+                    <td class="px-3 py-2 text-center font-semibold">{{ record.hours|default:"-" }}</td>
+                    <td class="px-3 py-2 text-center">{{ record.in_time|default:"-" }}</td>
+                    <td class="px-3 py-2 text-center">{{ record.out_time|default:"-" }}</td>
+                    <td class="px-3 py-2 text-center">
+                        <span class="px-2 py-1 rounded text-xs font-bold bg-yellow-100 text-yellow-800">
+                            {{ record.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="px-3 py-8 text-center text-black/50">
+                        <svg class="w-12 h-12 mx-auto mb-2 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <p class="font-semibold">No partial day records found</p>
+                        <p class="text-xs mt-1">Try adjusting your filters</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

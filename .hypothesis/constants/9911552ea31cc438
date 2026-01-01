@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\attendance_system\settings.py
+# hypothesis_version: 6.148.2
+
+['/', '/login/', 'APP_DIRS', 'BACKEND', 'DEBUG', 'DIRS', 'ENGINE', 'INFO', 'NAME', 'OPTIONS', 'UTC', 'class', 'console', 'context_processors', 'core', 'core.User', 'db.sqlite3', 'default', 'django', 'django.contrib.admin', 'django.contrib.auth', 'en-us', 'file', 'filename', 'format', 'formatter', 'formatters', 'handlers', 'level', 'loggers', 'logging.FileHandler', 'logs', 'propagate', 'simple', 'static', 'static/', 'style', 'templates', 'verbose', 'version', '{']

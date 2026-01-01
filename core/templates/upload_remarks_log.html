@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Remarks Log - Attendance Management System{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <a href="{% url 'core:remarks_log' %}" class="p-2 hover:bg-light-blue rounded-lg transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-3xl font-extrabold text-black">Upload Remarks Log</h1>
+            <p class="text-black/70 mt-1">Bulk import remarks from Excel file (Root only)</p>
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <form method="post" enctype="multipart/form-data" class="bg-white border-2 border-dark-blue rounded-2xl p-6 space-y-6">
+        {% csrf_token %}
+        
+        <div>
+            <label for="file" class="block text-sm font-bold text-black mb-2">
+                Select Excel File <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="file" 
+                name="file" 
+                id="file" 
+                accept=".xlsx,.xls"
+                required
+                class="w-full px-4 py-3 bg-cream border-2 border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black">
+            <p class="text-xs text-black/60 mt-1">Upload an Excel file (.xlsx or .xls) with remarks data</p>
+        </div>
+
+        <div class="flex gap-3">
+            <button 
+                type="submit"
+                class="flex-1 bg-dark-blue text-cream px-6 py-3 rounded-xl font-bold hover:bg-black transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                Upload File
+            </button>
+            <a 
+                href="{% url 'core:remarks_log' %}"
+                class="flex-1 bg-light-blue text-black px-6 py-3 rounded-xl font-bold hover:bg-light-blue/70 transition text-center">
+                Cancel
+            </a>
+        </div>
+    </form>
+
+    <!-- File Format Info -->
+    <div class="bg-cream border border-light-blue rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-black mb-4">Excel File Format</h2>
+        <p class="text-sm text-black/70 mb-3">Your Excel file should have the following columns in order:</p>
+        <div class="bg-white rounded-lg p-4 overflow-x-auto">
+            <table class="w-full text-xs border-collapse">
+                <thead>
+                    <tr class="bg-dark-blue text-cream">
+                        <th class="px-2 py-1 border border-dark-blue/30 text-left">Column</th>
+                        <th class="px-2 py-1 border border-dark-blue/30 text-left">Name</th>
+                        <th class="px-2 py-1 border border-dark-blue/30 text-left">Required</th>
+                        <th class="px-2 py-1 border border-dark-blue/30 text-left">Format</th>
+                    </tr>
+                </thead>
+                <tbody class="text-black">
+                    <tr class="bg-white">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">A</td>
+                        <td class="px-2 py-1 border border-light-blue/50">EP NO</td>
+                        <td class="px-2 py-1 border border-light-blue/50">✅ Yes</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Text (e.g., PP5000012345)</td>
+                    </tr>
+                    <tr class="bg-cream/30">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">B</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Employee Name</td>
+                        <td class="px-2 py-1 border border-light-blue/50">❌ No</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Text</td>
+                    </tr>
+                    <tr class="bg-white">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">C</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Date</td>
+                        <td class="px-2 py-1 border border-light-blue/50">✅ Yes</td>
+                        <td class="px-2 py-1 border border-light-blue/50">DD/MM/YYYY (e.g., 15/12/2025)</td>
+                    </tr>
+                    <tr class="bg-cream/30">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">D</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Company</td>
+                        <td class="px-2 py-1 border border-light-blue/50">✅ Yes</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Exact company name</td>
+                    </tr>
+                    <tr class="bg-white">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">E</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Reason</td>
+                        <td class="px-2 py-1 border border-light-blue/50">✅ Yes</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Text (e.g., Overtime Request)</td>
+                    </tr>
+                    <tr class="bg-cream/30">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">F</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Remarks</td>
+                        <td class="px-2 py-1 border border-light-blue/50">✅ Yes</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Text (detailed remarks)</td>
+                    </tr>
+                    <tr class="bg-white">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">G</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Status</td>
+                        <td class="px-2 py-1 border border-light-blue/50">❌ No</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Pending/Reviewed/Resolved</td>
+                    </tr>
+                    <tr class="bg-cream/30">
+                        <td class="px-2 py-1 border border-light-blue/50 font-bold">H</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Submitted By</td>
+                        <td class="px-2 py-1 border border-light-blue/50">❌ No</td>
+                        <td class="px-2 py-1 border border-light-blue/50">Username</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div class="flex gap-3">
+            <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <p class="font-semibold text-blue-900 text-sm">Important Notes</p>
+                <ul class="text-blue-800 text-sm mt-1 space-y-1 list-disc list-inside">
+                    <li>The attendance record (EP NO + Date + Company) must exist in the system</li>
+                    <li>If a remark already exists for the same record, it will be updated</li>
+                    <li>Reasons will be created automatically if they don't exist</li>
+                    <li>You can download the current remarks log to see the correct format</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

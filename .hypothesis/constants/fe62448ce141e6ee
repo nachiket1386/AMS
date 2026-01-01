@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\migrations\0005_mandayuploadlog_mandaysummaryrecord.py
+# hypothesis_version: 6.148.2
+
+[100, 255, '-punch_date', '-uploaded_at', 'Contract', 'Employee Number', 'ID', 'Manday Upload Log', 'Manday Upload Logs', 'MandaySummaryRecord', 'MandayUploadLog', 'Mandays', 'Overtime', 'Plant', 'Plant Description', 'Punch Date', 'Regular Manday Hours', 'Skill', 'Trade', 'company', 'contract', 'core', 'core.company', 'created_at', 'ep_no', 'error_count', 'error_messages', 'filename', 'id', 'indexes', 'manday_records', 'manday_upload_logs', 'mandays', 'ordering', 'ot', 'plant', 'plant_desc', 'punch_date', 'regular_manday_hr', 'skill', 'success_count', 'trade', 'unique_together', 'updated_at', 'updated_count', 'uploaded_at', 'user', 'verbose_name', 'verbose_name_plural']

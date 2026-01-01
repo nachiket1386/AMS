@@ -16,3 +16,10 @@ def shift_code(value):
         return value.split('(')[0].strip()
     
     return value
+
+@register.filter
+def get_item(dictionary, key):
+    """Get an item from a dictionary"""
+    if dictionary is None:
+        return None
+    return dictionary.get(key, 0)

@@ -1,0 +1,969 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Excel File Upload{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Cards Grid - Responsive */
+    .cards-grid {
+        display: grid;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    /* Desktop: 3 columns */
+    @media (min-width: 1024px) {
+        .cards-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    /* Tablet: 2 columns */
+    @media (min-width: 640px) and (max-width: 1023px) {
+        .cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    /* Mobile: 1 column */
+    @media (max-width: 639px) {
+        .cards-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* File Type Card */
+    .file-type-card {
+        background: #EFECE3;
+        border: 2px solid #8FABD4;
+        border-radius: 1rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 180px;
+    }
+    
+    .file-type-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-color: #4A70A9;
+    }
+    
+    .file-type-card:active {
+        transform: translateY(-2px);
+    }
+    
+    .file-type-card .card-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        line-height: 1;
+    }
+    
+    .file-type-card h4 {
+        color: #000;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+    
+    .file-type-card p {
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.7);
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    .file-type-card .card-badge {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: #4A70A9;
+        color: #EFECE3;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .file-type-card .card-badge.badge-info {
+        background: #8FABD4;
+        color: #000;
+    }
+    
+    /* Mobile Adjustments */
+    @media (max-width: 639px) {
+        .file-type-card {
+            padding: 1.5rem 1rem;
+            min-height: 160px;
+        }
+        
+        .file-type-card .card-icon {
+            font-size: 3rem;
+        }
+        
+        .file-type-card h4 {
+            font-size: 1rem;
+        }
+        
+        .file-type-card p {
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Upload View Styles */
+    .upload-zone {
+        border: 2px dashed #8FABD4;
+        border-radius: 1.5rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        background: #EFECE3;
+        transition: all 0.3s;
+        margin-top: 2rem;
+    }
+    
+    .upload-zone:hover {
+        border-color: #4A70A9;
+        background: #EFECE3;
+    }
+    
+    .upload-zone.dragover {
+        border-color: #4A70A9;
+        background: #8FABD4;
+        transform: scale(1.02);
+    }
+    
+    .upload-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: rgba(0, 0, 0, 0.4);
+    }
+    
+    .file-info {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: #EFECE3;
+        border: 1px solid #8FABD4;
+        border-radius: 1.5rem;
+    }
+    
+    .progress-container {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: rgba(143, 171, 212, 0.2);
+        border-radius: 1.5rem;
+        display: none;
+    }
+    
+    .preview-table {
+        margin-top: 1.5rem;
+        max-height: 400px;
+        overflow: auto;
+    }
+    
+    .validation-summary {
+        margin-top: 1.5rem;
+    }
+    
+    .btn-group {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .stats-card {
+        padding: 1.25rem;
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        border: 2px solid;
+    }
+    
+    .stats-card.success {
+        background: #EFECE3;
+        border-color: #4A70A9;
+    }
+    
+    .stats-card.warning {
+        background: #EFECE3;
+        border-color: #8FABD4;
+    }
+    
+    .stats-card.danger {
+        background: #EFECE3;
+        border-color: #000;
+    }
+    
+    .stats-card h6 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        color: rgba(0, 0, 0, 0.6);
+    }
+    
+    .stats-card h3 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #4A70A9;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Main Selection View -->
+    <div id="mainView">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+                <h1 class="text-title-desktop hidden md:block text-black">Excel File Upload</h1>
+                <h1 class="text-title-mobile md:hidden text-black">Excel Upload</h1>
+                <p class="text-sm text-black/70 mt-1">Select the type of attendance data you want to upload</p>
+            </div>
+        </div>
+        
+        <!-- File Type Cards Grid -->
+        <div class="cards-grid">
+            <!-- Punchrecord Card -->
+            <div class="file-type-card" onclick="selectFileType('punchrecord')">
+                <div class="card-badge">Most Common</div>
+                <div class="card-icon">🕐</div>
+                <h4>Punchrecord</h4>
+                <p>Upload punch time records</p>
+            </div>
+            
+            <!-- ARC Summary Card -->
+            <div class="file-type-card" onclick="selectFileType('arc_summary')">
+                <div class="card-icon">📊</div>
+                <h4>ARC Summary</h4>
+                <p>Upload attendance summary reports</p>
+            </div>
+            
+            <!-- Overtime Card -->
+            <div class="file-type-card" onclick="selectFileType('overtime')">
+                <div class="card-icon">⏰</div>
+                <h4>Overtime</h4>
+                <p>Upload overtime records</p>
+            </div>
+            
+            <!-- Partial Day Card -->
+            <div class="file-type-card" onclick="selectFileType('partial_day')">
+                <div class="card-icon">📅</div>
+                <h4>Partial Day</h4>
+                <p>Upload partial day attendance</p>
+            </div>
+            
+            <!-- Regularization Card -->
+            <div class="file-type-card" onclick="selectFileType('regularization')">
+                <div class="card-icon">✏️</div>
+                <h4>Regularization</h4>
+                <p>Upload attendance regularization requests</p>
+            </div>
+            
+            <!-- Auto-Detect Card -->
+            <div class="file-type-card" onclick="selectFileType('auto')">
+                <div class="card-badge badge-info">Smart</div>
+                <div class="card-icon">🔍</div>
+                <h4>Auto-Detect</h4>
+                <p>Let the system detect file type automatically</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload View (Hidden Initially) -->
+    <div id="uploadView" style="display: none;">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-title-desktop hidden md:block text-black">Upload <span id="selectedFileTypeName"></span></h1>
+                <h1 class="text-title-mobile md:hidden text-black">Upload File</h1>
+                <p class="text-sm text-black/70 mt-1">Upload your Excel file for processing</p>
+            </div>
+            <button onclick="backToMain()" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-cream bg-dark-blue rounded-xl hover:bg-black active:scale-[0.98] transition-all duration-200">
+                ← Back to Selection
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-cream border border-light-blue rounded-2xl p-6 md:p-8">
+                <!-- Upload Zone -->
+                <div id="uploadZone" class="upload-zone">
+                    <svg class="mx-auto h-12 w-12 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <button onclick="document.getElementById('fileInput').click()" class="px-8 py-4 text-base font-semibold text-cream bg-dark-blue rounded-xl hover:bg-black transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-dark-blue/50">
+                                Upload File
+                            </button>
+                        </div>
+                        <p class="text-sm text-black/80">or drag and drop</p>
+                        <p class="text-xs text-black/60">XLS or XLSX up to 50MB</p>
+                        <input type="file" id="fileInput" accept=".xls,.xlsx" style="display: none;">
+                    </div>
+                </div>
+    
+                <!-- File Info -->
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <h5 class="text-lg font-bold text-black mb-3">📄 Selected File</h5>
+                    <div class="space-y-2 text-sm">
+                        <p><strong class="text-black/80">Name:</strong> <span id="fileName" class="text-black"></span></p>
+                        <p><strong class="text-black/80">Size:</strong> <span id="fileSize" class="text-black"></span></p>
+                        <p><strong class="text-black/80">Type:</strong> <span id="fileType" class="text-black"></span></p>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div id="progressContainer" class="progress-container">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-semibold text-black">Status:</span>
+                            <span id="progressText" class="text-sm font-bold text-dark-blue">Processing...</span>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-black/70">Progress</span>
+                                <span id="percentageText" class="font-bold text-dark-blue">0%</span>
+                            </div>
+                            <div class="w-full bg-cream rounded-full h-3 overflow-hidden border border-light-blue">
+                                <div id="progressBar" class="bg-dark-blue h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <!-- Row-by-row progress -->
+                        <div id="rowProgress" class="text-xs text-black/70 space-y-1" style="display: none;">
+                            <div class="flex justify-between">
+                                <span>Rows Processed:</span>
+                                <span id="rowsProcessed" class="font-bold text-dark-blue">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Total Rows:</span>
+                                <span id="totalRowsProgress" class="font-bold text-dark-blue">0</span>
+                            </div>
+                            <div id="currentEpContainer" class="mt-2 p-2 bg-light-blue/30 rounded text-center" style="display: none;">
+                                <span class="font-semibold">Currently processing: EP </span>
+                                <span id="currentEp" class="font-bold text-dark-blue">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Format Requirements Sidebar -->
+            <div class="bg-light-blue border border-dark-blue/50 p-6 rounded-2xl space-y-4 h-full">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-bold text-black">Format Requirements</h3>
+                </div>
+                <div id="formatRequirements" class="space-y-4 text-sm text-black/90">
+                    <!-- Content will be dynamically loaded based on file type -->
+                </div>
+            </div>
+        </div>
+    
+        <!-- Validation Summary -->
+        <div id="validationSummary" class="validation-summary bg-cream border border-light-blue rounded-2xl p-6 md:p-8 mt-6" style="display: none;">
+            <h2 class="text-xl font-bold text-black mb-6">✅ Validation Results</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="stats-card success">
+                    <h6>Valid Rows</h6>
+                    <h3 id="validRows">0</h3>
+                </div>
+                <div class="stats-card warning">
+                    <h6>Duplicates</h6>
+                    <h3 id="duplicateRows">0</h3>
+                </div>
+                <div class="stats-card danger">
+                    <h6>Invalid Rows</h6>
+                    <h3 id="invalidRows">0</h3>
+                </div>
+                <div class="stats-card">
+                    <h6>Total Rows</h6>
+                    <h3 id="totalRows">0</h3>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-light-blue/30 rounded-xl">
+                <p class="text-sm text-black"><strong>File Type Detected:</strong> <span id="detectedFileType" class="font-bold text-dark-blue"></span></p>
+            </div>
+        
+            <!-- Validation Errors -->
+            <div id="validationErrors" class="mt-6" style="display: none;">
+                <h3 class="text-lg font-bold text-black mb-4">⚠️ Validation Errors (showing first 10)</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-light-blue rounded-xl overflow-hidden">
+                        <thead class="bg-light-blue">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-black uppercase">Row</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-black uppercase">Column</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-black uppercase">Value</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-black uppercase">Error</th>
+                            </tr>
+                        </thead>
+                        <tbody id="errorTableBody" class="divide-y divide-light-blue"></tbody>
+                    </table>
+                </div>
+                <button id="downloadErrorsBtn" class="mt-4 inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-cream bg-dark-blue rounded-xl hover:bg-black transition-all duration-200">
+                    📥 Download Full Error Report
+                </button>
+            </div>
+        </div>
+        
+        <!-- Preview Table -->
+        <div id="previewContainer" class="preview-table bg-cream border border-light-blue rounded-2xl p-6 md:p-8 mt-6" style="display: none;">
+            <h2 class="text-xl font-bold text-black mb-6">👁️ Data Preview (First 10 Rows)</h2>
+            <div class="overflow-x-auto">
+                <table id="previewTable" class="min-w-full bg-white border border-light-blue rounded-xl overflow-hidden">
+                    <thead id="previewTableHead" class="bg-light-blue"></thead>
+                    <tbody id="previewTableBody" class="divide-y divide-light-blue"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Import Results (Auto-displayed after processing) -->
+        <div id="importResults" class="bg-cream border border-light-blue rounded-2xl p-6 md:p-8 mt-6" style="display: none;">
+            <div class="space-y-4">
+                <h2 class="text-2xl font-bold text-dark-blue">🎉 Import Completed Successfully!</h2>
+                <div class="space-y-2 text-sm">
+                    <p class="text-black"><strong>Imported:</strong> <span id="importedCount" class="font-bold text-dark-blue">0</span> records</p>
+                    <p class="text-black"><strong>Duplicates Skipped:</strong> <span id="duplicatesSkipped" class="font-bold text-dark-blue">0</span> records</p>
+                    <p class="text-black"><strong>Errors:</strong> <span id="errorCount" class="font-bold text-dark-blue">0</span> records</p>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button id="uploadAnotherBtn" class="px-6 py-3 text-sm font-bold text-cream bg-dark-blue rounded-xl hover:bg-black transition-all duration-200">
+                        📤 Upload Another File
+                    </button>
+                    <a href="{% url 'core:api_excel_imports' %}" class="px-6 py-3 text-sm font-bold text-black bg-light-blue rounded-xl hover:bg-dark-blue hover:text-cream transition-all duration-200">
+                        📋 View Import History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let sessionId = null;
+let selectedFile = null;
+let selectedFileType = null;
+
+// File Type Names
+const fileTypeNames = {
+    'punchrecord': 'Punchrecord',
+    'arc_summary': 'ARC Summary',
+    'overtime': 'Overtime',
+    'partial_day': 'Partial Day',
+    'regularization': 'Regularization',
+    'auto': 'File (Auto-Detect)'
+};
+
+// Format requirements for each file type
+const formatRequirements = {
+    'punchrecord': `
+        <div>
+            <h4 class="font-semibold mb-1">📋 Required Columns</h4>
+            <p class="font-mono text-xs">EP NO, PUNCHDATE, SHIFT, STATUS</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">📝 Optional Columns</h4>
+            <p class="font-mono text-xs">PUNCH1 IN, PUNCH2 OUT, PUNCH3 IN, PUNCH4 OUT, PUNCH5 IN, PUNCH6 OUT, HOURS WORKED, OVERSTAY, OVERTIME</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">✅ Format Rules</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Date: DD/MM/YYYY or YYYY-MM-DD</li>
+                <li>Time: HH:MM or HH:MM:SS</li>
+                <li>Status: P, A, PH, PD, L, WO</li>
+                <li>No future dates allowed</li>
+                <li>Duplicates will be updated</li>
+            </ul>
+        </div>
+        <div class="pt-4 border-t border-dark-blue/20">
+            <p class="text-xs text-black/70">💡 <strong>Tip:</strong> Punchrecord files contain detailed punch time records with in/out times.</p>
+        </div>
+    `,
+    'arc_summary': `
+        <div>
+            <h4 class="font-semibold mb-1">📋 Required Columns</h4>
+            <p class="font-mono text-xs">epNo, punchDate, contCode, trade</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">📝 Optional Columns</h4>
+            <p class="font-mono text-xs">skill, scrumTrade, contract, activityType, plant, mandays, regularMandayHr, ot, sector, sectorDesc, siteCode, siteDesc, typeOfCard, plantDesc, locationStatus</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">✅ Format Rules</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Date: DD/MM/YYYY or YYYY-MM-DD</li>
+                <li>Time: HH:MM or HH:MM:SS</li>
+                <li>Mandays: Decimal values</li>
+                <li>No future dates allowed</li>
+                <li>Duplicates will be updated</li>
+            </ul>
+        </div>
+        <div class="pt-4 border-t border-dark-blue/20">
+            <p class="text-xs text-black/70">💡 <strong>Tip:</strong> ARC Summary files contain daily attendance summary with mandays and overtime tracking.</p>
+        </div>
+    `,
+    'overtime': `
+        <div>
+            <h4 class="font-semibold mb-1">📋 Required Columns</h4>
+            <p class="font-mono text-xs">EP NO, PUNCHDATE, ACTUAL OVERSTAY, REQUESTED OVERTIME</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">📝 Optional Columns</h4>
+            <p class="font-mono text-xs">APPROVED OVERTIME, CONTRACTOR REMARKS, EIC CODE, EIC REMARKS, STATUS</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">✅ Format Rules</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Date: DD/MM/YYYY or YYYY-MM-DD</li>
+                <li>Time: HH:MM or HH:MM:SS</li>
+                <li>Status: Pending, Approved, Rejected</li>
+                <li>Overtime values in time format</li>
+            </ul>
+        </div>
+        <div class="pt-4 border-t border-dark-blue/20">
+            <p class="text-xs text-black/70">💡 <strong>Tip:</strong> Overtime files track overtime requests and approvals.</p>
+        </div>
+    `,
+    'partial_day': `
+        <div>
+            <h4 class="font-semibold mb-1">📋 Required Columns</h4>
+            <p class="font-mono text-xs">EP NO, PUNCHDATE, ACTUAL PD HOURS, MANDAY CONVERSION</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">📝 Optional Columns</h4>
+            <p class="font-mono text-xs">REQUESTED PD HOURS, APPROVED PD HOURS, CONTRACTOR REMARKS, EIC CODE, STATUS</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">✅ Format Rules</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Date: DD/MM/YYYY or YYYY-MM-DD</li>
+                <li>Time: HH:MM or HH:MM:SS</li>
+                <li>Manday: Decimal (e.g., 0.5, 1.0)</li>
+                <li>Status: Pending, Approved, Rejected</li>
+            </ul>
+        </div>
+        <div class="pt-4 border-t border-dark-blue/20">
+            <p class="text-xs text-black/70">💡 <strong>Tip:</strong> Partial day files track partial attendance and manday conversions.</p>
+        </div>
+    `,
+    'regularization': `
+        <div>
+            <h4 class="font-semibold mb-1">📋 Required Columns</h4>
+            <p class="font-mono text-xs">EP NO, PUNCHDATE, OLD PUNCH IN, OLD PUNCH OUT, NEW PUNCH IN, NEW PUNCH OUT</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">📝 Optional Columns</h4>
+            <p class="font-mono text-xs">CONTRACTOR REMARKS, CONTRACTOR REASON, EIC CODE, EIC REMARKS, STATUS</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">✅ Format Rules</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Date: DD/MM/YYYY or YYYY-MM-DD</li>
+                <li>Time: HH:MM or HH:MM:SS</li>
+                <li>Status: Pending, Approved, Rejected</li>
+                <li>Both old and new times required</li>
+            </ul>
+        </div>
+        <div class="pt-4 border-t border-dark-blue/20">
+            <p class="text-xs text-black/70">💡 <strong>Tip:</strong> Regularization files track punch time correction requests.</p>
+        </div>
+    `,
+    'auto': `
+        <div>
+            <h4 class="font-semibold mb-1">🔍 Auto-Detection</h4>
+            <p class="text-xs">The system will automatically detect the file type based on the columns present in your file.</p>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">✅ Supported Types</h4>
+            <ul class="list-disc list-inside space-y-1 text-xs">
+                <li>Punchrecord</li>
+                <li>ARC Summary</li>
+                <li>Overtime Requests</li>
+                <li>Partial Day Requests</li>
+                <li>Regularization Requests</li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-semibold mb-1">📝 General Rules</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Date: DD/MM/YYYY or YYYY-MM-DD</li>
+                <li>Time: HH:MM or HH:MM:SS</li>
+                <li>File format: XLS or XLSX</li>
+                <li>Max size: 50MB</li>
+            </ul>
+        </div>
+        <div class="pt-4 border-t border-dark-blue/20">
+            <p class="text-xs text-black/70">💡 <strong>Tip:</strong> Auto-detection works best when your file has clear column headers.</p>
+        </div>
+    `
+};
+
+// Select File Type
+function selectFileType(type) {
+    selectedFileType = type;
+    document.getElementById('selectedFileTypeName').textContent = fileTypeNames[type];
+    document.getElementById('mainView').style.display = 'none';
+    document.getElementById('uploadView').style.display = 'block';
+    
+    // Update format requirements
+    const requirementsDiv = document.getElementById('formatRequirements');
+    if (requirementsDiv && formatRequirements[type]) {
+        requirementsDiv.innerHTML = formatRequirements[type];
+    }
+}
+
+// Back to Main
+function backToMain() {
+    selectedFileType = null;
+    document.getElementById('mainView').style.display = 'block';
+    document.getElementById('uploadView').style.display = 'none';
+    
+    // Reset upload view
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('progressContainer').style.display = 'none';
+    document.getElementById('validationSummary').style.display = 'none';
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('actionButtons').style.display = 'none';
+    document.getElementById('importResults').style.display = 'none';
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Upload Zone Events
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+// Drag and drop events only (button handles click)
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFileSelect(files[0]);
+    }
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+    }
+});
+
+// Handle File Selection
+function handleFileSelect(file) {
+    selectedFile = file;
+    
+    // Validate file
+    if (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx')) {
+        alert('Please select a valid Excel file (.xls or .xlsx)');
+        return;
+    }
+    
+    if (file.size > 50 * 1024 * 1024) {
+        alert('File size exceeds 50MB limit');
+        return;
+    }
+    
+    // Display file info
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatFileSize(file.size);
+    document.getElementById('fileType').textContent = file.type || 'Excel File';
+    document.getElementById('fileInfo').style.display = 'block';
+    
+    // Upload file
+    uploadFile(file);
+}
+
+// Upload File
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    showProgress('Uploading file...', 10);
+    
+    try {
+        const response = await fetch('{% url "core:api_excel_upload" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            sessionId = data.session_id;
+            showProgress('File uploaded successfully', 30);
+            processFile();
+        } else {
+            showError('Upload failed: ' + data.error);
+        }
+    } catch (error) {
+        showError('Upload error: ' + error.message);
+    }
+}
+
+// Process File
+let progressInterval = null;
+
+async function processFile() {
+    showProgress('Processing and validating file...', 50);
+    
+    // Start polling for progress
+    startProgressPolling();
+    
+    try {
+        const response = await fetch(`/api/excel/upload/${sessionId}/process/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        });
+        
+        const data = await response.json();
+        
+        // Stop polling
+        stopProgressPolling();
+        
+        if (data.success) {
+            showProgress('Import complete', 100);
+            displayValidationResults(data);
+        } else {
+            showError('Processing failed: ' + data.error);
+        }
+    } catch (error) {
+        stopProgressPolling();
+        showError('Processing error: ' + error.message);
+    }
+}
+
+// Start polling for import progress
+function startProgressPolling() {
+    // Show row progress section
+    document.getElementById('rowProgress').style.display = 'block';
+    
+    // Poll every 500ms
+    progressInterval = setInterval(async () => {
+        try {
+            const response = await fetch(`/api/excel/upload/${sessionId}/progress/`);
+            const data = await response.json();
+            
+            if (data.success && data.progress) {
+                updateProgressDisplay(data.progress);
+            }
+        } catch (error) {
+            console.error('Progress polling error:', error);
+        }
+    }, 500);
+}
+
+// Stop polling for progress
+function stopProgressPolling() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+}
+
+// Update progress display with real-time data
+function updateProgressDisplay(progress) {
+    // Update row counts
+    document.getElementById('rowsProcessed').textContent = progress.processed_rows;
+    document.getElementById('totalRowsProgress').textContent = progress.total_rows;
+    
+    // Update current EP
+    if (progress.current_ep) {
+        document.getElementById('currentEpContainer').style.display = 'block';
+        document.getElementById('currentEp').textContent = progress.current_ep;
+    }
+    
+    // Update progress bar
+    const percentage = progress.total_rows > 0 
+        ? Math.round((progress.processed_rows / progress.total_rows) * 100) 
+        : 0;
+    
+    document.getElementById('progressBar').style.width = percentage + '%';
+    document.getElementById('percentageText').textContent = percentage + '%';
+    
+    // Update status text
+    if (progress.status === 'processing') {
+        document.getElementById('progressText').textContent = 'Importing data...';
+    } else if (progress.status === 'completed') {
+        document.getElementById('progressText').textContent = 'Import completed!';
+    } else if (progress.status === 'error') {
+        document.getElementById('progressText').textContent = 'Import failed';
+    }
+}
+
+// Display Validation Results and Auto-Import
+function displayValidationResults(data) {
+    document.getElementById('progressContainer').style.display = 'none';
+    document.getElementById('validationSummary').style.display = 'block';
+    
+    // Update stats
+    document.getElementById('validRows').textContent = data.valid_rows;
+    document.getElementById('invalidRows').textContent = data.invalid_rows;
+    document.getElementById('duplicateRows').textContent = data.duplicate_rows;
+    document.getElementById('totalRows').textContent = data.total_rows;
+    document.getElementById('detectedFileType').textContent = data.file_type;
+    
+    // Show validation errors if any
+    if (data.validation_errors && data.validation_errors.length > 0) {
+        document.getElementById('validationErrors').style.display = 'block';
+        const tbody = document.getElementById('errorTableBody');
+        tbody.innerHTML = '';
+        
+        data.validation_errors.slice(0, 10).forEach(error => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td class="px-4 py-3 text-sm text-black">${error.row}</td>
+                <td class="px-4 py-3 text-sm text-black">${error.column}</td>
+                <td class="px-4 py-3 text-sm text-black">${error.value}</td>
+                <td class="px-4 py-3 text-sm text-black">${error.message}</td>
+            `;
+        });
+    }
+    
+    // Show preview
+    if (data.preview_data && data.preview_data.length > 0) {
+        displayPreview(data.preview_columns, data.preview_data);
+    }
+    
+    // AUTO-IMPORT: Display import results immediately (data already imported by API)
+    if (data.import_success !== undefined) {
+        // Show import results with animation
+        setTimeout(() => {
+            displayImportResults({
+                imported_rows: data.imported_rows || 0,
+                duplicate_rows: data.import_duplicate_rows || 0,
+                error_rows: data.import_error_rows || 0,
+                success: data.import_success
+            });
+        }, 500);
+    }
+}
+
+// Display Preview
+function displayPreview(columns, data) {
+    document.getElementById('previewContainer').style.display = 'block';
+    
+    const thead = document.getElementById('previewTableHead');
+    const tbody = document.getElementById('previewTableBody');
+    
+    // Clear existing content
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+    
+    // Add headers
+    const headerRow = thead.insertRow();
+    headerRow.className = 'bg-light-blue';
+    columns.forEach(col => {
+        const th = document.createElement('th');
+        th.className = 'px-4 py-3 text-left text-xs font-semibold text-black uppercase';
+        th.textContent = col;
+        headerRow.appendChild(th);
+    });
+    
+    // Add data rows
+    data.forEach(row => {
+        const tr = tbody.insertRow();
+        columns.forEach(col => {
+            const td = tr.insertCell();
+            td.className = 'px-4 py-3 text-sm text-black';
+            td.textContent = row[col] || '';
+        });
+    });
+}
+
+// Display Import Results
+function displayImportResults(data) {
+    document.getElementById('progressContainer').style.display = 'none';
+    document.getElementById('validationSummary').style.display = 'none';
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('importResults').style.display = 'block';
+    
+    document.getElementById('importedCount').textContent = data.imported_rows;
+    document.getElementById('duplicatesSkipped').textContent = data.duplicate_rows;
+    document.getElementById('errorCount').textContent = data.error_rows;
+}
+
+// Upload Another
+document.getElementById('uploadAnotherBtn').addEventListener('click', () => {
+    backToMain();
+});
+
+// Download Errors
+document.getElementById('downloadErrorsBtn').addEventListener('click', () => {
+    window.location.href = `/api/excel/upload/${sessionId}/errors/`;
+});
+
+// Helper Functions
+function showProgress(text, percent) {
+    document.getElementById('progressContainer').style.display = 'block';
+    document.getElementById('progressBar').style.width = percent + '%';
+    document.getElementById('percentageText').textContent = percent + '%';
+    document.getElementById('progressText').textContent = text;
+    
+    // Show row progress if importing
+    if (text.includes('Importing') || text.includes('Processing')) {
+        document.getElementById('rowProgress').style.display = 'block';
+    }
+}
+
+function showError(message) {
+    document.getElementById('progressContainer').style.display = 'none';
+    alert('Error: ' + message);
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+</script>
+{% endblock %}

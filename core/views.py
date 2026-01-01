@@ -3,7 +3,7 @@ View functions for the attendance management system
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseForbidden
 from django.core.paginator import Paginator
@@ -13,7 +13,7 @@ from datetime import datetime
 import csv
 import logging
 
-from .models import User, Company, AttendanceRecord, UploadLog
+from .models import User, Company, AttendanceRecord, UploadLog, RemarkReason, AttendanceRemark
 from .decorators import role_required, company_access_required, check_record_company_access, can_edit_record, can_delete_record
 from .forms import LoginForm
 
@@ -83,38 +83,57 @@ def upload_csv_view(request):
         logger.info(f'CSV upload started by {request.user.username}: {csv_file.name}')
         
         # Create a unique upload ID for this session
-        from django.core.cache import cache
+        import json
+        import os
         upload_id = f"upload_{request.user.id}_{int(timezone.now().timestamp())}"
+        progress_file = os.path.join(os.path.dirname(__file__), '..', 'logs', f'{upload_id}.json')
         
-        # Initialize progress in cache
-        cache.set(upload_id, {'processed': 0, 'total': 0, 'status': 'starting'}, timeout=3600)
+        # Ensure logs directory exists
+        os.makedirs(os.path.dirname(progress_file), exist_ok=True)
         
-        # Store upload_id in session
+        # Initialize progress in file
+        with open(progress_file, 'w') as f:
+            json.dump({'processed': 0, 'total': 0, 'status': 'starting', 'percentage': 0}, f)
+        
+        # Store upload_id in session and save immediately
         request.session['current_upload_id'] = upload_id
+        request.session['progress_file'] = progress_file
+        request.session.save()
         
         # Process CSV with progress callback
         from .csv_processor import CSVProcessor
         processor = CSVProcessor()
         
-        # Set progress callback
-        def progress_callback(processed, total):
-            cache.set(upload_id, {
-                'processed': processed,
-                'total': total,
-                'status': 'processing',
-                'percentage': int((processed / total) * 100) if total > 0 else 0
-            }, timeout=3600)
+        # Set progress callback that updates file in real-time
+        def progress_callback(processed, total, current_ep=None):
+            try:
+                with open(progress_file, 'w') as f:
+                    progress_data = {
+                        'processed': processed,
+                        'total': total,
+                        'status': 'processing',
+                        'percentage': int((processed / total) * 100) if total > 0 else 0
+                    }
+                    if current_ep:
+                        progress_data['current_ep'] = current_ep
+                    json.dump(progress_data, f)
+            except Exception as e:
+                logger.error(f'Error writing progress: {e}')
         
         processor.progress_callback = progress_callback
         result = processor.process_csv(csv_file, request.user)
         
         # Mark as complete
-        cache.set(upload_id, {
-            'processed': result.get('processed_rows', 0),
-            'total': result.get('total_rows', 0),
-            'status': 'complete',
-            'percentage': 100
-        }, timeout=3600)
+        try:
+            with open(progress_file, 'w') as f:
+                json.dump({
+                    'processed': result.get('processed_rows', 0),
+                    'total': result.get('total_rows', 0),
+                    'status': 'complete',
+                    'percentage': 100
+                }, f)
+        except Exception as e:
+            logger.error(f'Error writing final progress: {e}')
         
         # Create upload log
         error_messages = '\n'.join(result['errors']) if result['errors'] else ''
@@ -171,6 +190,8 @@ def upload_csv_view(request):
 def dashboard_view(request):
     """Main dashboard view"""
     from .services.access_control_service import AccessControlService
+    import calendar
+    from datetime import datetime, date
     
     # Calculate statistics based on user role
     if request.user.role == 'root':
@@ -189,10 +210,296 @@ def dashboard_view(request):
         total_companies = 1 if request.user.company else 0
         recent_uploads = UploadLog.objects.filter(user__company=request.user.company)[:5]
     
+    # Handle calendar view
+    calendar_data = None
+    calendar_ep = request.GET.get('calendar_ep', '').strip()
+    calendar_month = request.GET.get('calendar_month', '').strip()
+    calendar_stats = None
+    
+    # Auto-select current month if not provided
+    if not calendar_month:
+        today = date.today()
+        calendar_month = f"{today.year}-{today.month:02d}"
+    
+    calendar_month_name = ''
+    calendar_year = ''
+    employee_name = None
+    
+    if calendar_ep:
+        try:
+            # Parse month (format: YYYY-MM)
+            year, month = map(int, calendar_month.split('-'))
+            calendar_month_name = calendar.month_name[month]
+            calendar_year = year
+            
+            # Get attendance records for the EP and month
+            if request.user.role == 'root':
+                records = AttendanceRecord.objects.filter(
+                    ep_no__icontains=calendar_ep,
+                    date__year=year,
+                    date__month=month
+                )
+            elif request.user.role == 'user1':
+                records = AttendanceRecord.objects.filter(
+                    company=request.user.company,
+                    ep_no__icontains=calendar_ep,
+                    date__year=year,
+                    date__month=month
+                )
+                records = AccessControlService.filter_queryset_by_access(records, request.user)
+            else:
+                records = AttendanceRecord.objects.filter(
+                    company=request.user.company,
+                    ep_no__icontains=calendar_ep,
+                    date__year=year,
+                    date__month=month
+                )
+            
+            # Calculate statistics
+            present_days = records.filter(status='P').count()
+            absent_days = records.filter(status='A').count()
+            late_days = records.filter(status='L').count()
+            partial_days = records.filter(status='PD').count()
+            total_logged = records.count()
+            total_days_in_month = calendar.monthrange(year, month)[1]
+            
+            # Calculate exceptions (late + partial + absent)
+            exception_days = late_days + partial_days + absent_days
+            exception_type = "Days"
+            if partial_days > 0:
+                exception_type = "Deduction"
+            
+            calendar_stats = {
+                'present_days': present_days,
+                'exception_days': exception_days if exception_days > 0 else partial_days,
+                'exception_type': exception_type,
+                'total_logged': total_logged,
+                'total_days': total_days_in_month,
+            }
+            
+            # Create a dictionary of dates to records
+            records_dict = {record.date.day: record for record in records}
+            
+            # Get employee name from first record
+            employee_name = records.first().ep_name if records.exists() else None
+            
+            # Generate calendar data
+            cal = calendar.monthcalendar(year, month)
+            calendar_data = []
+            
+            for week in cal:
+                for day in week:
+                    if day == 0:
+                        # Day from previous/next month
+                        calendar_data.append({
+                            'day': '',
+                            'is_other_month': True,
+                            'status': None,
+                            'hours': None,
+                            'ep_name': employee_name
+                        })
+                    else:
+                        record = records_dict.get(day)
+                        calendar_data.append({
+                            'day': day,
+                            'is_other_month': False,
+                            'status': record.status if record else None,
+                            'hours': record.hours if record and record.hours else None,
+                            'ep_name': employee_name,
+                            'deduction': record.deduction if record and hasattr(record, 'deduction') else None
+                        })
+        except (ValueError, AttributeError):
+            pass
+    
+    # Get EIC pending request statistics
+    from django.db.models import Count, Q, Case, When, IntegerField
+    eic_pending_requests = []
+    grand_total_approved = 0
+    grand_total_pending = 0
+    grand_total_all = 0
+    
+    # Partial Day statistics by EIC
+    partial_day_by_eic = []
+    pd_grand_total = 0
+    
+    # Regularization statistics by EIC
+    regularization_by_eic = []
+    reg_total_count = 0
+    
+    try:
+        if request.user.role == 'root':
+            eic_queryset = AttendanceRecord.objects.exclude(requested_eic_name='')
+            pd_queryset = AttendanceRecord.objects.filter(status='PD').exclude(requested_eic_name='')
+            # Regularization: records with in_time_2 or out_time_2 (new punch times) and has status
+            reg_queryset = AttendanceRecord.objects.filter(
+                Q(in_time_2__isnull=False) | Q(out_time_2__isnull=False)
+            ).exclude(requested_eic_name='').exclude(Q(ot_request_status='') | Q(ot_request_status__isnull=True))
+        elif request.user.role == 'user1':
+            eic_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company
+            ).exclude(requested_eic_name='')
+            eic_queryset = AccessControlService.filter_queryset_by_access(eic_queryset, request.user)
+            
+            pd_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company,
+                status='PD'
+            ).exclude(requested_eic_name='')
+            pd_queryset = AccessControlService.filter_queryset_by_access(pd_queryset, request.user)
+            
+            reg_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company
+            ).filter(
+                Q(in_time_2__isnull=False) | Q(out_time_2__isnull=False)
+            ).exclude(requested_eic_name='').exclude(Q(ot_request_status='') | Q(ot_request_status__isnull=True))
+            reg_queryset = AccessControlService.filter_queryset_by_access(reg_queryset, request.user)
+        else:
+            eic_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company
+            ).exclude(requested_eic_name='')
+            
+            pd_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company,
+                status='PD'
+            ).exclude(requested_eic_name='')
+            
+            reg_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company
+            ).filter(
+                Q(in_time_2__isnull=False) | Q(out_time_2__isnull=False)
+            ).exclude(requested_eic_name='').exclude(Q(ot_request_status='') | Q(ot_request_status__isnull=True))
+        
+        # Group by EIC name and count by status for OT
+        eic_pending_requests = eic_queryset.values('requested_eic_name').annotate(
+            approved_count=Count('id', filter=Q(ot_request_status='Approved')),
+            pending_count=Count('id', filter=Q(ot_request_status='Pending')),
+            total_count=Count('id')
+        ).order_by('-total_count')[:10]  # Top 10 EICs with most requests
+        
+        # Calculate grand totals for OT
+        grand_total_approved = eic_queryset.filter(ot_request_status='Approved').count()
+        grand_total_pending = eic_queryset.filter(ot_request_status='Pending').count()
+        grand_total_all = eic_queryset.count()
+        
+        # Group by EIC for Partial Day
+        partial_day_by_eic = pd_queryset.values('requested_eic_name').annotate(
+            total_count=Count('id')
+        ).order_by('-total_count')[:10]
+        pd_grand_total = pd_queryset.count()
+        
+        # Group by EIC for Regularization with status breakdown
+        regularization_by_eic = reg_queryset.values('requested_eic_name').annotate(
+            approved_count=Count('id', filter=Q(ot_request_status='Approved')),
+            pending_count=Count('id', filter=Q(ot_request_status='Pending')),
+            total_count=Count('id')
+        ).order_by('-total_count')[:10]
+        reg_total_count = reg_queryset.count()
+        reg_total_approved = reg_queryset.filter(ot_request_status='Approved').count()
+        reg_total_pending = reg_queryset.filter(ot_request_status='Pending').count()
+        
+        # ARC Summary - Pivot table by trade and contractor (top 7 contractors by mandays)
+        from django.db.models import Sum, FloatField
+        from collections import defaultdict
+        
+        # Get base queryset for ARC
+        if request.user.role == 'root':
+            arc_queryset = AttendanceRecord.objects.exclude(cont_code='Unknown').exclude(cont_code='')
+        elif request.user.role == 'user1':
+            arc_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company
+            ).exclude(cont_code='Unknown').exclude(cont_code='')
+            arc_queryset = AccessControlService.filter_queryset_by_access(arc_queryset, request.user)
+        else:
+            arc_queryset = AttendanceRecord.objects.filter(
+                company=request.user.company
+            ).exclude(cont_code='Unknown').exclude(cont_code='')
+        
+        # Get top 7 contractors by total mandays
+        top_contractors = arc_queryset.values('cont_code', 'contract').annotate(
+            total_mandays=Sum('mandays', output_field=FloatField())
+        ).order_by('-total_mandays')[:7]
+        
+        # Use contractor names instead of codes
+        arc_contractors = [c['contract'] or c['cont_code'] for c in top_contractors]
+        # Create mapping from code to name for lookup
+        code_to_name = {c['cont_code']: (c['contract'] or c['cont_code']) for c in top_contractors}
+        arc_contractor_codes = [c['cont_code'] for c in top_contractors]
+        
+        # Build pivot data: trade -> {contractor name -> mandays}
+        pivot_data = defaultdict(lambda: defaultdict(float))
+        trade_totals = defaultdict(float)
+        contractor_totals = defaultdict(float)
+        
+        # Query data for top contractors only
+        arc_records = arc_queryset.filter(cont_code__in=arc_contractor_codes).values('trade', 'cont_code', 'contract', 'mandays')
+        
+        for record in arc_records:
+            trade = record['trade'] or 'Unknown'
+            cont_code = record['cont_code']
+            cont_name = record['contract'] or cont_code
+            mandays = float(record['mandays'] or 0)
+            
+            pivot_data[trade][cont_name] += mandays
+            trade_totals[trade] += mandays
+            contractor_totals[cont_name] += mandays
+        
+        # Convert to list format for template
+        arc_summary_data = []
+        for trade in sorted(pivot_data.keys()):
+            row = {
+                'trade': trade,
+                'contractors': {},
+                'total': trade_totals[trade]
+            }
+            for cont_name in arc_contractors:
+                row['contractors'][cont_name] = pivot_data[trade].get(cont_name, 0)
+            arc_summary_data.append(row)
+        
+        # Calculate grand totals
+        arc_grand_totals = {cont_name: contractor_totals[cont_name] for cont_name in arc_contractors}
+        arc_grand_totals['total'] = sum(contractor_totals.values())
+        
+    except Exception as e:
+        logger.error(f'Error fetching EIC statistics: {e}')
+        eic_pending_requests = []
+        grand_total_approved = 0
+        grand_total_pending = 0
+        grand_total_all = 0
+        partial_day_by_eic = []
+        pd_grand_total = 0
+        regularization_by_eic = []
+        reg_total_count = 0
+        reg_total_approved = 0
+        reg_total_pending = 0
+        arc_summary_data = []
+        arc_contractors = []
+        arc_grand_totals = {}
+    
     context = {
         'total_records': total_records,
         'total_companies': total_companies,
         'recent_uploads': recent_uploads,
+        'calendar_data': calendar_data,
+        'calendar_ep': calendar_ep,
+        'calendar_month': calendar_month,
+        'calendar_month_name': calendar_month_name,
+        'calendar_year': calendar_year,
+        'calendar_stats': calendar_stats,
+        'employee_name': employee_name,
+        'eic_pending_requests': eic_pending_requests,
+        'grand_total_approved': grand_total_approved,
+        'grand_total_pending': grand_total_pending,
+        'grand_total_all': grand_total_all,
+        'partial_day_by_eic': partial_day_by_eic,
+        'pd_grand_total': pd_grand_total,
+        'regularization_by_eic': regularization_by_eic,
+        'reg_total_count': reg_total_count,
+        'reg_total_approved': reg_total_approved,
+        'reg_total_pending': reg_total_pending,
+        'arc_summary_data': arc_summary_data,
+        'arc_contractors': arc_contractors,
+        'arc_grand_totals': arc_grand_totals,
+        'reg_total_approved': reg_total_approved,
+        'reg_total_pending': reg_total_pending,
     }
     return render(request, 'dashboard.html', context)
 
@@ -219,9 +526,12 @@ def attendance_list_view(request):
         # Admin: Filter by company only
         queryset = AttendanceRecord.objects.filter(company=request.user.company)
     
-    # Apply filters
-    date_from = request.GET.get('date_from', '').strip()
-    date_to = request.GET.get('date_to', '').strip()
+    # Apply filters with default yesterday date
+    from datetime import timedelta
+    yesterday = (timezone.now() - timedelta(days=1)).date()
+    
+    date_from = request.GET.get('date_from', '').strip() or str(yesterday)
+    date_to = request.GET.get('date_to', '').strip() or str(yesterday)
     company_id = request.GET.get('company', '').strip()
     ep_no = request.GET.get('ep_no', '').strip()
     status = request.GET.get('status', '').strip()
@@ -296,7 +606,7 @@ def attendance_list_view(request):
                 
                 logger.info(f"Applied overstay range {min_hours}-{max_hours} hours filter, found {len(matching_records)} records")
                 
-                paginator = Paginator(matching_records, 50)
+                paginator = Paginator(matching_records, 100)
                 page_number = request.GET.get('page')
                 page_obj = paginator.get_page(page_number)
                 
@@ -362,7 +672,7 @@ def attendance_list_view(request):
                 logger.info(f"Applied overstay > {hours} hours filter, found {len(matching_records)} records")
                 
                 # Use manual pagination with the list
-                paginator = Paginator(matching_records, 50)
+                paginator = Paginator(matching_records, 100)
                 page_number = request.GET.get('page')
                 page_obj = paginator.get_page(page_number)
                 
@@ -395,8 +705,8 @@ def attendance_list_view(request):
     
     logger.info(f"Filters applied, proceeding to pagination")
     
-    # Pagination
-    paginator = Paginator(queryset.select_related('company'), 50)
+    # Pagination with 500 records per page for better performance
+    paginator = Paginator(queryset.select_related('company'), 500)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -415,6 +725,8 @@ def attendance_list_view(request):
         'companies': companies,
         'can_edit': can_edit_record(request.user),
         'can_delete': can_delete_record(request.user),
+        'date_from': date_from,
+        'date_to': date_to,
     }
     return render(request, 'attendance_list.html', context)
 
@@ -673,14 +985,19 @@ def attendance_delete_all_view(request):
 def upload_progress_view(request):
     """API endpoint to check upload progress"""
     from django.http import JsonResponse
-    from django.core.cache import cache
+    import json
+    import os
     
-    upload_id = request.session.get('current_upload_id')
-    if not upload_id:
+    progress_file = request.session.get('progress_file')
+    if not progress_file or not os.path.exists(progress_file):
         return JsonResponse({'status': 'no_upload', 'processed': 0, 'total': 0, 'percentage': 0})
     
-    progress = cache.get(upload_id, {'status': 'unknown', 'processed': 0, 'total': 0, 'percentage': 0})
-    return JsonResponse(progress)
+    try:
+        with open(progress_file, 'r') as f:
+            progress = json.load(f)
+        return JsonResponse(progress)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'processed': 0, 'total': 0, 'percentage': 0, 'error': str(e)})
 
 
 @login_required
@@ -1701,7 +2018,7 @@ def mandays_list_view(request):
     logger.info(f"Filters applied, proceeding to pagination")
     
     # Pagination
-    paginator = Paginator(queryset.select_related('company'), 50)
+    paginator = Paginator(queryset.select_related('company'), 100)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1821,3 +2138,670 @@ def download_mandays_template(request):
     
     logger.info(f'Manday CSV template downloaded by {request.user.username}')
     return response
+
+
+
+# ============================================================================
+# Excel File Upload Integration Views
+# ============================================================================
+
+@login_required
+def excel_upload_view(request):
+    """Excel file upload interface"""
+    return render(request, 'excel_upload.html')
+
+
+@login_required
+def excel_dashboard_view(request):
+    """Excel data dashboard"""
+    return render(request, 'excel_dashboard.html')
+
+
+@login_required
+def excel_search_view(request):
+    """Search and filter Excel data"""
+    return render(request, 'excel_search.html')
+
+
+@login_required
+def excel_import_history_view(request):
+    """View import history"""
+    return render(request, 'excel_import_history.html')
+
+
+@login_required
+@user_passes_test(lambda u: u.role in ['root', 'admin'])
+def excel_permissions_view(request):
+    """Manage upload permissions (admin only)"""
+    return render(request, 'excel_permissions.html')
+
+
+
+@login_required
+@company_access_required
+def add_remark_view(request, record_id):
+    """Add remark to attendance record (User1 only)"""
+    # Only User1 can add remarks
+    if request.user.role != 'user1':
+        messages.error(request, 'Only User1 can add remarks to attendance records.')
+        return redirect('core:attendance_list')
+    
+    # Get the attendance record
+    record = get_object_or_404(AttendanceRecord, id=record_id)
+    
+    # Check if user has access to this record's company
+    if request.user.company != record.company:
+        messages.error(request, 'You do not have access to this record.')
+        return redirect('core:attendance_list')
+    
+    # Check date range access for User1
+    if request.user.assigned_date_from and record.date < request.user.assigned_date_from:
+        messages.error(request, 'This record is outside your assigned date range.')
+        return redirect('core:attendance_list')
+    
+    if request.user.assigned_date_to and record.date > request.user.assigned_date_to:
+        messages.error(request, 'This record is outside your assigned date range.')
+        return redirect('core:attendance_list')
+    
+    if request.method == 'POST':
+        reason_id = request.POST.get('reason')
+        remarks_text = request.POST.get('remarks_text', '').strip()
+        
+        if not reason_id:
+            messages.error(request, 'Please select a reason.')
+            return redirect('core:add_remark', record_id=record_id)
+        
+        if not remarks_text:
+            messages.error(request, 'Please enter remarks.')
+            return redirect('core:add_remark', record_id=record_id)
+        
+        try:
+            reason = RemarkReason.objects.get(id=reason_id, company=request.user.company, is_active=True)
+            
+            # Create the remark
+            AttendanceRemark.objects.create(
+                attendance_record=record,
+                ep_no=record.ep_no,
+                date=record.date,
+                reason=reason,
+                remarks_text=remarks_text,
+                created_by=request.user
+            )
+            
+            messages.success(request, f'Remark added successfully for {record.ep_no} on {record.date}.')
+            logger.info(f"User {request.user.username} added remark for {record.ep_no} on {record.date}")
+            return redirect('core:attendance_list')
+            
+        except RemarkReason.DoesNotExist:
+            messages.error(request, 'Invalid reason selected.')
+            return redirect('core:add_remark', record_id=record_id)
+    
+    # GET request - show form
+    reasons = RemarkReason.objects.filter(company=request.user.company, is_active=True)
+    
+    context = {
+        'record': record,
+        'reasons': reasons,
+    }
+    return render(request, 'add_remark.html', context)
+
+
+@login_required
+@company_access_required
+def remarks_log_view(request):
+    """View all remarks (Admin and Root only)"""
+    if request.user.role not in ['admin', 'root']:
+        messages.error(request, 'You do not have permission to view remarks log.')
+        return redirect('core:dashboard')
+    
+    # Filter remarks based on user role
+    if request.user.role == 'root':
+        remarks = AttendanceRemark.objects.all().select_related(
+            'attendance_record', 'reason', 'created_by', 'responded_by'
+        )
+    else:  # admin
+        remarks = AttendanceRemark.objects.filter(
+            attendance_record__company=request.user.company
+        ).select_related(
+            'attendance_record', 'reason', 'created_by', 'responded_by'
+        )
+    
+    # Filters
+    status_filter = request.GET.get('status', '')
+    ep_no_filter = request.GET.get('ep_no', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    if status_filter:
+        remarks = remarks.filter(status=status_filter)
+    
+    if ep_no_filter:
+        remarks = remarks.filter(ep_no__icontains=ep_no_filter)
+    
+    if date_from:
+        remarks = remarks.filter(date__gte=date_from)
+    
+    if date_to:
+        remarks = remarks.filter(date__lte=date_to)
+    
+    # Order by most recent
+    remarks = remarks.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(remarks, 100)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+    }
+    return render(request, 'remarks_log.html', context)
+
+
+@login_required
+@role_required(['admin', 'root'])
+def manage_remark_reasons_view(request):
+    """Manage remark reasons/categories (Admin and Root only)"""
+    if request.user.role == 'root':
+        reasons = RemarkReason.objects.all().select_related('company', 'created_by')
+    else:  # admin
+        reasons = RemarkReason.objects.filter(company=request.user.company).select_related('created_by')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            reason_text = request.POST.get('reason', '').strip()
+            if reason_text:
+                RemarkReason.objects.create(
+                    company=request.user.company,
+                    reason=reason_text,
+                    created_by=request.user
+                )
+                messages.success(request, f'Reason "{reason_text}" added successfully.')
+                logger.info(f"User {request.user.username} added remark reason: {reason_text}")
+            else:
+                messages.error(request, 'Please enter a reason.')
+        
+        elif action == 'toggle':
+            reason_id = request.POST.get('reason_id')
+            try:
+                reason = RemarkReason.objects.get(id=reason_id)
+                if request.user.role == 'admin' and reason.company != request.user.company:
+                    messages.error(request, 'You do not have permission to modify this reason.')
+                else:
+                    reason.is_active = not reason.is_active
+                    reason.save()
+                    status = 'activated' if reason.is_active else 'deactivated'
+                    messages.success(request, f'Reason "{reason.reason}" {status}.')
+            except RemarkReason.DoesNotExist:
+                messages.error(request, 'Reason not found.')
+        
+        return redirect('core:manage_remark_reasons')
+    
+    context = {
+        'reasons': reasons,
+    }
+    return render(request, 'manage_remark_reasons.html', context)
+
+
+
+@login_required
+@role_required(['admin', 'root'])
+def export_remarks_log_view(request):
+    """Export remarks log to Excel (Admin and Root only)"""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from io import BytesIO
+    
+    # Filter remarks based on user role
+    if request.user.role == 'root':
+        remarks = AttendanceRemark.objects.all().select_related(
+            'attendance_record', 'reason', 'created_by', 'responded_by', 'attendance_record__company'
+        )
+    else:  # admin
+        remarks = AttendanceRemark.objects.filter(
+            attendance_record__company=request.user.company
+        ).select_related(
+            'attendance_record', 'reason', 'created_by', 'responded_by', 'attendance_record__company'
+        )
+    
+    # Apply filters from request
+    status_filter = request.GET.get('status', '')
+    ep_no_filter = request.GET.get('ep_no', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    if status_filter:
+        remarks = remarks.filter(status=status_filter)
+    if ep_no_filter:
+        remarks = remarks.filter(ep_no__icontains=ep_no_filter)
+    if date_from:
+        remarks = remarks.filter(date__gte=date_from)
+    if date_to:
+        remarks = remarks.filter(date__lte=date_to)
+    
+    remarks = remarks.order_by('-created_at')
+    
+    # Create workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Remarks Log"
+    
+    # Define styles
+    header_fill = PatternFill(start_color="1F4788", end_color="1F4788", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Headers
+    headers = ['EP NO', 'Employee Name', 'Date', 'Company', 'Reason', 'Remarks', 
+               'Status', 'Submitted By', 'Submitted Date', 'Submitted Time', 
+               'Admin Response', 'Responded By', 'Responded Date']
+    
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.value = header
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+        cell.border = border
+    
+    # Data rows
+    for row_num, remark in enumerate(remarks, 2):
+        ws.cell(row=row_num, column=1).value = remark.ep_no
+        ws.cell(row=row_num, column=2).value = remark.attendance_record.ep_name if remark.attendance_record else ''
+        ws.cell(row=row_num, column=3).value = remark.date.strftime('%d/%m/%Y') if remark.date else ''
+        ws.cell(row=row_num, column=4).value = remark.attendance_record.company.name if remark.attendance_record and remark.attendance_record.company else ''
+        ws.cell(row=row_num, column=5).value = remark.reason.reason if remark.reason else ''
+        ws.cell(row=row_num, column=6).value = remark.remarks_text
+        ws.cell(row=row_num, column=7).value = remark.get_status_display()
+        ws.cell(row=row_num, column=8).value = remark.created_by.username if remark.created_by else ''
+        ws.cell(row=row_num, column=9).value = remark.created_at.strftime('%d/%m/%Y') if remark.created_at else ''
+        ws.cell(row=row_num, column=10).value = remark.created_at.strftime('%H:%M:%S') if remark.created_at else ''
+        ws.cell(row=row_num, column=11).value = remark.admin_response or ''
+        ws.cell(row=row_num, column=12).value = remark.responded_by.username if remark.responded_by else ''
+        ws.cell(row=row_num, column=13).value = remark.responded_at.strftime('%d/%m/%Y %H:%M') if remark.responded_at else ''
+        
+        # Apply borders
+        for col_num in range(1, len(headers) + 1):
+            ws.cell(row=row_num, column=col_num).border = border
+    
+    # Adjust column widths
+    column_widths = [12, 25, 12, 25, 20, 40, 12, 15, 15, 12, 40, 15, 18]
+    for col_num, width in enumerate(column_widths, 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col_num)].width = width
+    
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    # Create response
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f'remarks_log_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    logger.info(f"User {request.user.username} exported remarks log with {remarks.count()} records")
+    return response
+
+
+@login_required
+@role_required(['root'])
+def upload_remarks_log_view(request):
+    """Upload remarks log from Excel (Root only)"""
+    if request.method == 'POST':
+        if 'file' not in request.FILES:
+            messages.error(request, 'No file uploaded.')
+            return redirect('core:upload_remarks_log')
+        
+        file = request.FILES['file']
+        
+        if not file.name.endswith(('.xlsx', '.xls')):
+            messages.error(request, 'Please upload an Excel file (.xlsx or .xls)')
+            return redirect('core:upload_remarks_log')
+        
+        try:
+            import openpyxl
+            from datetime import datetime
+            
+            wb = openpyxl.load_workbook(file)
+            ws = wb.active
+            
+            success_count = 0
+            error_count = 0
+            errors = []
+            
+            # Skip header row
+            for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), 2):
+                try:
+                    ep_no = str(row[0]).strip() if row[0] else None
+                    date_str = row[2]
+                    company_name = str(row[3]).strip() if row[3] else None
+                    reason_text = str(row[4]).strip() if row[4] else None
+                    remarks_text = str(row[5]).strip() if row[5] else None
+                    status = str(row[6]).strip().lower() if row[6] else 'pending'
+                    created_by_username = str(row[7]).strip() if row[7] else None
+                    admin_response = str(row[10]).strip() if row[10] else ''
+                    
+                    if not all([ep_no, date_str, company_name, reason_text, remarks_text]):
+                        errors.append(f"Row {row_num}: Missing required fields")
+                        error_count += 1
+                        continue
+                    
+                    # Parse date
+                    if isinstance(date_str, datetime):
+                        date = date_str.date()
+                    else:
+                        date = datetime.strptime(str(date_str), '%d/%m/%Y').date()
+                    
+                    # Get company
+                    company = Company.objects.filter(name=company_name).first()
+                    if not company:
+                        errors.append(f"Row {row_num}: Company '{company_name}' not found")
+                        error_count += 1
+                        continue
+                    
+                    # Get attendance record
+                    attendance_record = AttendanceRecord.objects.filter(
+                        ep_no=ep_no,
+                        date=date,
+                        company=company
+                    ).first()
+                    
+                    if not attendance_record:
+                        errors.append(f"Row {row_num}: Attendance record not found for {ep_no} on {date}")
+                        error_count += 1
+                        continue
+                    
+                    # Get or create reason
+                    reason, _ = RemarkReason.objects.get_or_create(
+                        company=company,
+                        reason=reason_text,
+                        defaults={'created_by': request.user, 'is_active': True}
+                    )
+                    
+                    # Get created_by user
+                    created_by = User.objects.filter(username=created_by_username).first() if created_by_username else request.user
+                    
+                    # Map status
+                    status_map = {
+                        'pending': 'pending',
+                        'reviewed': 'reviewed',
+                        'resolved': 'resolved'
+                    }
+                    status_value = status_map.get(status, 'pending')
+                    
+                    # Create or update remark
+                    remark, created = AttendanceRemark.objects.update_or_create(
+                        attendance_record=attendance_record,
+                        ep_no=ep_no,
+                        date=date,
+                        defaults={
+                            'reason': reason,
+                            'remarks_text': remarks_text,
+                            'created_by': created_by,
+                            'status': status_value,
+                            'admin_response': admin_response
+                        }
+                    )
+                    
+                    success_count += 1
+                    
+                except Exception as e:
+                    errors.append(f"Row {row_num}: {str(e)}")
+                    error_count += 1
+            
+            # Show results
+            if success_count > 0:
+                messages.success(request, f'Successfully imported {success_count} remarks.')
+            
+            if error_count > 0:
+                error_msg = f'{error_count} errors occurred. First 10 errors: ' + '; '.join(errors[:10])
+                messages.warning(request, error_msg)
+            
+            logger.info(f"User {request.user.username} uploaded remarks log: {success_count} success, {error_count} errors")
+            return redirect('core:remarks_log')
+            
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+            logger.error(f"Error uploading remarks log: {str(e)}")
+            return redirect('core:upload_remarks_log')
+    
+    # GET request - show upload form
+    return render(request, 'upload_remarks_log.html')
+
+
+# ============================================================================
+# Report Views for Different Data Types
+# ============================================================================
+
+@login_required
+@login_required
+@company_access_required
+def arc_summary_report(request):
+    """ARC Summary Report - Daily Summary Data from AttendanceRecord"""
+    from django.core.paginator import Paginator
+    
+    # Get filter parameters
+    ep_no = request.GET.get('ep_no', '').strip()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    # Base queryset - Query AttendanceRecord, exclude records with Unknown contractor
+    queryset = AttendanceRecord.objects.select_related('company').exclude(
+        cont_code='Unknown'
+    ).exclude(
+        cont_code=''
+    ).exclude(
+        company__name='Unknown'
+    )
+    
+    # Apply company filter based on user role
+    if request.user.role == 'admin':
+        # Admin sees only their company's data
+        if request.user.company:
+            queryset = queryset.filter(company=request.user.company)
+    elif request.user.role == 'user1':
+        # User1 sees only assigned employees
+        from core.services.access_control_service import AccessControlService
+        access_service = AccessControlService()
+        accessible_ep_nos = access_service.get_accessible_ep_numbers(request.user)
+        queryset = queryset.filter(ep_no__in=accessible_ep_nos)
+    
+    # Apply filters
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+    if date_from:
+        queryset = queryset.filter(date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date__lte=date_to)
+    
+    # Order by date descending
+    queryset = queryset.order_by('-date', 'ep_no')
+    
+    # Pagination
+    paginator = Paginator(queryset, 100)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'ep_no': ep_no,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_count': paginator.count,
+    }
+    
+    return render(request, 'reports/arc_summary.html', context)
+
+
+@login_required
+@company_access_required
+def overtime_report(request):
+    """Overtime Report - Records with Overtime requests from AttendanceRecord"""
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    # Get filter parameters
+    ep_no = request.GET.get('ep_no', '').strip()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    # Base queryset - Query AttendanceRecord with any overtime request data
+    # Show records that have actual_overstay, requested_overtime, or ot_request_status
+    queryset = AttendanceRecord.objects.select_related('company').filter(
+        Q(actual_overstay__isnull=False, actual_overstay__gt='') |
+        Q(requested_overtime__isnull=False, requested_overtime__gt='') |
+        Q(ot_request_status__isnull=False, ot_request_status__gt='')
+    )
+    
+    # Apply company filter based on user role
+    if request.user.role == 'admin':
+        if request.user.company:
+            queryset = queryset.filter(company=request.user.company)
+    elif request.user.role == 'user1':
+        from core.services.access_control_service import AccessControlService
+        access_service = AccessControlService()
+        accessible_ep_nos = access_service.get_accessible_ep_numbers(request.user)
+        queryset = queryset.filter(ep_no__in=accessible_ep_nos)
+    
+    # Apply filters
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+    if date_from:
+        queryset = queryset.filter(date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date__lte=date_to)
+    
+    # Order by date descending
+    queryset = queryset.order_by('-date', 'ep_no')
+    
+    # Pagination
+    paginator = Paginator(queryset, 100)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'ep_no': ep_no,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_count': paginator.count,
+    }
+    
+    return render(request, 'reports/overtime.html', context)
+
+
+@login_required
+@company_access_required
+@login_required
+@company_access_required
+def partial_day_report(request):
+    """Partial Day Report - Records with status PD from AttendanceRecord"""
+    from django.core.paginator import Paginator
+    
+    # Get filter parameters
+    ep_no = request.GET.get('ep_no', '').strip()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    # Base queryset - Query AttendanceRecord with PD status
+    queryset = AttendanceRecord.objects.select_related('company').filter(status='PD')
+    
+    # Apply company filter based on user role
+    if request.user.role == 'admin':
+        if request.user.company:
+            queryset = queryset.filter(company=request.user.company)
+    elif request.user.role == 'user1':
+        from core.services.access_control_service import AccessControlService
+        access_service = AccessControlService()
+        accessible_ep_nos = access_service.get_accessible_ep_numbers(request.user)
+        queryset = queryset.filter(ep_no__in=accessible_ep_nos)
+    
+    # Apply filters
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+    if date_from:
+        queryset = queryset.filter(date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date__lte=date_to)
+    
+    # Order by date descending
+    queryset = queryset.order_by('-date', 'ep_no')
+    
+    # Pagination
+    paginator = Paginator(queryset, 100)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'ep_no': ep_no,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_count': paginator.count,
+    }
+    
+    return render(request, 'reports/partial_day.html', context)
+
+
+@login_required
+@company_access_required
+def regularization_report(request):
+    """Regularization Report - All attendance records (for regularization tracking)"""
+    from django.core.paginator import Paginator
+    
+    # Get filter parameters
+    ep_no = request.GET.get('ep_no', '').strip()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    # Base queryset - Query all AttendanceRecord
+    queryset = AttendanceRecord.objects.select_related('company').all()
+    
+    # Apply company filter based on user role
+    if request.user.role == 'admin':
+        if request.user.company:
+            queryset = queryset.filter(company=request.user.company)
+    elif request.user.role == 'user1':
+        from core.services.access_control_service import AccessControlService
+        access_service = AccessControlService()
+        accessible_ep_nos = access_service.get_accessible_ep_numbers(request.user)
+        queryset = queryset.filter(ep_no__in=accessible_ep_nos)
+    
+    # Apply filters
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+    if date_from:
+        queryset = queryset.filter(date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date__lte=date_to)
+    
+    # Exclude records with empty or null status
+    queryset = queryset.exclude(Q(ot_request_status='') | Q(ot_request_status__isnull=True))
+    
+    # Order by date descending
+    queryset = queryset.order_by('-date', 'ep_no')
+    
+    # Pagination
+    paginator = Paginator(queryset, 100)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'ep_no': ep_no,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_count': paginator.count,
+    }
+    
+    return render(request, 'reports/regularization.html', context)

@@ -3,7 +3,7 @@ Django admin configuration
 """
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Company, AttendanceRecord, UploadLog
+from .models import User, Company, AttendanceRecord, UploadLog, RemarkReason, AttendanceRemark
 
 
 class CustomUserAdmin(BaseUserAdmin):
@@ -124,3 +124,48 @@ admin.site.register(UploadLog, UploadLogAdmin)
 admin.site.site_header = 'Attendance Management System'
 admin.site.site_title = 'Attendance Admin'
 admin.site.index_title = 'System Administration'
+
+
+class RemarkReasonAdmin(admin.ModelAdmin):
+    """Admin for RemarkReason model"""
+    list_display = ('reason', 'company', 'is_active', 'created_by', 'created_at')
+    list_filter = ('is_active', 'company', 'created_at')
+    search_fields = ('reason', 'company__name')
+    readonly_fields = ('created_at', 'created_by')
+    
+    def has_module_permission(self, request):
+        """Only root and admin users can access"""
+        if request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in ['root', 'admin']):
+            return True
+        return False
+
+
+class AttendanceRemarkAdmin(admin.ModelAdmin):
+    """Admin for AttendanceRemark model"""
+    list_display = ('ep_no', 'date', 'reason', 'created_by', 'created_at', 'status')
+    list_filter = ('status', 'created_at', 'date', 'reason')
+    search_fields = ('ep_no', 'remarks_text', 'admin_response')
+    readonly_fields = ('created_at', 'updated_at', 'created_by')
+    
+    fieldsets = (
+        ('Attendance Info', {
+            'fields': ('attendance_record', 'ep_no', 'date')
+        }),
+        ('Remark Details', {
+            'fields': ('reason', 'remarks_text', 'created_by', 'created_at')
+        }),
+        ('Admin Response', {
+            'fields': ('status', 'admin_response', 'responded_by', 'responded_at')
+        }),
+    )
+    
+    def has_module_permission(self, request):
+        """Only root and admin users can access"""
+        if request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in ['root', 'admin']):
+            return True
+        return False
+
+
+# Register models
+admin.site.register(RemarkReason, RemarkReasonAdmin)
+admin.site.register(AttendanceRemark, AttendanceRemarkAdmin)

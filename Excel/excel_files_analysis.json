@@ -1,0 +1,17 @@
+{
+  "Excel/Date wise ARC Summary (1).xls": {
+    "error": "Unsupported format, or corrupt file: Expected BOF record; found b'<div>\\r\\n\\t'"
+  },
+  "Excel/OVERTIME (2).xls": {
+    "error": "Unsupported format, or corrupt file: Expected BOF record; found b'<div>\\r\\n\\t'"
+  },
+  "Excel/PARTIAL DAY.xls": {
+    "error": "Unsupported format, or corrupt file: Expected BOF record; found b'<div>\\r\\n\\t'"
+  },
+  "Excel/Punchrecord Report (6).xls": {
+    "error": "Unsupported format, or corrupt file: Expected BOF record; found b'<div>\\r\\n\\t'"
+  },
+  "Excel/Regularization Audit Report (1).xls": {
+    "error": "Unsupported format, or corrupt file: Expected BOF record; found b'<div>\\r\\n\\t'"
+  }
+}

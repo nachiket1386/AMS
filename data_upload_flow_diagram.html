@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Upload Flow - Excel to Database</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .container { 
+            max-width: 1600px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #4A70A9 0%, #8FABD4 100%);
+            color: white; 
+            padding: 40px; 
+            text-align: center;
+            position: relative;
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
+        .content { padding: 40px; }
+        
+        /* Flow Steps */
+        .flow-section { margin: 40px 0; }
+        .flow-section h2 { color: #4A70A9; margin-bottom: 30px; font-size: 2rem; text-align: center; }
+        
+        .flow-container { display: flex; flex-direction: column; gap: 20px; align-items: center; }
+        .flow-box { 
+            background: white;
+            border: 3px solid #8FABD4;
+            border-radius: 15px;
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .flow-box:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
+        .flow-box h3 { color: #4A70A9; font-size: 1.5rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .flow-box p { font-size: 1rem; line-height: 1.6; margin: 10px 0; }
+        .flow-box ul { margin: 15px 0 15px 30px; }
+        .flow-box li { margin: 8px 0; font-size: 1rem; }
+        
+        .arrow { 
+            font-size: 3rem; 
+            color: #4A70A9; 
+            text-align: center; 
+            margin: 10px 0;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Mapping Grid */
+        .mapping-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); 
+            gap: 30px; 
+            margin: 30px 0;
+        }
+        
+        .mapping-card { 
+            background: white;
+            border: 3px solid #8FABD4;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .mapping-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
+        
+        .mapping-card h3 { 
+            color: #4A70A9; 
+            font-size: 1.3rem; 
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #8FABD4;
+        }
+        
+        .file-icon { font-size: 2rem; }
+        .arrow-icon { font-size: 1.5rem; color: #4A70A9; margin: 10px 0; text-align: center; }
+        
+        .table-name { 
+            background: #4A70A9;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .columns-list { 
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .columns-list h4 { color: #4A70A9; font-size: 1rem; margin-bottom: 10px; }
+        .columns-list ul { list-style: none; padding: 0; }
+        .columns-list li { 
+            padding: 5px 10px;
+            margin: 3px 0;
+            background: white;
+            border-left: 3px solid #8FABD4;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        /* Table Details */
+        .table-details { 
+            background: white;
+            border: 2px solid #8FABD4;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .table-details h3 { 
+            color: #4A70A9; 
+            font-size: 1.5rem; 
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .columns-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px;
+        }
+        .columns-table th { 
+            background: #4A70A9;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .columns-table td { 
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .columns-table tr:hover { background: #f5f5f5; }
+        
+        .pk-badge { 
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .fk-badge { 
+            background: #4ecdc4;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        /* Tabs */
+        .nav-tabs { 
+            display: flex; 
+            background: #f5f5f5; 
+            border-bottom: 2px solid #ddd;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+        .nav-tab { 
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .nav-tab:hover { background: #e0e0e0; color: #4A70A9; }
+        .nav-tab.active { background: white; color: #4A70A9; border-bottom: 3px solid #4A70A9; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .content { padding: 20px; }
+            .mapping-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Data Upload Flow Diagram</h1>
+            <p>Excel Files → Database Tables - Complete Visual Guide</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('flow')">🔄 Upload Flow</button>
+            <button class="nav-tab" onclick="showTab('mapping')">🗺️ File Mapping</button>
+            <button class="nav-tab" onclick="showTab('tables')">📋 All Tables</button>
+        </div>
+        
+        <div class="content">
+            
+            <!-- Upload Flow Tab -->
+            <div id="flow" class="tab-content active">
+                <div class="flow-section">
+                    <h2>🔄 How to Upload Data to Database</h2>
+                    
+                    <div class="flow-container">
+                        <div class="flow-box">
+                            <h3><span style="font-size: 2rem;">1️⃣</span> Login to System</h3>
+                            <p><strong>URL:</strong> http://localhost:8000/</p>
+                            <p><strong>Required Role:</strong> Admin or Root user</p>
+                            <p>Login with your admin credentials to access the upload feature.</p>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="flow-box">
+                            <h3><span style="font-size: 2rem;">2️⃣</span> Navigate to Excel Upload</h3>
+                            <p><strong>Click:</strong> "📊 Excel File Upload" in the navigation bar</p>
+                            <p><strong>URL:</strong> http://localhost:8000/excel/upload/</p>
+                            <p>You'll see 6 file type cards to choose from.</p>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="flow-box">
+                            <h3><span style="font-size: 2rem;">3️⃣</span> Select File Type</h3>
+                            <p>Choose the type of data you want to upload:</p>
+                            <ul>
+                                <li><strong>🕐 Punchrecord</strong> - Employee punch in/out records</li>
+                                <li><strong>📊 ARC Summary</strong> - Daily attendance summary</li>
+                                <li><strong>⏰ Overtime</strong> - Overtime requests</li>
+                                <li><strong>📅 Partial Day</strong> - Partial day attendance</li>
+                                <li><strong>✏️ Regularization</strong> - Attendance corrections</li>
+                                <li><strong>🔍 Auto-Detect</strong> - System detects file type automatically</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="flow-box">
+                            <h3><span style="font-size: 2rem;">4️⃣</span> Upload Excel File</h3>
+                            <p><strong>Method 1:</strong> Drag and drop your Excel file</p>
+                            <p><strong>Method 2:</strong> Click to browse and select file</p>
+                            <p><strong>Supported Formats:</strong> .xls, .xlsx (Max 50MB)</p>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="flow-box">
+                            <h3><span style="font-size: 2rem;">5️⃣</span> System Validates Data</h3>
+                            <p>The system automatically:</p>
+                            <ul>
+                                <li>✅ Checks if employees exist in database</li>
+                                <li>✅ Validates date and time formats</li>
+                                <li>✅ Checks for duplicate records</li>
+                                <li>✅ Validates required fields</li>
+                                <li>✅ Generates validation report</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="flow-box">
+                            <h3><span style="font-size: 2rem;">6️⃣</span> Review & Confirm</h3>
+                            <p>You'll see:</p>
+                            <ul>
+                                <li><strong>Valid Rows:</strong> Records that will be imported</li>
+                                <li><strong>Duplicate Rows:</strong> Records that already exist</li>
+                                <li><strong>Invalid Rows:</strong> Records with errors</li>
+                                <li><strong>Preview:</strong> First 10 rows of data</li>
+                            </ul>
+                            <p><strong>Action:</strong> Click "✅ Confirm Import" to proceed</p>
+                        </div>
+                        
+                        <div class="arrow">↓</div>
+                        
+                        <div class="flow-box">
+                            <h3><span style="font-size: 2rem;">7️⃣</span> Data Saved to Database</h3>
+                            <p>✅ Valid records are inserted into the appropriate database table</p>
+                            <p>✅ Import log is created with statistics</p>
+                            <p>✅ Error report is generated (if any errors)</p>
+                            <p><strong>Result:</strong> Your data is now in the database!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- File Mapping Tab -->
+            <div id="mapping" class="tab-content">
+                <div class="flow-section">
+                    <h2>🗺️ Excel File to Database Table Mapping</h2>
+                    
+                    <div class="mapping-grid">
+                        <!-- Punchrecord -->
+                        <div class="mapping-card">
+                            <h3><span class="file-icon">🕐</span> Punchrecord File</h3>
+                            <div class="arrow-icon">↓</div>
+                            <div class="table-name">punch_records</div>
+                            <div class="columns-list">
+                                <h4>📋 Column Headers (19 columns):</h4>
+                                <ul>
+                                    <li>employee_id (Employee Number)</li>
+                                    <li>punchdate (Date)</li>
+                                    <li>shift (Shift)</li>
+                                    <li>punch1_in (Punch 1 IN)</li>
+                                    <li>punch2_out (Punch 2 OUT)</li>
+                                    <li>punch3_in (Punch 3 IN)</li>
+                                    <li>punch4_out (Punch 4 OUT)</li>
+                                    <li>punch5_in (Punch 5 IN)</li>
+                                    <li>punch6_out (Punch 6 OUT)</li>
+                                    <li>early_in (Early IN)</li>
+                                    <li>late_come (Late Come)</li>
+                                    <li>early_out (Early OUT)</li>
+                                    <li>hours_worked (Hours Worked)</li>
+                                    <li>overstay (Overstay)</li>
+                                    <li>overtime (Overtime)</li>
+                                    <li>status (Status)</li>
+                                    <li>regular_hours (Regular Hours)</li>
+                                    <li>manual_request (Manual Request)</li>
+                                    <li>created_at (Created Timestamp)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- ARC Summary -->
+                        <div class="mapping-card">
+                            <h3><span class="file-icon">📊</span> ARC Summary File</h3>
+                            <div class="arrow-icon">↓</div>
+                            <div class="table-name">daily_summary</div>
+                            <div class="columns-list">
+                                <h4>📋 Column Headers (8 columns):</h4>
+                                <ul>
+                                    <li>employee_id (Employee Number)</li>
+                                    <li>punchdate (Date)</li>
+                                    <li>mandays (Mandays)</li>
+                                    <li>regular_manday_hr (Regular Manday Hours)</li>
+                                    <li>ot (Overtime)</li>
+                                    <li>location_status (Location Status)</li>
+                                    <li>created_at (Created Timestamp)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Overtime -->
+                        <div class="mapping-card">
+                            <h3><span class="file-icon">⏰</span> Overtime File</h3>
+                            <div class="arrow-icon">↓</div>
+                            <div class="table-name">overtime_requests</div>
+                            <div class="columns-list">
+                                <h4>📋 Column Headers (17 columns):</h4>
+                                <ul>
+                                    <li>employee_id (Employee Number)</li>
+                                    <li>punchdate (Date)</li>
+                                    <li>actual_overstay (Actual Overstay)</li>
+                                    <li>requested_overtime (Requested Overtime)</li>
+                                    <li>approved_overtime (Approved Overtime)</li>
+                                    <li>requested_regular_hours (Requested Regular Hours)</li>
+                                    <li>approved_regular_hours (Approved Regular Hours)</li>
+                                    <li>contractor_request_date (Contractor Request Date)</li>
+                                    <li>contractor_remarks (Contractor Remarks)</li>
+                                    <li>contractor_reason (Contractor Reason)</li>
+                                    <li>actual_eic_code (Actual EIC Code)</li>
+                                    <li>requested_eic_code (Requested EIC Code)</li>
+                                    <li>eic_approve_date (EIC Approve Date)</li>
+                                    <li>eic_remarks (EIC Remarks)</li>
+                                    <li>status (Status: Pending/Approved/Rejected)</li>
+                                    <li>created_at (Created Timestamp)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Partial Day -->
+                        <div class="mapping-card">
+                            <h3><span class="file-icon">📅</span> Partial Day File</h3>
+                            <div class="arrow-icon">↓</div>
+                            <div class="table-name">partial_day_requests</div>
+                            <div class="columns-list">
+                                <h4>📋 Column Headers (14 columns):</h4>
+                                <ul>
+                                    <li>employee_id (Employee Number)</li>
+                                    <li>punchdate (Date)</li>
+                                    <li>actual_pd_hours (Actual PD Hours)</li>
+                                    <li>requested_pd_hours (Requested PD Hours)</li>
+                                    <li>approved_pd_hours (Approved PD Hours)</li>
+                                    <li>manday_conversion (Manday Conversion)</li>
+                                    <li>contractor_request_date (Contractor Request Date)</li>
+                                    <li>contractor_remarks (Contractor Remarks)</li>
+                                    <li>eic_code (EIC Code)</li>
+                                    <li>eic_approve_date (EIC Approve Date)</li>
+                                    <li>eic_remarks (EIC Remarks)</li>
+                                    <li>status (Status: Pending/Approved/Rejected)</li>
+                                    <li>created_at (Created Timestamp)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Regularization -->
+                        <div class="mapping-card">
+                            <h3><span class="file-icon">✏️</span> Regularization File</h3>
+                            <div class="arrow-icon">↓</div>
+                            <div class="table-name">regularization_requests</div>
+                            <div class="columns-list">
+                                <h4>📋 Column Headers (14 columns):</h4>
+                                <ul>
+                                    <li>employee_id (Employee Number)</li>
+                                    <li>punchdate (Date)</li>
+                                    <li>old_punch_in (Old Punch IN)</li>
+                                    <li>old_punch_out (Old Punch OUT)</li>
+                                    <li>new_punch_in (New Punch IN)</li>
+                                    <li>new_punch_out (New Punch OUT)</li>
+                                    <li>contractor_request_date (Contractor Request Date)</li>
+                                    <li>contractor_remarks (Contractor Remarks)</li>
+                                    <li>contractor_reason (Contractor Reason)</li>
+                                    <li>eic_code (EIC Code)</li>
+                                    <li>eic_approve_date (EIC Approve Date)</li>
+                                    <li>eic_remarks (EIC Remarks)</li>
+                                    <li>status (Status: Pending/Approved/Rejected)</li>
+                                    <li>created_at (Created Timestamp)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- All Tables Tab -->
+            <div id="tables" class="tab-content">
+                <div class="flow-section">
+                    <h2>📋 All Database Tables & Columns</h2>
+                    
+                    <!-- Master Tables -->
+                    <div class="table-details">
+                        <h3><span style="font-size: 2rem;">👥</span> employees (Master Table)</h3>
+                        <p><strong>Purpose:</strong> Employee master data</p>
+                        <table class="columns-table">
+                            <thead>
+                                <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="pk-badge">PK</span>ep_no</td><td>VARCHAR(12)</td><td>Employee Number</td></tr>
+                                <tr><td>ep_name</td><td>VARCHAR(255)</td><td>Employee Name</td></tr>
+                                <tr><td><span class="fk-badge">FK</span>contractor_id</td><td>INTEGER</td><td>Contractor Code</td></tr>
+                                <tr><td>sector_name</td><td>VARCHAR(100)</td><td>Sector Name</td></tr>
+                                <tr><td>plant_name</td><td>VARCHAR(100)</td><td>Plant Name</td></tr>
+                                <tr><td>department_name</td><td>VARCHAR(100)</td><td>Department Name</td></tr>
+                                <tr><td>trade_name</td><td>VARCHAR(100)</td><td>Trade Name</td></tr>
+                                <tr><td>skill</td><td>VARCHAR(50)</td><td>Skill Level</td></tr>
+                                <tr><td>card_category</td><td>VARCHAR(50)</td><td>Card Category</td></tr>
+                                <tr><td>created_at</td><td>DATETIME</td><td>Created Timestamp</td></tr>
+                                <tr><td>updated_at</td><td>DATETIME</td><td>Updated Timestamp</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-details">
+                        <h3><span style="font-size: 2rem;">🏢</span> contractors (Master Table)</h3>
+                        <p><strong>Purpose:</strong> Contractor master data</p>
+                        <table class="columns-table">
+                            <thead>
+                                <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="pk-badge">PK</span>contractor_code</td><td>INTEGER</td><td>Contractor Code</td></tr>
+                                <tr><td>contractor_name</td><td>VARCHAR(255)</td><td>Contractor Name</td></tr>
+                                <tr><td>created_at</td><td>DATETIME</td><td>Created Timestamp</td></tr>
+                                <tr><td>updated_at</td><td>DATETIME</td><td>Updated Timestamp</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-details">
+                        <h3><span style="font-size: 2rem;">🏭</span> plants (Master Table)</h3>
+                        <p><strong>Purpose:</strong> Plant/location master data</p>
+                        <table class="columns-table">
+                            <thead>
+                                <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="pk-badge">PK</span>plant_code</td><td>VARCHAR(50)</td><td>Plant Code</td></tr>
+                                <tr><td>plant_name</td><td>VARCHAR(255)</td><td>Plant Name</td></tr>
+                                <tr><td>sector_name</td><td>VARCHAR(100)</td><td>Sector Name</td></tr>
+                                <tr><td>site_code</td><td>VARCHAR(50)</td><td>Site Code</td></tr>
+                                <tr><td>site_desc</td><td>VARCHAR(255)</td><td>Site Description</td></tr>
+                                <tr><td>created_at</td><td>DATETIME</td><td>Created Timestamp</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Transaction Tables -->
+                    <div class="table-details">
+                        <h3><span style="font-size: 2rem;">🕐</span> punch_records (Transaction Table)</h3>
+                        <p><strong>Purpose:</strong> Punch in/out records from Punchrecord files</p>
+                        <p><strong>Excel File:</strong> Punchrecord.xls</p>
+                        <table class="columns-table">
+                            <thead>
+                                <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="pk-badge">PK</span>id</td><td>INTEGER</td><td>Auto ID</td></tr>
+                                <tr><td><span class="fk-badge">FK</span>employee_id</td><td>VARCHAR(12)</td><td>Employee Number</td></tr>
+                                <tr><td>punchdate</td><td>DATE</td><td>Punch Date</td></tr>
+                                <tr><td>shift</td><td>VARCHAR(50)</td><td>Shift</td></tr>
+                                <tr><td>punch1_in</td><td>TIME</td><td>Punch 1 IN</td></tr>
+                                <tr><td>punch2_out</td><td>TIME</td><td>Punch 2 OUT</td></tr>
+                                <tr><td>punch3_in</td><td>TIME</td><td>Punch 3 IN</td></tr>
+                                <tr><td>punch4_out</td><td>TIME</td><td>Punch 4 OUT</td></tr>
+                                <tr><td>punch5_in</td><td>TIME</td><td>Punch 5 IN</td></tr>
+                                <tr><td>punch6_out</td><td>TIME</td><td>Punch 6 OUT</td></tr>
+                                <tr><td>early_in</td><td>TIME</td><td>Early IN</td></tr>
+                                <tr><td>late_come</td><td>TIME</td><td>Late Come</td></tr>
+                                <tr><td>early_out</td><td>TIME</td><td>Early OUT</td></tr>
+                                <tr><td>hours_worked</td><td>TIME</td><td>Hours Worked</td></tr>
+                                <tr><td>overstay</td><td>TIME</td><td>Overstay</td></tr>
+                                <tr><td>overtime</td><td>TIME</td><td>Overtime</td></tr>
+                                <tr><td>status</td><td>VARCHAR(10)</td><td>Status</td></tr>
+                                <tr><td>regular_hours</td><td>TIME</td><td>Regular Hours</td></tr>
+                                <tr><td>manual_request</td><td>BOOLEAN</td><td>Manual Request Flag</td></tr>
+                                <tr><td>created_at</td><td>DATETIME</td><td>Created Timestamp</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-details">
+                        <h3><span style="font-size: 2rem;">📊</span> daily_summary (Transaction Table)</h3>
+                        <p><strong>Purpose:</strong> Daily attendance summary from ARC Summary files</p>
+                        <p><strong>Excel File:</strong> ARC_Summary.xls</p>
+                        <table class="columns-table">
+                            <thead>
+                                <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="pk-badge">PK</span>id</td><td>INTEGER</td><td>Auto ID</td></tr>
+                                <tr><td><span class="fk-badge">FK</span>employee_id</td><td>VARCHAR(12)</td><td>Employee Number</td></tr>
+                                <tr><td>punchdate</td><td>DATE</td><td>Punch Date</td></tr>
+                                <tr><td>mandays</td><td>DECIMAL(5,2)</td><td>Mandays</td></tr>
+                                <tr><td>regular_manday_hr</td><td>TIME</td><td>Regular Manday Hours</td></tr>
+                                <tr><td>ot</td><td>DECIMAL(5,2)</td><td>Overtime</td></tr>
+                                <tr><td>location_status</td><td>VARCHAR(50)</td><td>Location Status</td></tr>
+                                <tr><td>created_at</td><td>DATETIME</td><td>Created Timestamp</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-details">
+                        <h3><span style="font-size: 2rem;">📥</span> import_logs (Audit Table)</h3>
+                        <p><strong>Purpose:</strong> Track all Excel file imports</p>
+                        <table class="columns-table">
+                            <thead>
+                                <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="pk-badge">PK</span>id</td><td>INTEGER</td><td>Auto ID</td></tr>
+                                <tr><td><span class="fk-badge">FK</span>user_id</td><td>INTEGER</td><td>User who uploaded</td></tr>
+                                <tr><td>filename</td><td>VARCHAR(255)</td><td>Uploaded filename</td></tr>
+                                <tr><td>file_type</td><td>VARCHAR(50)</td><td>File type</td></tr>
+                                <tr><td>total_rows</td><td>INTEGER</td><td>Total rows in file</td></tr>
+                                <tr><td>imported_rows</td><td>INTEGER</td><td>Successfully imported</td></tr>
+                                <tr><td>duplicate_rows</td><td>INTEGER</td><td>Duplicates skipped</td></tr>
+                                <tr><td>error_rows</td><td>INTEGER</td><td>Rows with errors</td></tr>
+                                <tr><td>status</td><td>VARCHAR(20)</td><td>Import status</td></tr>
+                                <tr><td>error_report_path</td><td>VARCHAR(500)</td><td>Error report path</td></tr>
+                                <tr><td>created_at</td><td>DATETIME</td><td>Import timestamp</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</h

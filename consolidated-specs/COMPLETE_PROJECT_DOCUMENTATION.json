@@ -1,0 +1,1589 @@
+{
+  "project_overview": {
+    "name": "Attendance Management System (AMS)",
+    "version": "1.0.0",
+    "description": "Enterprise-grade multi-tenant attendance tracking system with role-based access control, CSV/Excel data import, mandays tracking, supervisor management, and comprehensive audit logging",
+    "generated_at": "2025-12-13",
+    "documentation_version": "Complete A-Z Documentation",
+    "project_type": "Web Application",
+    "deployment_status": "Production Ready",
+    "license": "Educational/Demonstration",
+    "repository_structure": {
+      "root_directory": "attendance_system/",
+      "main_app": "core/",
+      "database": "db.sqlite3",
+      "static_files": "core/static/",
+      "templates": "core/templates/",
+      "tests": "core/tests/",
+      "services": "core/services/",
+      "management_commands": "core/management/commands/"
+    }
+  },
+
+  "technology_stack": {
+    "backend": {
+      "framework": "Django 4.2.7",
+      "language": "Python 3.11+",
+      "architecture": "MVT (Model-View-Template)",
+      "orm": "Django ORM",
+      "authentication": "Django Auth with Custom User Model",
+      "session_management": "Django Sessions",
+      "middleware": [
+        "SecurityMiddleware",
+        "SessionMiddleware",
+        "CommonMiddleware",
+        "CsrfViewMiddleware",
+        "AuthenticationMiddleware",
+        "MessageMiddleware",
+        "ClickjackingMiddleware"
+      ]
+    },
+    "database": {
+      "development": "SQLite 3",
+      "production_ready": "PostgreSQL / MySQL",
+      "current_scale": {
+        "total_records": 133438,
+        "attendance_records": 96315,
+        "mandays_records": 37086,
+        "companies": 104,
+        "users": 3
+      },
+      "features": [
+        "Foreign Key Constraints",
+        "Unique Constraints",
+        "Database Indexes for Performance",
+        "Cascade Delete",
+        "Automatic Timestamps"
+      ]
+    },
+    "frontend": {
+      "html": "HTML5",
+      "css_framework": "Tailwind CSS (Custom Implementation)",
+      "javascript": "Vanilla JavaScript",
+      "fonts": "Inter (Google Fonts)",
+      "icons": "SVG Inline Icons",
+      "responsive_design": "Mobile-First Approach",
+      "breakpoint": "768px (Mobile/Desktop)"
+    },
+    "file_processing": {
+      "csv_library": "Python CSV Module",
+      "excel_library": "openpyxl 3.1.2",
+      "data_processing": "pandas 2.1.4",
+      "xml_parsing": "lxml 5.1.0"
+    },
+    "deployment": {
+      "wsgi_server": "gunicorn 21.2.0",
+      "static_files": "Django Static Files",
+      "media_files": "Not Used",
+      "logging": "Python Logging Module"
+    },
+    "dependencies": {
+      "Django": "4.2.7",
+      "gunicorn": "21.2.0",
+      "pandas": "2.1.4",
+      "openpyxl": "3.1.2",
+      "xlrd": "2.0.1",
+      "lxml": "5.1.0",
+      "html5lib": "1.1"
+    }
+  },
+  "architecture": {
+    "pattern": "Multi-Tenant MVC with Role-Based Access Control (RBAC)",
+    "layers": {
+      "presentation_layer": {
+        "description": "HTML Templates with Tailwind CSS",
+        "components": [
+          "Base Template (base.html)",
+          "Dashboard",
+          "Attendance List/Edit",
+          "Upload Interface",
+          "User Management",
+          "Access Request Workflow",
+          "Backup/Restore Interface",
+          "Error Pages (403, 404, 500)"
+        ],
+        "features": [
+          "Responsive Design (Mobile/Desktop)",
+          "Bottom Navigation (Mobile)",
+          "Top Header (Desktop)",
+          "Card-Based Layouts",
+          "Table Views with Horizontal Scroll",
+          "Form Validation Feedback",
+          "Status Badges",
+          "Interactive Hover States"
+        ]
+      },
+      "application_layer": {
+        "description": "Django Views and Business Logic",
+        "components": [
+          "Authentication Views (Login/Logout)",
+          "Dashboard View",
+          "Attendance Management Views (List/Edit/Delete/Export)",
+          "CSV Upload Views",
+          "Mandays Upload Views",
+          "User Management Views (CRUD)",
+          "Access Request Views (User1)",
+          "Approval Views (Admin)",
+          "Assignment Management Views (Admin)",
+          "Backup/Restore Views (Root)",
+          "Audit Log Views"
+        ],
+        "services": [
+          "AccessControlService - Employee access management",
+          "RequestApprovalService - Access request workflow",
+          "BackupService - Database backup creation",
+          "RestoreService - Database restore with merging",
+          "ConflictResolver - Backup conflict resolution"
+        ],
+        "processors": [
+          "CSVProcessor - Attendance CSV validation and import",
+          "MandayProcessor - Mandays Excel validation and import"
+        ],
+        "decorators": [
+          "@login_required - Authentication check",
+          "@role_required - Role-based access",
+          "@company_access_required - Company data isolation"
+        ]
+      },
+      "data_layer": {
+        "description": "Django ORM Models",
+        "models": [
+          "User - Custom user with role and company",
+          "Company - Multi-tenant organization",
+          "AttendanceRecord - Employee attendance data",
+          "UploadLog - Audit trail for CSV uploads",
+          "MandaySummaryRecord - Mandays and overtime",
+          "MandayUploadLog - Audit trail for mandays uploads",
+          "EmployeeAssignment - User1 employee access",
+          "AccessRequest - Access request workflow",
+          "AccessRequestAuditLog - Access control audit",
+          "BackupLog - Backup/restore operations"
+        ]
+      }
+    },
+    "data_flow": {
+      "request_flow": [
+        "1. Client HTTP Request",
+        "2. Django Middleware Processing (Security, Session, CSRF, Auth)",
+        "3. URL Routing",
+        "4. Decorator Execution (Authentication, Authorization)",
+        "5. View Processing (Business Logic, Form Validation)",
+        "6. Service Layer (if applicable)",
+        "7. Model Operations (Django ORM)",
+        "8. Database Query",
+        "9. Template Rendering",
+        "10. HTTP Response"
+      ],
+      "csv_upload_flow": [
+        "1. User uploads CSV file",
+        "2. File validation (extension, size)",
+        "3. CSVProcessor.validate_csv() - Structure check",
+        "4. Row-by-row processing",
+        "5. Field validation (date, time, status)",
+        "6. Company access check (for Admin)",
+        "7. Duplicate detection (EP NO + Date)",
+        "8. Create or Update record",
+        "9. Create UploadLog entry",
+        "10. Display results to user"
+      ],
+      "access_request_flow": [
+        "1. User1 submits access request",
+        "2. RequestApprovalService.create_request()",
+        "3. Request saved with status 'pending'",
+        "4. Admin views pending requests",
+        "5. Admin approves/rejects",
+        "6. If approved: EmployeeAssignment created",
+        "7. AccessRequestAuditLog entry created",
+        "8. User1 can now access employee data"
+      ]
+    }
+  }
+
+,
+  "database_design": {
+    "schema_overview": "Multi-tenant relational database with 10 core tables",
+    "tables": {
+      "core_user": {
+        "description": "Custom user model extending Django AbstractUser",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "username": "CharField(150) UNIQUE - Login username",
+          "password": "CharField(128) - Hashed password",
+          "email": "EmailField(254) - User email",
+          "first_name": "CharField(150) - First name",
+          "last_name": "CharField(150) - Last name",
+          "role": "CharField(10) - Choices: root, admin, user1",
+          "company_id": "ForeignKey(Company) NULL - Assigned company",
+          "is_active": "BooleanField - Account active status",
+          "is_staff": "BooleanField - Django admin access",
+          "is_superuser": "BooleanField - Superuser status",
+          "date_joined": "DateTimeField - Account creation date",
+          "last_login": "DateTimeField NULL - Last login timestamp"
+        },
+        "relationships": [
+          "Many-to-One with Company (optional for Root)",
+          "One-to-Many with UploadLog",
+          "One-to-Many with MandayUploadLog",
+          "One-to-Many with EmployeeAssignment",
+          "One-to-Many with AccessRequest"
+        ],
+        "constraints": [
+          "UNIQUE(username)",
+          "CHECK(role IN ('root', 'admin', 'user1'))"
+        ],
+        "indexes": ["username", "email", "company_id"]
+      },
+      "core_company": {
+        "description": "Multi-tenant organization/contractor",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "name": "CharField(255) UNIQUE - Company name",
+          "created_at": "DateTimeField - Creation timestamp"
+        },
+        "relationships": [
+          "One-to-Many with User",
+          "One-to-Many with AttendanceRecord",
+          "One-to-Many with MandaySummaryRecord",
+          "One-to-Many with EmployeeAssignment",
+          "One-to-Many with AccessRequest"
+        ],
+        "constraints": ["UNIQUE(name)"],
+        "indexes": ["name"]
+      },
+      "core_attendancerecord": {
+        "description": "Employee daily attendance data",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "ep_no": "CharField(50) - Employee number",
+          "ep_name": "CharField(255) - Employee name",
+          "company_id": "ForeignKey(Company) - Associated company",
+          "date": "DateField - Attendance date",
+          "shift": "CharField(50) - Shift identifier",
+          "overstay": "CharField(50) - Overstay duration (HH:MM)",
+          "status": "CharField(10) - P/A/PH/-0.5/-1",
+          "in_time": "TimeField NULL - First check-in",
+          "out_time": "TimeField NULL - First check-out",
+          "in_time_2": "TimeField NULL - Second check-in",
+          "out_time_2": "TimeField NULL - Second check-out",
+          "in_time_3": "TimeField NULL - Third check-in",
+          "out_time_3": "TimeField NULL - Third check-out",
+          "overtime": "TimeField NULL - Overtime duration",
+          "overtime_to_mandays": "TimeField NULL - OT to mandays conversion",
+          "created_at": "DateTimeField - Record creation",
+          "updated_at": "DateTimeField - Last update"
+        },
+        "relationships": ["Many-to-One with Company"],
+        "constraints": ["UNIQUE(ep_no, date)"],
+        "indexes": [
+          "INDEX(ep_no, date) - Unique lookup",
+          "INDEX(company_id, date) - Company filtering",
+          "INDEX(date) - Date range queries"
+        ],
+        "current_records": 96315
+      },
+      "core_uploadlog": {
+        "description": "Audit trail for attendance CSV uploads",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "user_id": "ForeignKey(User) - Uploader",
+          "uploaded_at": "DateTimeField - Upload timestamp",
+          "filename": "CharField(255) - Original filename",
+          "success_count": "IntegerField - Successfully created records",
+          "updated_count": "IntegerField - Updated existing records",
+          "error_count": "IntegerField - Failed records",
+          "error_messages": "TextField - Detailed error messages"
+        },
+        "relationships": ["Many-to-One with User"],
+        "indexes": [
+          "INDEX(user_id, uploaded_at)",
+          "INDEX(uploaded_at)"
+        ]
+      },
+      "core_mandaysummaryrecord": {
+        "description": "Employee mandays and overtime tracking",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "ep_no": "CharField(50) - Employee number",
+          "punch_date": "DateField - Work date",
+          "mandays": "DecimalField(5,2) - Mandays worked",
+          "regular_manday_hr": "DecimalField(5,2) - Regular hours",
+          "ot": "DecimalField(5,2) - Overtime hours",
+          "trade": "CharField(100) NULL - Trade/category",
+          "skill": "CharField(100) NULL - Skill level",
+          "contract": "CharField(100) NULL - Contract ID",
+          "plant": "CharField(100) NULL - Plant code",
+          "plant_desc": "CharField(255) NULL - Plant description",
+          "company_id": "ForeignKey(Company) - Associated company",
+          "created_at": "DateTimeField - Record creation",
+          "updated_at": "DateTimeField - Last update"
+        },
+        "relationships": ["Many-to-One with Company"],
+        "constraints": ["UNIQUE(ep_no, punch_date)"],
+        "indexes": [
+          "INDEX(ep_no, punch_date)",
+          "INDEX(company_id, punch_date)",
+          "INDEX(punch_date)"
+        ],
+        "current_records": 37086
+      },
+      "core_mandayuploadlog": {
+        "description": "Audit trail for mandays uploads",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "user_id": "ForeignKey(User) - Uploader",
+          "uploaded_at": "DateTimeField - Upload timestamp",
+          "filename": "CharField(255) - Original filename",
+          "success_count": "IntegerField - Successfully created",
+          "updated_count": "IntegerField - Updated existing",
+          "error_count": "IntegerField - Failed records",
+          "error_messages": "TextField - Error details"
+        },
+        "relationships": ["Many-to-One with User"]
+      },
+      "core_employeeassignment": {
+        "description": "User1 employee access assignments",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "user_id": "ForeignKey(User) - User1 supervisor",
+          "ep_no": "CharField(50) - Employee number",
+          "ep_name": "CharField(255) - Employee name (cached)",
+          "company_id": "ForeignKey(Company) - Company",
+          "access_from": "DateField NULL - Start date (NULL = permanent)",
+          "access_to": "DateField NULL - End date (NULL = permanent)",
+          "assigned_by_id": "ForeignKey(User) - Admin who assigned",
+          "assigned_at": "DateTimeField - Assignment timestamp",
+          "source": "CharField(20) - request/admin",
+          "is_active": "BooleanField - Active status"
+        },
+        "relationships": [
+          "Many-to-One with User (user)",
+          "Many-to-One with User (assigned_by)",
+          "Many-to-One with Company"
+        ],
+        "indexes": [
+          "INDEX(user_id, ep_no)",
+          "INDEX(user_id, is_active)"
+        ]
+      },
+      "core_accessrequest": {
+        "description": "User1 access request workflow",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "requester_id": "ForeignKey(User) - User1 requester",
+          "ep_no": "CharField(50) - Requested employee",
+          "company_id": "ForeignKey(Company) - Company",
+          "access_type": "CharField(20) - date_range/permanent",
+          "access_from": "DateField NULL - Requested start date",
+          "access_to": "DateField NULL - Requested end date",
+          "justification": "TextField - Request reason",
+          "status": "CharField(20) - pending/approved/rejected/cancelled",
+          "reviewed_by_id": "ForeignKey(User) NULL - Admin reviewer",
+          "reviewed_at": "DateTimeField NULL - Review timestamp",
+          "rejection_reason": "TextField - Rejection explanation",
+          "created_at": "DateTimeField - Request creation",
+          "updated_at": "DateTimeField - Last update"
+        },
+        "relationships": [
+          "Many-to-One with User (requester)",
+          "Many-to-One with User (reviewed_by)",
+          "Many-to-One with Company"
+        ],
+        "indexes": [
+          "INDEX(requester_id, status)",
+          "INDEX(status, created_at)"
+        ]
+      },
+      "core_accessrequestauditlog": {
+        "description": "Audit trail for access control actions",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "timestamp": "DateTimeField - Event timestamp",
+          "actor_id": "ForeignKey(User) - User who performed action",
+          "action": "CharField(50) - Action type",
+          "target_user_id": "ForeignKey(User) NULL - Affected user",
+          "target_ep_no": "CharField(50) - Affected employee",
+          "details": "TextField - Additional details"
+        },
+        "relationships": [
+          "Many-to-One with User (actor)",
+          "Many-to-One with User (target_user)"
+        ],
+        "indexes": ["INDEX(timestamp)", "INDEX(actor_id)"]
+      },
+      "core_backuplog": {
+        "description": "Backup and restore operation tracking",
+        "primary_key": "id (AutoField)",
+        "fields": {
+          "user_id": "ForeignKey(User) - User who performed operation",
+          "operation": "CharField(20) - backup_full/backup_incremental/restore",
+          "filename": "CharField(255) - Backup filename",
+          "created_at": "DateTimeField - Operation timestamp",
+          "companies_count": "IntegerField - Number of companies",
+          "records_count": "IntegerField - Number of records",
+          "records_added": "IntegerField - Records added (restore)",
+          "records_updated": "IntegerField - Records updated (restore)",
+          "records_skipped": "IntegerField - Records skipped (restore)",
+          "success": "BooleanField - Operation success",
+          "error_message": "TextField - Error details"
+        },
+        "relationships": ["Many-to-One with User"],
+        "indexes": ["INDEX(created_at)", "INDEX(user_id)"]
+      }
+    },
+    "relationships_diagram": "See ERD in design documents",
+    "data_integrity": {
+      "foreign_keys": "All relationships enforced with foreign keys",
+      "cascade_deletes": [
+        "Company deletion cascades to AttendanceRecord",
+        "Company deletion cascades to MandaySummaryRecord",
+        "User deletion cascades to UploadLog"
+      ],
+      "set_null": [
+        "Company deletion sets User.company to NULL"
+      ],
+      "unique_constraints": [
+        "User.username",
+        "Company.name",
+        "AttendanceRecord(ep_no, date)",
+        "MandaySummaryRecord(ep_no, punch_date)"
+      ]
+    }
+  }
+
+,
+  "features_and_functionality": {
+    "core_features": [
+      {
+        "feature": "Multi-Tenant Architecture",
+        "description": "Complete data isolation between companies with role-based access",
+        "implementation": "Company foreign key on all data models with queryset filtering",
+        "user_roles": ["Root: All companies", "Admin: Own company", "User1: Own company with employee restrictions"]
+      },
+      {
+        "feature": "Role-Based Access Control (RBAC)",
+        "description": "Three-tier permission system with decorator-based enforcement",
+        "roles": {
+          "root": {
+            "permissions": ["Full system access", "All companies", "User management (all roles)", "Backup/Restore", "Django Admin"],
+            "restrictions": "None"
+          },
+          "admin": {
+            "permissions": ["Company data management", "CSV/Excel uploads", "User management (User1 only)", "Approve access requests", "Manage employee assignments"],
+            "restrictions": "Limited to assigned company only"
+          },
+          "user1": {
+            "permissions": ["View assigned employees only", "Export assigned employee data", "Request employee access", "View own requests"],
+            "restrictions": "Read-only, employee-level access control, date-range restrictions"
+          }
+        },
+        "implementation": "@role_required, @company_access_required decorators"
+      },
+      {
+        "feature": "CSV/Excel Data Import",
+        "description": "Bulk attendance and mandays data upload with comprehensive validation",
+        "attendance_upload": {
+          "supported_formats": ["CSV", "XLS", "XLSX"],
+          "required_fields": ["EP NO", "EP NAME", "COMPANY NAME", "DATE", "SHIFT", "OVERSTAY", "STATUS"],
+          "optional_fields": ["IN", "OUT", "IN (2)", "OUT (2)", "IN (3)", "OUT (3)", "OVERTIME", "OVERTIME TO MANDAYS"],
+          "validations": [
+            "Date format: YYYY-MM-DD or DD-MM-YYYY",
+            "Time format: HH:MM",
+            "Status values: P, A, PH, -0.5, -1",
+            "Future date prevention",
+            "Company access check (Admin)",
+            "Duplicate handling (upsert)"
+          ],
+          "max_file_size": "10MB",
+          "processing": "Row-by-row with error collection"
+        },
+        "mandays_upload": {
+          "supported_formats": ["CSV", "XLS", "XLSX"],
+          "required_fields": ["epNo", "punchDate", "mandays", "regularMandayHr", "ot"],
+          "optional_fields": ["trade", "skill", "contract", "plant", "plantDesc"],
+          "validations": [
+            "Date format validation",
+            "Numeric field validation (>= 0)",
+            "Decimal precision preservation"
+          ],
+          "max_file_size": "10MB"
+        }
+      },
+      {
+        "feature": "Attendance Data Management",
+        "description": "Complete CRUD operations with filtering and pagination",
+        "operations": {
+          "view": {
+            "pagination": "50 records per page",
+            "filters": ["Date range", "Company (Root only)", "Employee number", "Status", "Overstay range"],
+            "sorting": "By date descending",
+            "access_control": "Role-based queryset filtering"
+          },
+          "edit": {
+            "permissions": "Root and Admin only",
+            "validation": "All field validations applied",
+            "company_check": "Admin can only edit own company"
+          },
+          "delete": {
+            "permissions": "Root and Admin only",
+            "confirmation": "Required",
+            "company_check": "Admin can only delete own company"
+          },
+          "export": {
+            "formats": ["CSV", "XLSX"],
+            "filters": "Applied from list view",
+            "access_control": "Role-based data filtering",
+            "features": ["Header styling (XLSX)", "Auto-column width", "Date/time formatting"]
+          }
+        }
+      },
+      {
+        "feature": "Supervisor Management (User1)",
+        "description": "Employee access control with request/approval workflow",
+        "employee_assignment": {
+          "types": ["Permanent access", "Date-range access"],
+          "sources": ["Admin-assigned", "Request-approved"],
+          "features": [
+            "Automatic expiration for date-range assignments",
+            "Assignment summary dashboard",
+            "Expiration warnings (7 days)",
+            "Bulk employee requests"
+          ]
+        },
+        "access_request_workflow": {
+          "steps": [
+            "1. User1 submits request (single or bulk EP NOs)",
+            "2. Request saved with status 'pending'",
+            "3. Admin reviews pending requests",
+            "4. Admin approves or rejects with reason",
+            "5. If approved: EmployeeAssignment created",
+            "6. User1 notified of decision",
+            "7. Audit log entry created"
+          ],
+          "request_fields": ["EP NO(s)", "Access type", "Date range (if applicable)", "Justification"],
+          "admin_actions": ["Approve", "Reject with reason", "View request history"]
+        },
+        "data_filtering": {
+          "description": "User1 sees only assigned employees",
+          "applies_to": ["Attendance list", "Search", "Export", "Dashboard statistics"],
+          "date_range_enforcement": "Data visible only within assignment date range"
+        }
+      },
+      {
+        "feature": "Overstay Highlighting",
+        "description": "Visual identification of excessive overtime (> 01:00 hours)",
+        "implementation": {
+          "row_highlighting": "Distinct background color for overstay > 01:00",
+          "value_styling": "Bold red text for overstay values > 01:00",
+          "quick_filter": "Filter button for 'Overstay > 1 hour'",
+          "dashboard_count": "Count of employees with overstay > 01:00",
+          "export_indicator": "Visual marker in exported files"
+        }
+      },
+      {
+        "feature": "Backup and Restore",
+        "description": "Git-like data synchronization between environments",
+        "backup": {
+          "types": ["Full backup", "Incremental backup"],
+          "format": "JSON with metadata and checksums",
+          "includes": ["All companies", "All attendance records", "Metadata (timestamp, counts, version)"],
+          "features": ["Checksum generation", "Timestamped filenames", "Progress tracking"]
+        },
+        "restore": {
+          "features": [
+            "Preview changes before applying",
+            "Intelligent merging (skip duplicates, insert new, update changed)",
+            "Conflict resolution strategies",
+            "Transactional (rollback on error)",
+            "Progress tracking",
+            "Summary report (added/updated/skipped)"
+          ],
+          "merge_strategies": ["Backup wins", "Database wins"],
+          "validation": ["JSON structure", "Required fields", "Data sanitization"]
+        },
+        "access": "Root users only"
+      },
+      {
+        "feature": "User Management",
+        "description": "Create, edit, delete users with role-based restrictions",
+        "operations": {
+          "create": {
+            "root": "Can create any role, assign any company",
+            "admin": "Can create User1 only, auto-assigns own company",
+            "user1": "Cannot create users"
+          },
+          "edit": {
+            "root": "Can edit any user",
+            "admin": "Can edit User1 in own company only",
+            "user1": "Cannot edit users"
+          },
+          "delete": {
+            "root": "Can delete any user (except self)",
+            "admin": "Cannot delete users",
+            "user1": "Cannot delete users"
+          }
+        },
+        "validation": ["Username uniqueness", "Password minimum 6 characters", "Admin/User1 must have company"]
+      },
+      {
+        "feature": "Audit Logging",
+        "description": "Comprehensive tracking of all system operations",
+        "logged_events": [
+          "Authentication (login success/failure, logout)",
+          "CSV uploads (user, timestamp, counts, errors)",
+          "Mandays uploads",
+          "Access requests (create, approve, reject, cancel)",
+          "Employee assignments (create, remove, expire)",
+          "Backup/restore operations",
+          "Permission violations"
+        ],
+        "storage": ["Database (UploadLog, AccessRequestAuditLog, BackupLog)", "File system (logs/attendance_system.log)"],
+        "features": ["Filterable by user/date/action", "Exportable", "Automatic expiration logging"]
+      },
+      {
+        "feature": "Dashboard",
+        "description": "Role-based statistics and quick actions",
+        "statistics": {
+          "root": "All companies aggregated",
+          "admin": "Own company only",
+          "user1": "Assigned employees only"
+        },
+        "metrics": ["Total employees", "Present today", "On leave", "Late arrivals", "Overstay > 1 hour"],
+        "quick_actions": ["Upload CSV", "View Data", "Manage Users", "Backup/Restore (Root)"],
+        "recent_activity": "Last 10 uploads with status"
+      },
+      {
+        "feature": "Responsive Design",
+        "description": "Mobile-first design with adaptive layouts",
+        "desktop": {
+          "navigation": "Fixed top header with logo, links, user profile",
+          "layout": "Grid layouts, full tables",
+          "interactions": "Hover effects, dropdown menus"
+        },
+        "mobile": {
+          "navigation": "Floating bottom dock with icons",
+          "layout": "Card-based stacks, vertical forms",
+          "interactions": "Touch-friendly (44px minimum), bottom sheets"
+        },
+        "breakpoint": "768px",
+        "features": ["Horizontal scrolling tables", "Sticky columns", "Responsive typography", "Touch gestures"]
+      },
+      {
+        "feature": "Advanced Filtering",
+        "description": "Multi-criteria filtering with overstay range support",
+        "filters": {
+          "date_range": "From date to date",
+          "company": "Root only",
+          "employee_number": "Exact match or partial",
+          "status": "P, A, PH, -0.5, -1",
+          "overstay_range": ["All", "Has Overstay", "No Overstay", "1-2 Hours", "2-3 Hours", "3-4 Hours", "4-5 Hours", "5+ Hours"]
+        },
+        "implementation": "Query parameter based with session persistence"
+      }
+    ]
+  }
+
+,
+  "frontend_design": {
+    "design_system": {
+      "name": "Enterprise-Mobile Responsive Design",
+      "approach": "Mobile-First",
+      "color_palette": {
+        "cream": {
+          "hex": "#EFECE3",
+          "hsl": "hsl(45, 23%, 91%)",
+          "usage": "Primary background, input fields, cards"
+        },
+        "light_blue": {
+          "hex": "#8FABD4",
+          "hsl": "hsl(213, 41%, 69%)",
+          "usage": "Secondary color, borders, table headers, accents"
+        },
+        "dark_blue": {
+          "hex": "#4A70A9",
+          "hsl": "hsl(213, 39%, 47%)",
+          "usage": "Primary buttons, active states, 'Present' status"
+        },
+        "black": {
+          "hex": "#000000",
+          "hsl": "hsl(0, 0%, 0%)",
+          "usage": "Text, high contrast, borders"
+        }
+      },
+      "typography": {
+        "font_family": "Inter (Google Fonts)",
+        "weights": ["Regular (400)", "Medium (500)", "Semibold (600)", "Bold (700)", "Extrabold (800)"],
+        "scale": {
+          "display": "5xl (48px) - Login page",
+          "title_desktop": "4xl (36px) - Page titles",
+          "title_mobile": "lg (18px) - Page titles",
+          "card_numbers": "3xl (30px) - Dashboard stats",
+          "body": "sm/base (14-16px) - Content",
+          "labels": "xs/sm (12-14px) - Form labels"
+        }
+      },
+      "spacing": {
+        "mobile": "16px padding",
+        "tablet": "24px padding",
+        "desktop": "32px padding",
+        "card_spacing": "16px between cards",
+        "form_spacing": "12px between fields"
+      },
+      "border_radius": {
+        "buttons_inputs": "8px (rounded-lg)",
+        "cards": "16px (rounded-2xl)",
+        "mobile_dock": "32px (rounded-[2rem])"
+      }
+    },
+    "components": {
+      "navigation": {
+        "desktop": {
+          "type": "Fixed top header",
+          "height": "80px",
+          "elements": ["Logo (AMS)", "Navigation links with icons", "User profile", "Logout button"],
+          "features": ["Dropdown menus", "Active state highlighting", "Hover effects"]
+        },
+        "mobile": {
+          "type": "Floating bottom dock",
+          "height": "64px",
+          "elements": ["5 icon buttons", "Active state indicators"],
+          "features": ["Touch-friendly (44px targets)", "Smooth transitions", "Bottom sheet for admin menu"]
+        }
+      },
+      "cards": {
+        "dashboard_stats": {
+          "desktop": "Horizontal cards with icon left, stats right",
+          "mobile": "2x2 grid of square cards with centered stats",
+          "colors": ["Employees: Light Blue", "Present: Dark Blue", "On Leave: Cream with border", "Late: Black"]
+        },
+        "data_cards": {
+          "mobile": "Vertical cards replacing table rows",
+          "structure": ["Header (name, date, status badge)", "Details grid", "Time entries grid", "Action buttons"],
+          "features": ["Full-width", "16px padding", "Rounded corners"]
+        }
+      },
+      "tables": {
+        "desktop": {
+          "style": "Full-width with Light Blue header",
+          "features": ["Sortable columns", "Hover effects", "Action buttons"],
+          "font_size": "12px"
+        },
+        "responsive": {
+          "approach": "Horizontal scroll with sticky columns",
+          "sticky_columns": ["EP NO (left)", "EP NAME (left)", "ACTIONS (right)"],
+          "features": ["Touch scrolling", "Scroll indicators", "Minimum 11px font"]
+        }
+      },
+      "forms": {
+        "inputs": {
+          "style": "Rounded-lg with Light Blue borders",
+          "focus": "Dark Blue border",
+          "height": "Minimum 44px (touch-friendly)",
+          "icons": "Left-aligned for email/password"
+        },
+        "buttons": {
+          "primary": "Dark Blue background, Cream text, hover to Black",
+          "secondary": "Light Blue background, Black text",
+          "destructive": "Black background, Cream text",
+          "features": ["Rounded corners", "Hover effects", "Active scale animation (mobile)"]
+        }
+      },
+      "status_badges": {
+        "present": "Dark Blue background, Cream text",
+        "late_holiday": "Light Blue background, Black text",
+        "absent": "Transparent with Black border",
+        "style": "Rounded-full, small font, semibold"
+      },
+      "modals": {
+        "desktop": "Centered overlay with backdrop",
+        "mobile": "Bottom sheet sliding up",
+        "features": ["Smooth animations", "Backdrop click to close", "Escape key support"]
+      }
+    },
+    "pages": {
+      "login": {
+        "layout": "Centered card on Cream background",
+        "elements": ["AMS logo (5xl Extrabold)", "Email input with icon", "Password input with icon", "Full-width login button"],
+        "responsive": "Same layout all screen sizes"
+      },
+      "dashboard": {
+        "desktop": "4-column stat grid, 3-column quick actions",
+        "mobile": "2x2 stat grid, vertical quick actions",
+        "elements": ["Page title with date", "Stat cards", "Quick action buttons", "Recent activity list"]
+      },
+      "attendance_list": {
+        "desktop": "Full table with all columns, filters horizontal",
+        "mobile": "Card stack, filters vertical",
+        "features": ["Pagination", "Export button", "Filter badges", "Empty state"]
+      },
+      "upload": {
+        "desktop": "2-column (upload area + sidebar)",
+        "mobile": "Vertical stack",
+        "elements": ["Drag-drop zone", "File input", "Format requirements", "Recent uploads", "Sample download"]
+      },
+      "user_management": {
+        "desktop": "Table with avatar, role badges, actions",
+        "mobile": "Card stack with user info",
+        "features": ["Add user button", "Edit/Delete actions", "Role filtering"]
+      }
+    },
+    "interactions": {
+      "hover_effects": "Light Blue/20 background on desktop",
+      "active_states": "scale-95 animation on mobile",
+      "transitions": "200-300ms smooth transitions",
+      "focus_states": "Visible focus rings for accessibility",
+      "loading_states": "Spinner or skeleton screens"
+    }
+  }
+
+,
+  "backend_implementation": {
+    "django_configuration": {
+      "settings": {
+        "SECRET_KEY": "Django secret key (change in production)",
+        "DEBUG": "True (development), False (production)",
+        "ALLOWED_HOSTS": "['*'] (development), specific domains (production)",
+        "INSTALLED_APPS": ["django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes", "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles", "core"],
+        "MIDDLEWARE": ["SecurityMiddleware", "SessionMiddleware", "CommonMiddleware", "CsrfViewMiddleware", "AuthenticationMiddleware", "MessageMiddleware", "ClickjackingMiddleware"],
+        "AUTH_USER_MODEL": "core.User",
+        "LOGIN_URL": "/login/",
+        "LOGIN_REDIRECT_URL": "/",
+        "LOGOUT_REDIRECT_URL": "/login/"
+      },
+      "database": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "db.sqlite3",
+        "production_options": "PostgreSQL or MySQL recommended"
+      },
+      "static_files": {
+        "STATIC_URL": "/static/",
+        "STATIC_ROOT": "staticfiles/",
+        "STATICFILES_DIRS": ["core/static/"]
+      },
+      "logging": {
+        "version": 1,
+        "handlers": ["console", "file"],
+        "loggers": ["django", "core"],
+        "file_location": "logs/attendance_system.log",
+        "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+      }
+    },
+    "url_routing": {
+      "root_urls": "attendance_system/urls.py",
+      "app_urls": "core/urls.py",
+      "patterns": [
+        "/ - Dashboard",
+        "/login/ - Login page",
+        "/logout/ - Logout",
+        "/upload/ - CSV upload",
+        "/attendance/ - Attendance list",
+        "/attendance/<id>/edit/ - Edit record",
+        "/attendance/<id>/delete/ - Delete record",
+        "/attendance/export/ - Export XLSX",
+        "/mandays/upload/ - Mandays upload",
+        "/mandays/ - Mandays list",
+        "/mandays/export/ - Export mandays",
+        "/users/ - User list",
+        "/users/create/ - Create user",
+        "/users/<id>/edit/ - Edit user",
+        "/users/<id>/delete/ - Delete user",
+        "/request-access/ - User1 request form",
+        "/my-requests/ - User1 request list",
+        "/approve-requests/ - Admin approval page",
+        "/manage-assignments/ - Admin assignment management",
+        "/backup/ - Backup interface (Root)",
+        "/restore/ - Restore interface (Root)",
+        "/logs/ - Upload logs",
+        "/admin/ - Django admin panel"
+      ]
+    },
+    "views": {
+      "authentication": {
+        "login_view": "Handles GET (show form) and POST (authenticate)",
+        "logout_view": "Clears session and redirects"
+      },
+      "dashboard": {
+        "dashboard_view": "Role-based statistics and recent activity"
+      },
+      "attendance": {
+        "attendance_list_view": "Paginated list with filters and access control",
+        "attendance_edit_view": "Edit form with validation",
+        "attendance_delete_view": "Delete with confirmation",
+        "attendance_export_view": "XLSX export with styling"
+      },
+      "upload": {
+        "upload_csv_view": "File upload, validation, processing",
+        "upload_logs_view": "Upload history with pagination"
+      },
+      "mandays": {
+        "upload_mandays_view": "Mandays file upload",
+        "mandays_list_view": "Mandays list with filters",
+        "mandays_export_view": "Mandays XLSX export"
+      },
+      "users": {
+        "user_list_view": "User list with role filtering",
+        "user_create_view": "Create user with role restrictions",
+        "user_edit_view": "Edit user with permission checks",
+        "user_delete_view": "Delete user (Root only)"
+      },
+      "access_control": {
+        "request_access_view": "User1 request form (single/bulk)",
+        "my_requests_view": "User1 request history",
+        "approve_requests_view": "Admin approval interface",
+        "manage_assignments_view": "Admin assignment management"
+      },
+      "backup": {
+        "backup_data_view": "Create backup (Root only)",
+        "restore_data_view": "Upload and preview restore (Root only)",
+        "apply_restore_view": "Execute restore with progress"
+      }
+    },
+    "services": {
+      "AccessControlService": {
+        "file": "core/services/access_control_service.py",
+        "methods": [
+          "check_employee_access(user, ep_no, date) - Check if user can access employee",
+          "get_assigned_employees(user, date) - Get list of accessible EP NOs",
+          "filter_queryset_by_access(queryset, user) - Apply access filtering",
+          "is_assignment_active(assignment, check_date) - Check assignment validity"
+        ],
+        "purpose": "Centralized employee access control for User1"
+      },
+      "RequestApprovalService": {
+        "file": "core/services/request_approval_service.py",
+        "methods": [
+          "create_request(user, ep_nos, access_type, dates, justification) - Create request(s)",
+          "approve_request(request_id, admin_user) - Approve and create assignment",
+          "reject_request(request_id, admin_user, reason) - Reject with reason",
+          "cancel_request(request_id, user) - Cancel pending request"
+        ],
+        "purpose": "Access request workflow management"
+      },
+      "BackupService": {
+        "file": "core/services/backup_service.py",
+        "methods": [
+          "create_backup(backup_type, since_date) - Create full or incremental backup",
+          "_generate_checksum(record) - Generate SHA256 checksum",
+          "_serialize_record(record) - Convert model to dict",
+          "_create_metadata(record_count) - Add backup metadata"
+        ],
+        "purpose": "Database backup creation"
+      },
+      "RestoreService": {
+        "file": "core/services/restore_service.py",
+        "methods": [
+          "validate_backup(file_path) - Validate JSON structure",
+          "preview_changes(file_path) - Analyze changes without applying",
+          "restore_backup(file_path, merge_strategy, progress_callback) - Execute restore",
+          "_get_unique_key(record) - Generate unique identifier"
+        ],
+        "purpose": "Database restore with intelligent merging"
+      },
+      "ConflictResolver": {
+        "file": "core/services/conflict_resolver.py",
+        "methods": [
+          "detect_conflicts(backup_record, db_record) - Check for conflicts",
+          "apply_merge_strategy(backup_record, db_record, strategy) - Resolve conflicts",
+          "_records_differ(record1, record2) - Compare records"
+        ],
+        "purpose": "Backup conflict resolution"
+      }
+    },
+    "processors": {
+      "CSVProcessor": {
+        "file": "core/csv_processor.py",
+        "constants": {
+          "REQUIRED_FIELDS": ["EP NO", "EP NAME", "COMPANY NAME", "DATE", "SHIFT", "OVERSTAY", "STATUS"],
+          "OPTIONAL_FIELDS": ["IN", "OUT", "IN (2)", "OUT (2)", "IN (3)", "OUT (3)", "OVERTIME", "OVERTIME TO MANDAYS"],
+          "VALID_STATUS": ["P", "A", "PH", "-0.5", "-1"]
+        },
+        "methods": [
+          "validate_csv(file) - Validate structure and headers",
+          "process_row(row, row_number, user) - Process single row",
+          "validate_date(date_str) - Validate and parse date",
+          "validate_time(time_str) - Validate and parse time",
+          "validate_status(status) - Check status value",
+          "create_or_update_record(data) - Upsert attendance record",
+          "process_csv(file, user) - Main processing entry point"
+        ],
+        "error_handling": "Collects all errors, continues processing"
+      },
+      "MandayProcessor": {
+        "file": "core/manday_processor.py",
+        "constants": {
+          "REQUIRED_FIELDS": ["epNo", "punchDate", "mandays", "regularMandayHr", "ot"],
+          "OPTIONAL_FIELDS": ["trade", "skill", "contract", "plant", "plantDesc"]
+        },
+        "methods": [
+          "validate_csv(file) - Validate structure",
+          "validate_date(date_str) - Date validation",
+          "validate_decimal(value, field_name) - Numeric validation",
+          "process_row(row, row_number, user) - Process mandays row",
+          "create_or_update_record(data) - Upsert mandays record",
+          "process_csv(file, user) - Main processing"
+        ]
+      }
+    },
+    "decorators": {
+      "@login_required": {
+        "source": "django.contrib.auth.decorators",
+        "purpose": "Ensure user is authenticated",
+        "redirect": "LOGIN_URL if not authenticated"
+      },
+      "@role_required(allowed_roles)": {
+        "source": "core/decorators.py",
+        "purpose": "Restrict access by user role",
+        "parameters": "List of allowed roles ['root', 'admin', 'user1']",
+        "response": "403 Forbidden if role not allowed"
+      },
+      "@company_access_required": {
+        "source": "core/decorators.py",
+        "purpose": "Ensure user has company assignment",
+        "logic": "Root always passes, Admin/User1 must have company",
+        "response": "Redirect to dashboard with error if no company"
+      }
+    },
+    "forms": {
+      "LoginForm": "Django AuthenticationForm for login",
+      "AttendanceRecordForm": "ModelForm for attendance CRUD",
+      "UserForm": "ModelForm for user management with role-based field visibility",
+      "AccessRequestForm": "Form for User1 access requests",
+      "BackupForm": "Form for backup type selection"
+    },
+    "template_tags": {
+      "attendance_filters": {
+        "file": "core/templatetags/attendance_filters.py",
+        "filters": ["parse_overstay - Convert HH:MM to hours", "is_overstay_high - Check if > 01:00"]
+      },
+      "custom_filters": {
+        "file": "core/templatetags/custom_filters.py",
+        "filters": ["get_item - Dictionary access in templates", "add_class - Add CSS class to form fields"]
+      }
+    }
+  }
+
+,
+  "testing_strategy": {
+    "overview": "Comprehensive testing with unit tests, property-based tests, and integration tests",
+    "frameworks": {
+      "pytest": "Primary test runner",
+      "hypothesis": "Property-based testing library",
+      "pytest_django": "Django integration for pytest",
+      "factory_boy": "Test data generation",
+      "django_test": "Django TestCase for integration tests"
+    },
+    "test_coverage": {
+      "target": "80%+ code coverage",
+      "current_tests": "26+ test files",
+      "property_tests": "109 correctness properties across all specs"
+    },
+    "test_types": {
+      "unit_tests": {
+        "description": "Test individual components in isolation",
+        "examples": [
+          "CSV processor validation (date, time, status)",
+          "Model creation and constraints",
+          "Service method behavior",
+          "Form validation",
+          "Decorator logic"
+        ],
+        "location": "core/tests/test_*.py"
+      },
+      "property_based_tests": {
+        "description": "Test universal properties across random inputs",
+        "library": "Hypothesis",
+        "configuration": "Minimum 100 iterations per property",
+        "tagging": "# Feature: {feature_name}, Property {N}: {description}",
+        "examples": [
+          "Access control filtering (all queries return only assigned employees)",
+          "Backup completeness (backup contains all records)",
+          "Request validation (valid requests accepted, invalid rejected)",
+          "Date range filtering (data visible only within range)",
+          "Bulk request splitting (N EP NOs create N requests)"
+        ],
+        "total_properties": 109
+      },
+      "integration_tests": {
+        "description": "Test complete workflows end-to-end",
+        "examples": [
+          "Complete upload workflow (file → validation → database → log)",
+          "Access request workflow (request → approval → assignment → access)",
+          "Backup and restore workflow (backup → restore → verify)",
+          "User management workflow (create → edit → delete)",
+          "Authentication workflow (login → access → logout)"
+        ],
+        "location": "core/tests.py"
+      }
+    },
+    "test_files": {
+      "core_tests": [
+        "test_access_control_service.py - AccessControlService tests",
+        "test_backup_service.py - Backup creation tests",
+        "test_conflict_resolver.py - Conflict resolution tests",
+        "test_restore_service.py - Restore logic tests",
+        "test_request_approval_service.py - Request workflow tests",
+        "test_manday_models.py - Mandays model tests",
+        "test_manday_processor.py - Mandays processor tests",
+        "test_manday_upload.py - Mandays upload integration tests",
+        "test_property_assignment.py - Assignment property tests",
+        "test_property_bulk_request.py - Bulk request property tests",
+        "test_property_request_approval.py - Approval property tests",
+        "test_property_request.py - Request property tests",
+        "tests.py - Main integration tests"
+      ]
+    },
+    "test_data": {
+      "fixtures": "Predefined test data for consistent testing",
+      "factories": "factory_boy for generating random test data",
+      "strategies": "Hypothesis strategies for property-based testing"
+    },
+    "running_tests": {
+      "all_tests": "python manage.py test",
+      "specific_file": "python manage.py test core.tests.test_access_control_service",
+      "verbose": "python manage.py test --verbosity=2",
+      "coverage": "coverage run --source='.' manage.py test && coverage report"
+    }
+  },
+  "security": {
+    "authentication": {
+      "method": "Django built-in authentication",
+      "password_hashing": "PBKDF2 with SHA256",
+      "session_management": "Django sessions with secure cookies",
+      "login_attempts": "Logged for monitoring"
+    },
+    "authorization": {
+      "method": "Role-Based Access Control (RBAC)",
+      "enforcement": "Decorator-based on all views",
+      "data_isolation": "Queryset filtering by company",
+      "permission_checks": "Before every privileged operation"
+    },
+    "input_validation": {
+      "forms": "Django forms with field-level validation",
+      "csv_data": "Comprehensive validation in processors",
+      "sql_injection": "Prevented by Django ORM parameterized queries",
+      "xss": "Prevented by Django template auto-escaping",
+      "csrf": "CSRF tokens on all POST requests"
+    },
+    "data_protection": {
+      "passwords": "Hashed, never stored in plain text",
+      "sensitive_data": "No PII in logs",
+      "database": "Foreign key constraints, unique constraints",
+      "backups": "JSON format with checksums"
+    },
+    "audit_trail": {
+      "authentication_events": "All login/logout attempts logged",
+      "data_operations": "All uploads, edits, deletes logged",
+      "access_control": "All access requests and assignments logged",
+      "permission_violations": "All unauthorized attempts logged"
+    },
+    "production_recommendations": [
+      "Change SECRET_KEY",
+      "Set DEBUG = False",
+      "Configure ALLOWED_HOSTS",
+      "Use HTTPS",
+      "Use PostgreSQL or MySQL",
+      "Enable database backups",
+      "Set up monitoring and alerting",
+      "Implement rate limiting",
+      "Use environment variables for secrets"
+    ]
+  },
+  "deployment": {
+    "development": {
+      "server": "python manage.py runserver",
+      "database": "SQLite (db.sqlite3)",
+      "debug": "True",
+      "static_files": "Served by Django"
+    },
+    "production": {
+      "wsgi_server": "gunicorn attendance_system.wsgi:application",
+      "database": "PostgreSQL or MySQL recommended",
+      "debug": "False",
+      "static_files": "Collected with collectstatic, served by Nginx/Apache",
+      "environment_variables": ["SECRET_KEY", "DATABASE_URL", "ALLOWED_HOSTS"],
+      "process_manager": "systemd or supervisor",
+      "reverse_proxy": "Nginx or Apache"
+    },
+    "docker": {
+      "dockerfile": "Dockerfile included",
+      "docker_compose": "docker-compose.yml included",
+      "services": ["web (Django)", "db (PostgreSQL)"]
+    },
+    "cloud_deployment": {
+      "options": ["AWS (EC2, RDS, S3)", "Azure", "Google Cloud", "Heroku", "DigitalOcean"],
+      "considerations": ["Database hosting", "Static file storage", "SSL certificates", "Domain configuration"]
+    }
+  },
+  "performance": {
+    "database_optimization": {
+      "indexes": "On frequently queried fields (ep_no, date, company_id)",
+      "pagination": "50 records per page to limit query size",
+      "select_related": "Used for foreign key queries",
+      "bulk_operations": "bulk_create and bulk_update for CSV imports"
+    },
+    "caching": {
+      "company_list": "Cached (rarely changes)",
+      "user_permissions": "Session-based caching",
+      "static_files": "Browser caching with versioning"
+    },
+    "file_processing": {
+      "csv_streaming": "Row-by-row processing to avoid memory issues",
+      "batch_operations": "Chunked database operations",
+      "progress_tracking": "Callback-based progress updates"
+    },
+    "current_performance": {
+      "page_load": "< 2 seconds for paginated lists",
+      "csv_upload": "~1 second per 1000 records",
+      "export": "~2 seconds per 1000 records",
+      "database_size": "133,438 records handled efficiently"
+    }
+  }
+
+,
+  "specifications_summary": {
+    "total_specs": 10,
+    "complete_specs": 9,
+    "incomplete_specs": 1,
+    "total_correctness_properties": 109,
+    "specs_detail": [
+      {
+        "name": "attendance-management-system",
+        "status": "Complete",
+        "requirements": 7,
+        "design_sections": 10,
+        "tasks": 16,
+        "description": "Core system with RBAC, CSV upload, data management, and audit logging"
+      },
+      {
+        "name": "backend-architecture-documentation",
+        "status": "Complete",
+        "requirements": 12,
+        "correctness_properties": 38,
+        "description": "Comprehensive backend documentation covering all components"
+      },
+      {
+        "name": "data-backup-sync",
+        "status": "Complete",
+        "requirements": 10,
+        "correctness_properties": 15,
+        "description": "Git-like backup and restore with intelligent merging"
+      },
+      {
+        "name": "enterprise-mobile-redesign",
+        "status": "Complete",
+        "requirements": 10,
+        "correctness_properties": 10,
+        "description": "4-color design system with responsive layouts"
+      },
+      {
+        "name": "mandays-overtime-summary",
+        "status": "Complete",
+        "requirements": 7,
+        "correctness_properties": 13,
+        "description": "Mandays and overtime tracking with Excel upload"
+      },
+      {
+        "name": "oracle-cloud-deployment",
+        "status": "Incomplete",
+        "requirements": "Yes",
+        "design": "No",
+        "tasks": "No",
+        "description": "Cloud deployment specifications (pending)"
+      },
+      {
+        "name": "overstay-range-filter",
+        "status": "Complete",
+        "requirements": 4,
+        "correctness_properties": 3,
+        "description": "Enhanced overstay filtering with hour ranges"
+      },
+      {
+        "name": "responsive-design-integration",
+        "status": "Complete",
+        "requirements": 10,
+        "description": "Mobile-first responsive design with bottom navigation"
+      },
+      {
+        "name": "responsive-table-view",
+        "status": "Complete",
+        "requirements": 5,
+        "description": "Horizontal scrolling tables with sticky columns"
+      },
+      {
+        "name": "user1-supervisor-management",
+        "status": "Complete",
+        "requirements": 10,
+        "correctness_properties": 30,
+        "description": "Supervisor access control with request/approval workflow"
+      }
+    ]
+  },
+  "file_structure": {
+    "root_files": [
+      "manage.py - Django management script",
+      "requirements.txt - Python dependencies",
+      "README.md - Project documentation",
+      "db.sqlite3 - SQLite database",
+      "sample_attendance.csv - Sample CSV file",
+      "docker-compose.yml - Docker configuration",
+      "Dockerfile - Docker image definition",
+      "pytest.ini - Pytest configuration"
+    ],
+    "attendance_system_directory": [
+      "settings.py - Django configuration",
+      "urls.py - Root URL routing",
+      "wsgi.py - WSGI application",
+      "asgi.py - ASGI application"
+    ],
+    "core_directory": {
+      "models": "models.py - All database models",
+      "views": "views.py - All view functions",
+      "urls": "urls.py - URL routing",
+      "forms": "forms.py - Form definitions",
+      "admin": "admin.py - Django admin configuration",
+      "decorators": "decorators.py - Permission decorators",
+      "processors": ["csv_processor.py", "manday_processor.py"],
+      "services": ["access_control_service.py", "request_approval_service.py", "backup_service.py", "restore_service.py", "conflict_resolver.py"],
+      "templates": "HTML templates for all pages",
+      "static": "CSS and JavaScript files",
+      "tests": "Test files",
+      "management_commands": "Custom Django commands",
+      "templatetags": "Custom template filters"
+    },
+    "consolidated_specs_directory": [
+      "ALL_SPECS_COMBINED.json - Summary of all specs",
+      "COMPLETE_PROJECT_DOCUMENTATION.json - This comprehensive documentation",
+      "Individual spec markdown files (requirements, design, tasks)"
+    ]
+  },
+  "key_workflows": {
+    "user_authentication": [
+      "1. User navigates to /login/",
+      "2. Enters username and password",
+      "3. System validates credentials",
+      "4. If valid: Create session, redirect to dashboard",
+      "5. If invalid: Show error, log failed attempt"
+    ],
+    "csv_upload": [
+      "1. Admin/Root navigates to /upload/",
+      "2. Selects CSV file",
+      "3. System validates file format and size",
+      "4. CSVProcessor validates structure and headers",
+      "5. Process each row with field validation",
+      "6. Check for duplicates (EP NO + Date)",
+      "7. Create or update records",
+      "8. Create UploadLog entry",
+      "9. Display results (success/update/error counts)"
+    ],
+    "access_request": [
+      "1. User1 navigates to /request-access/",
+      "2. Enters EP NO(s), access type, date range, justification",
+      "3. System validates inputs",
+      "4. Create AccessRequest(s) with status 'pending'",
+      "5. Admin navigates to /approve-requests/",
+      "6. Reviews pending requests",
+      "7. Approves or rejects with reason",
+      "8. If approved: Create EmployeeAssignment",
+      "9. Create audit log entry",
+      "10. User1 can now access employee data"
+    ],
+    "data_export": [
+      "1. User applies filters on attendance list",
+      "2. Clicks Export button",
+      "3. System applies same filters to queryset",
+      "4. Generates XLSX file with styling",
+      "5. Returns file as download",
+      "6. Browser downloads file"
+    ],
+    "backup_restore": [
+      "1. Root navigates to /backup/",
+      "2. Selects backup type (full/incremental)",
+      "3. System creates JSON backup with checksums",
+      "4. Returns file as download",
+      "5. Root navigates to /restore/",
+      "6. Uploads backup file",
+      "7. System validates JSON structure",
+      "8. Previews changes (add/update/skip counts)",
+      "9. Root confirms restore",
+      "10. System applies changes in transaction",
+      "11. Displays summary"
+    ]
+  },
+  "api_endpoints": {
+    "note": "This is a traditional Django web application, not a REST API",
+    "endpoints": [
+      {"path": "/", "method": "GET", "view": "dashboard_view", "auth": "Required", "description": "Dashboard with statistics"},
+      {"path": "/login/", "method": "GET/POST", "view": "login_view", "auth": "Public", "description": "Login page"},
+      {"path": "/logout/", "method": "GET", "view": "logout_view", "auth": "Required", "description": "Logout"},
+      {"path": "/upload/", "method": "GET/POST", "view": "upload_csv_view", "auth": "Root/Admin", "description": "CSV upload"},
+      {"path": "/attendance/", "method": "GET", "view": "attendance_list_view", "auth": "Required", "description": "Attendance list"},
+      {"path": "/attendance/<id>/edit/", "method": "GET/POST", "view": "attendance_edit_view", "auth": "Root/Admin", "description": "Edit record"},
+      {"path": "/attendance/<id>/delete/", "method": "POST", "view": "attendance_delete_view", "auth": "Root/Admin", "description": "Delete record"},
+      {"path": "/attendance/export/", "method": "GET", "view": "attendance_export_view", "auth": "Required", "description": "Export XLSX"},
+      {"path": "/mandays/upload/", "method": "GET/POST", "view": "upload_mandays_view", "auth": "Root/Admin", "description": "Mandays upload"},
+      {"path": "/mandays/", "method": "GET", "view": "mandays_list_view", "auth": "Required", "description": "Mandays list"},
+      {"path": "/users/", "method": "GET", "view": "user_list_view", "auth": "Root/Admin", "description": "User list"},
+      {"path": "/users/create/", "method": "GET/POST", "view": "user_create_view", "auth": "Root/Admin", "description": "Create user"},
+      {"path": "/request-access/", "method": "GET/POST", "view": "request_access_view", "auth": "User1", "description": "Request access"},
+      {"path": "/my-requests/", "method": "GET", "view": "my_requests_view", "auth": "User1", "description": "View requests"},
+      {"path": "/approve-requests/", "method": "GET/POST", "view": "approve_requests_view", "auth": "Admin", "description": "Approve requests"},
+      {"path": "/manage-assignments/", "method": "GET/POST", "view": "manage_assignments_view", "auth": "Admin", "description": "Manage assignments"},
+      {"path": "/backup/", "method": "GET/POST", "view": "backup_data_view", "auth": "Root", "description": "Create backup"},
+      {"path": "/restore/", "method": "GET/POST", "view": "restore_data_view", "auth": "Root", "description": "Restore data"},
+      {"path": "/logs/", "method": "GET", "view": "upload_logs_view", "auth": "Root/Admin", "description": "Upload logs"},
+      {"path": "/admin/", "method": "GET", "view": "Django Admin", "auth": "Root", "description": "Django admin panel"}
+    ]
+  },
+  "user_guide": {
+    "getting_started": [
+      "1. Install Python 3.11+",
+      "2. Install dependencies: pip install -r requirements.txt",
+      "3. Run migrations: python manage.py migrate",
+      "4. Create initial data: python manage.py create_initial_data",
+      "5. Start server: python manage.py runserver",
+      "6. Open browser: http://127.0.0.1:8000",
+      "7. Login with default credentials"
+    ],
+    "default_credentials": {
+      "root": {"username": "root", "password": "root123", "access": "Full system"},
+      "admin": {"username": "admin", "password": "admin123", "access": "Sample Company"},
+      "user1": {"username": "user1", "password": "user123", "access": "Sample Company (read-only)"}
+    },
+    "common_tasks": {
+      "upload_attendance": [
+        "1. Login as Root or Admin",
+        "2. Navigate to Upload page",
+        "3. Download sample CSV if needed",
+        "4. Select your CSV file",
+        "5. Click Upload",
+        "6. Review results"
+      ],
+      "view_attendance": [
+        "1. Login with any role",
+        "2. Navigate to Data page",
+        "3. Apply filters as needed",
+        "4. View paginated results",
+        "5. Click Export to download"
+      ],
+      "request_access": [
+        "1. Login as User1",
+        "2. Navigate to Request Access",
+        "3. Enter EP NO(s)",
+        "4. Select access type and dates",
+        "5. Provide justification",
+        "6. Submit request",
+        "7. Check My Requests for status"
+      ],
+      "approve_request": [
+        "1. Login as Admin",
+        "2. Navigate to Approve Requests",
+        "3. Review pending requests",
+        "4. Click Approve or Reject",
+        "5. Add rejection reason if rejecting",
+        "6. Confirm action"
+      ],
+      "create_backup": [
+        "1. Login as Root",
+        "2. Navigate to Backup page",
+        "3. Select backup type (full/incremental)",
+        "4. Click Create Backup",
+        "5. Download generated file"
+      ]
+    }
+  },
+  "troubleshooting": {
+    "common_issues": [
+      {
+        "issue": "Cannot login",
+        "solutions": ["Check username/password", "Ensure user is active", "Check database connection", "Review logs for errors"]
+      },
+      {
+        "issue": "CSV upload fails",
+        "solutions": ["Check file format (CSV, XLS, XLSX)", "Verify required columns present", "Check date/time formats", "Ensure file size < 10MB", "Review error messages"]
+      },
+      {
+        "issue": "Permission denied",
+        "solutions": ["Check user role", "Verify company assignment", "Check if accessing correct company data", "Review decorator requirements"]
+      },
+      {
+        "issue": "Data not showing",
+        "solutions": ["Check filters applied", "Verify user has access to data", "Check date range", "Ensure records exist in database"]
+      },
+      {
+        "issue": "Backup/restore fails",
+        "solutions": ["Check JSON format", "Verify file not corrupted", "Ensure sufficient disk space", "Check database permissions", "Review error logs"]
+      }
+    ],
+    "log_locations": {
+      "application_logs": "logs/attendance_system.log",
+      "django_logs": "Console output when DEBUG=True",
+      "database_logs": "SQLite doesn't have separate logs"
+    },
+    "debugging_tips": [
+      "Enable DEBUG=True in development",
+      "Check logs/attendance_system.log for errors",
+      "Use Django admin to inspect database",
+      "Run python manage.py check for configuration issues",
+      "Use python manage.py shell for interactive debugging"
+    ]
+  },
+  "future_enhancements": {
+    "planned_features": [
+      "Email notifications for access requests",
+      "Advanced reporting and analytics",
+      "Shift scheduling integration",
+      "Mobile app (native iOS/Android)",
+      "Real-time attendance tracking",
+      "Biometric integration",
+      "Leave management system",
+      "Payroll integration",
+      "Multi-language support",
+      "Dark mode theme"
+    ],
+    "technical_improvements": [
+      "REST API for mobile apps",
+      "GraphQL API",
+      "Redis caching",
+      "Celery for background tasks",
+      "Elasticsearch for advanced search",
+      "WebSocket for real-time updates",
+      "Microservices architecture",
+      "Kubernetes deployment",
+      "CI/CD pipeline",
+      "Automated testing in CI"
+    ]
+  },
+  "credits": {
+    "framework": "Django (Django Software Foundation)",
+    "design_inspiration": "Modern enterprise applications",
+    "fonts": "Inter by Rasmus Andersson",
+    "icons": "Custom SVG icons",
+    "development": "Educational/Demonstration Project"
+  },
+  "documentation_metadata": {
+    "created": "2025-12-13",
+    "format": "JSON",
+    "completeness": "A to Z - Complete Project Documentation",
+    "includes": [
+      "Project Overview",
+      "Technology Stack",
+      "Architecture",
+      "Database Design",
+      "Features and Functionality",
+      "Frontend Design",
+      "Backend Implementation",
+      "Testing Strategy",
+      "Security",
+      "Deployment",
+      "Performance",
+      "Specifications Summary",
+      "File Structure",
+      "Key Workflows",
+      "API Endpoints",
+      "User Guide",
+      "Troubleshooting",
+      "Future Enhancements"
+    ],
+    "total_sections": 18,
+    "total_pages_equivalent": "100+"
+  }
+}

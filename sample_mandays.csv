@@ -1,0 +1,4 @@
+epNo,punchDate,mandays,regularMandayHr,ot,trade,contract,plant,plantDesc
+EMP001,2024-01-15,1.00,8.00,0,Electrician,CT001,PLT01,Main Plant
+EMP002,2024-01-15,1.50,8.50,2.5,Plumber,CT002,PLT01,Main Plant
+EMP003,2024-01-16,1.00,8.00,3,Welder,CT001,PLT02,Secondary Plant

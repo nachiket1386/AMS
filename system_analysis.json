@@ -1,0 +1,239 @@
+{
+  "project_metadata": {
+    "project_name": "Attendance Management System (AMS)",
+    "technology_stack": {
+      "backend": "Django 4.2.7",
+      "language": "Python 3.11",
+      "database": "SQLite 3",
+      "frontend": "HTML5, TailwindCSS, JavaScript"
+    },
+    "architecture_pattern": "Multi-tenant MVC with Role-Based Access Control",
+    "current_scale": {
+      "total_records": 133438,
+      "attendance_records": 96315,
+      "mandays_records": 37086,
+      "companies": 104,
+      "users": 3
+    }
+  },
+  
+  "core_value_proposition": {
+    "problem_statement": "Organizations with multiple contractors and employees need a centralized system to track daily attendance, manage mandays/overtime, and provide role-based access to attendance data for different stakeholders (management, admins, supervisors).",
+    
+    "solution": "A multi-tenant web application that enables centralized attendance tracking with sophisticated access control, allowing root administrators full system access, company admins to manage their company data, and supervisors to view only their assigned employees with optional date-range restrictions.",
+    
+    "key_benefits": [
+      "Centralized attendance tracking across multiple companies",
+      "Role-based data access (Root, Admin, Supervisor)",
+      "Automated CSV/Excel data import with validation",
+      "Mandays and overtime calculation and tracking",
+      "Supervisor access request workflow with admin approval",
+      "Complete audit trail for compliance",
+      "Advanced filtering and export capabilities",
+      "Multi-tenant data isolation for security"
+    ],
+    
+    "target_users": [
+      {
+        "role": "Root Administrator",
+        "needs": "Full system oversight, user management, backup/restore, cross-company analytics"
+      },
+      {
+        "role": "Company Admin",
+        "needs": "Company-level attendance management, data uploads, supervisor access control"
+      },
+      {
+        "role": "Supervisor (User1)",
+        "needs": "View attendance for assigned employees, request additional access, monitor team attendance"
+      }
+    ]
+  },
+  
+  "technical_requirements": {
+    "functional_requirements": [
+      {
+        "id": "FR-001",
+        "category": "Authentication",
+        "requirement": "System shall authenticate users with username and password",
+        "priority": "Critical"
+      },
+      {
+        "id": "FR-002",
+        "category": "Authorization",
+        "requirement": "System shall enforce role-based access control (Root, Admin, User1)",
+        "priority": "Critical"
+      },
+      {
+        "id": "FR-003",
+        "category": "Data Management",
+        "requirement": "System shall support CSV/Excel upload for attendance data",
+        "priority": "High"
+      },
+      {
+        "id": "FR-004",
+        "category": "Data Management",
+        "requirement": "System shall support CSV/Excel upload for mandays data",
+        "priority": "High"
+      },
+      {
+        "id": "FR-005",
+        "category": "Data Viewing",
+        "requirement": "System shall display attendance records with pagination (50 per page)",
+        "priority": "High"
+      },
+      {
+        "id": "FR-006",
+        "category": "Data Filtering",
+        "requirement": "System shall filter attendance by date range, employee, company, status, overstay",
+        "priority": "High"
+      },
+      {
+        "id": "FR-007",
+        "category": "Data Export",
+        "requirement": "System shall export filtered attendance data to Excel format",
+        "priority": "Medium"
+      },
+      {
+        "id": "FR-008",
+        "category": "Access Control",
+        "requirement": "User1 shall request access to employees via approval workflow",
+        "priority": "High"
+      },
+      {
+        "id": "FR-009",
+        "category": "Access Control",
+        "requirement": "Admin shall approve or reject User1 access requests",
+        "priority": "High"
+      },
+      {
+        "id": "FR-010",
+        "category": "Access Control",
+        "requirement": "System shall enforce date-range based access for User1",
+        "priority": "High"
+      },
+      {
+        "id": "FR-011",
+        "category": "User Management",
+        "requirement": "Root and Admin shall create, edit, delete users",
+        "priority": "High"
+      },
+      {
+        "id": "FR-012",
+        "category": "Data Management",
+        "requirement": "Root and Admin shall edit and delete attendance records",
+        "priority": "Medium"
+      },
+      {
+        "id": "FR-013",
+        "category": "Backup",
+        "requirement": "Root shall create full database backups in JSON format",
+        "priority": "High"
+      },
+      {
+        "id": "FR-014",
+        "category": "Restore",
+        "requirement": "Root shall restore database from backup with preview",
+        "priority": "High"
+      },
+      {
+        "id": "FR-015",
+        "category": "Audit",
+        "requirement": "System shall log all access control actions",
+        "priority": "High"
+      },
+      {
+        "id": "FR-016",
+        "category": "Audit",
+        "requirement": "System shall log all data upload operations",
+        "priority": "Medium"
+      },
+      {
+        "id": "FR-017",
+        "category": "Multi-tenancy",
+        "requirement": "System shall isolate data by company",
+        "priority": "Critical"
+      },
+      {
+        "id": "FR-018",
+        "category": "Data Validation",
+        "requirement": "System shall validate unique (EP NO, Date) constraint",
+        "priority": "Critical"
+      },
+      {
+        "id": "FR-019",
+        "category": "Dashboard",
+        "requirement": "System shall display role-based statistics on dashboard",
+        "priority": "Medium"
+      },
+      {
+        "id": "FR-020",
+        "category": "Mandays",
+        "requirement": "System shall track and display mandays with overtime as decimal",
+        "priority": "High"
+      }
+    ],
+    
+    "non_functional_requirements": [
+      {
+        "id": "NFR-001",
+        "category": "Performance",
+        "requirement": "System shall load paginated lists within 2 seconds",
+        "current_status": "Met - Indexed queries"
+      },
+      {
+        "id": "NFR-002",
+        "category": "Performance",
+        "requirement": "System shall handle 100,000+ attendance records efficiently",
+        "current_status": "Met - Currently at 96,315 records"
+      },
+      {
+        "id": "NFR-003",
+        "category": "Scalability",
+        "requirement": "System shall support multiple concurrent users",
+        "current_status": "Met - Django session management"
+      },
+      {
+        "id": "NFR-004",
+        "category": "Security",
+        "requirement": "System shall hash all passwords",
+        "current_status": "Met - Django default hashing"
+      },
+      {
+        "id": "NFR-005",
+        "category": "Security",
+        "requirement": "System shall protect against SQL injection",
+        "current_status": "Met - Django ORM"
+      },
+      {
+        "id": "NFR-006",
+        "category": "Security",
+        "requirement": "System shall protect against XSS attacks",
+        "current_status": "Met - Django template escaping"
+      },
+      {
+        "id": "NFR-007",
+        "category": "Security",
+        "requirement": "System shall protect against CSRF attacks",
+        "current_status": "Met - CSRF tokens on all forms"
+      },
+      {
+        "id": "NFR-008",
+        "category": "Usability",
+        "requirement": "System shall be responsive (mobile and desktop)",
+        "current_status": "Met - Responsive design implemented"
+      },
+      {
+        "id": "NFR-009",
+        "category": "Reliability",
+        "requirement": "System shall maintain data integrity with constraints",
+        "current_status": "Met - Foreign keys and unique constraints"
+      },
+      {
+        "id": "NFR-010",
+        "category": "Maintainability",
+        "requirement": "System shall log all critical operations",
+        "current_status": "Met - Comprehensive logging"
+      }
+    ]
+  }
+}

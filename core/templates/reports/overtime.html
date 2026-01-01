@@ -1,0 +1,121 @@
+{% extends 'reports/base_report.html' %}
+
+{% block report_title %}Overtime Report{% endblock %}
+
+{% block report_icon %}
+<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+</svg>
+{% endblock %}
+
+{% block report_heading %}⏰ Overtime Report{% endblock %}
+{% block report_description %}Overtime requests and approvals{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Sticky table header on page scroll */
+    .page-sticky-header thead {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #4A70A9 !important;
+    }
+    
+    .page-sticky-header thead th {
+        background: #4A70A9 !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        padding: 16px 20px !important;
+        font-size: 11px !important;
+        letter-spacing: 0.8px;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        border-right: 2px solid rgba(239, 236, 227, 0.3) !important;
+    }
+    
+    .page-sticky-header thead th:last-child {
+        border-right: none !important;
+    }
+    
+    .page-sticky-header tbody td {
+        white-space: nowrap;
+        padding: 14px 20px !important;
+        border-right: 1px solid rgba(143, 171, 212, 0.2);
+        font-size: 12px;
+        vertical-align: middle !important;
+    }
+    
+    .page-sticky-header tbody td:last-child {
+        border-right: none;
+    }
+    
+    /* Ensure first row has proper spacing from sticky header */
+    .page-sticky-header tbody tr:first-child td {
+        padding-top: 14px !important;
+    }
+</style>
+{% endblock %}
+
+{% block report_content %}
+<div class="bg-white border border-light-blue rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-black text-xs min-w-max page-sticky-header">
+            <thead class="text-xs font-bold uppercase bg-dark-blue text-cream">
+                <tr>
+                    <th class="border-r border-cream/20" style="min-width: 120px;">EP NO</th>
+                    <th class="border-r border-cream/20" style="min-width: 150px;">NAME</th>
+                    <th class="border-r border-cream/20" style="min-width: 100px;">DATE</th>
+                    <th class="border-r border-cream/20" style="min-width: 90px;">ACTUAL OT</th>
+                    <th class="border-r border-cream/20" style="min-width: 80px;">REQ OT</th>
+                    <th class="border-r border-cream/20" style="min-width: 80px;">APP OT</th>
+                    <th class="border-r border-cream/20" style="min-width: 80px;">REQ HRS</th>
+                    <th class="border-r border-cream/20" style="min-width: 80px;">APP HRS</th>
+                    <th class="border-r border-cream/20" style="min-width: 150px;">REMARKS</th>
+                    <th class="border-r border-cream/20" style="min-width: 150px;">REASON</th>
+                    <th class="border-r border-cream/20" style="min-width: 150px;">EIC NAME</th>
+                    <th style="min-width: 80px;">STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in page_obj %}
+                <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/50">
+                    <td class="font-bold text-dark-blue">{{ record.ep_no }}</td>
+                    <td>{{ record.ep_name }}</td>
+                    <td>{{ record.date|date:"d/m/Y" }}</td>
+                    <td class="text-center">{% if record.actual_overstay %}{{ record.actual_overstay|slice:":5" }}{% else %}-{% endif %}</td>
+                    <td class="text-center font-semibold">{% if record.requested_overtime %}{{ record.requested_overtime|slice:":5" }}{% else %}-{% endif %}</td>
+                    <td class="text-center font-semibold text-green-600">{% if record.approved_overtime %}{{ record.approved_overtime|slice:":5" }}{% else %}-{% endif %}</td>
+                    <td class="text-center">{% if record.requested_regular_manday_hours %}{{ record.requested_regular_manday_hours|slice:":5" }}{% else %}-{% endif %}</td>
+                    <td class="text-center">{% if record.approved_regular_manday_hours %}{{ record.approved_regular_manday_hours|slice:":5" }}{% else %}-{% endif %}</td>
+                    <td>{{ record.contractor_ot_remarks|truncatewords:3|default:"-" }}</td>
+                    <td>{{ record.contractor_ot_reason|truncatewords:3|default:"-" }}</td>
+                    <td>{{ record.requested_eic_name|default:"-" }}</td>
+                    <td class="text-center">
+                        {% if record.ot_request_status == 'Approved' %}
+                        <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold">✓</span>
+                        {% elif record.ot_request_status == 'Rejected' %}
+                        <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-semibold">✗</span>
+                        {% elif record.ot_request_status == 'Pending' %}
+                        <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">⏳</span>
+                        {% else %}
+                        <span class="text-black/50">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="px-3 py-8 text-center text-black/50">
+                        <svg class="w-12 h-12 mx-auto mb-2 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="font-semibold">No overtime records found</p>
+                        <p class="text-xs mt-1">Try adjusting your filters</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

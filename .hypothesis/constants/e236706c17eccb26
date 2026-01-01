@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\migrations\0006_remove_skill_field.py
+# hypothesis_version: 6.148.2
+
+['Overtime', 'Regular Manday Hours', 'core', 'mandaysummaryrecord', 'ot', 'regular_manday_hr', 'skill']

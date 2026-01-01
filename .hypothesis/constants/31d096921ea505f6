@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\migrations\0002_user_assigned_date_from_user_assigned_date_to_and_more.py
+# hypothesis_version: 6.148.2
+
+['-0.5', '-1', '0001_initial', 'A', 'Absent', 'Access From Date', 'Access To Date', 'Full Day Leave', 'Half Day', 'P', 'PH', 'Present', 'Public Holiday', 'WO', 'Week Off', 'assigned_date_from', 'assigned_date_to', 'attendancerecord', 'core', 'status', 'user']

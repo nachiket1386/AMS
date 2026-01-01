@@ -18,8 +18,8 @@ class CSVProcessor:
     """Handles CSV/Excel file validation and processing for attendance records"""
     
     REQUIRED_FIELDS = ['EP NO', 'EP NAME', 'COMPANY NAME', 'DATE', 'SHIFT', 'STATUS']
-    OPTIONAL_FIELDS = ['IN', 'OUT', 'IN (2)', 'OUT (2)', 'IN (3)', 'OUT (3)', 'OVERSTAY', 'OVERTIME', 'OVERTIME TO MANDAYS']
-    VALID_STATUS = ['P', 'A', 'PH', 'L', 'WO', '-0.5', '-1']
+    OPTIONAL_FIELDS = ['IN', 'OUT', 'IN (2)', 'OUT (2)', 'IN (3)', 'OUT (3)', 'OVERSTAY', 'HOURS', 'OVERTIME', 'OVERTIME TO MANDAYS']
+    VALID_STATUS = ['P', 'A', 'PH', 'PD', 'L', 'WO', '-0.5', '-1']
     
     # Column name mappings: Upload file column -> Database column
     # This maps the columns from your upload file to the expected database columns
@@ -33,8 +33,8 @@ class CSVProcessor:
         'PUNCH4 OUT': 'OUT (2)',
         'PUNCH5 IN': 'IN (3)',
         'PUNCH6 OUT': 'OUT (3)',
+        'HOURS WORKED': 'HOURS',
         'REGULAR HOURS': 'OVERTIME TO MANDAYS',
-        # Note: 'HOURS WORKED' will be skipped as 'HOURS' is not in the database
     }
     
     def __init__(self, fast_mode=True):
@@ -74,14 +74,24 @@ class CSVProcessor:
                 
                 # Check if file is actually HTML
                 if file_content.startswith(b'<'):
-                    # Read as HTML table
-                    content = file_content.decode('utf-8')
-                    tables = pd.read_html(StringIO(content))
-                    if not tables:
-                        raise Exception('No tables found in HTML file')
-                    df = tables[0]  # Use first table
+                    raise Exception(
+                        'The uploaded file appears to be an HTML file, not a valid Excel file. '
+                        'Please ensure you are uploading a genuine Excel file (.xlsx). '
+                        'If you downloaded this file from a website, it may have downloaded an error page instead of the actual file.'
+                    )
                 else:
-                    df = pd.read_excel(BytesIO(file_content), engine='openpyxl')
+                    try:
+                        df = pd.read_excel(BytesIO(file_content), engine='openpyxl')
+                    except Exception as e:
+                        error_msg = str(e)
+                        # Check if error indicates HTML or corrupted content
+                        if '<div>' in error_msg or '<html>' in error_msg.lower() or 'not a zip file' in error_msg.lower():
+                            raise Exception(
+                                'The uploaded file appears to be corrupted or is not a valid Excel file. '
+                                'Please verify the file is a genuine Excel file (.xlsx) and try again. '
+                                'If you downloaded this file, try downloading it again.'
+                            )
+                        raise Exception(f'Unable to read .xlsx file: {error_msg}')
             elif filename.endswith('.xls'):
                 # Read Excel file (xls format - older format)
                 if not PANDAS_AVAILABLE:
@@ -92,23 +102,30 @@ class CSVProcessor:
                 
                 # Check if file is actually HTML (common issue with .xls files)
                 if file_content.startswith(b'<'):
-                    # Read as HTML table
-                    content = file_content.decode('utf-8')
-                    tables = pd.read_html(StringIO(content))
-                    if not tables:
-                        raise Exception('No tables found in HTML file')
-                    df = tables[0]  # Use first table
+                    raise Exception(
+                        'The uploaded file appears to be an HTML file, not a valid Excel file. '
+                        'Please ensure you are uploading a genuine Excel file (.xls or .xlsx). '
+                        'If you downloaded this file from a website, it may have downloaded an error page instead of the actual file.'
+                    )
                 else:
                     try:
                         df = pd.read_excel(BytesIO(file_content), engine='xlrd')
                     except Exception as e:
+                        error_msg = str(e)
+                        # Check if error indicates HTML content
+                        if 'BOF record' in error_msg or '<div>' in error_msg or '<html>' in error_msg.lower():
+                            raise Exception(
+                                'The uploaded file appears to be corrupted or is not a valid Excel file. '
+                                'Please verify the file is a genuine Excel file (.xls or .xlsx) and try again. '
+                                'If you downloaded this file, try downloading it again.'
+                            )
                         # If xlrd fails, try openpyxl (sometimes .xls files are actually .xlsx)
                         file.seek(0)
                         try:
                             df = pd.read_excel(BytesIO(file.read()), engine='openpyxl')
                             file.seek(0)
                         except:
-                            raise Exception(f'Unable to read .xls file: {str(e)}')
+                            raise Exception(f'Unable to read .xls file: {error_msg}')
             else:
                 return None
             
@@ -235,7 +252,8 @@ class CSVProcessor:
     
     def validate_time(self, time_str):
         """
-        Validate time format (HH:MM or HH:MM (N))
+        Validate time format (HH:MM, HH:MM:SS, HH:MM (N), HH:MM:SS (N), or 0)
+        Accepts hours beyond 24 for duration/overtime values (e.g., 25:30, 48:00)
         
         Args:
             time_str: Time string to validate
@@ -246,18 +264,90 @@ class CSVProcessor:
         if not time_str or not time_str.strip():
             return None
         
-        time_str = time_str.strip()
+        time_str = str(time_str).strip()
         
-        # Check if format is HH:MM (N) and extract just HH:MM
+        # Handle "0" as a valid value (means no time/zero hours)
+        if time_str == '0' or time_str == '0.0':
+            return None  # Return None to indicate no time value
+        
+        # Handle format like "06:04:00 (N)" or "06:04 (N)" - extract time parts
         if '(' in time_str and ')' in time_str:
-            # Extract time before the parenthesis
+            # Remove the (N) part for parsing
             time_str = time_str.split('(')[0].strip()
         
-        try:
-            parsed_time = datetime.strptime(time_str, '%H:%M').time()
-            return parsed_time
-        except ValueError:
+        # Parse time manually to support hours > 24
+        parts = time_str.split(':')
+        if len(parts) < 2:
             return None
+        
+        try:
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            seconds = int(parts[2]) if len(parts) >= 3 else 0
+            
+            # Validate minutes and seconds (0-59)
+            if minutes < 0 or minutes > 59 or seconds < 0 or seconds > 59:
+                return None
+            
+            # For hours > 23, normalize to fit in time object (mod 24)
+            # Store original for display but return normalized time
+            if hours >= 24:
+                # Return time with hours mod 24 for storage
+                normalized_hours = hours % 24
+                return dt_time(normalized_hours, minutes, seconds)
+            elif hours < 0:
+                return None
+            else:
+                return dt_time(hours, minutes, seconds)
+        except (ValueError, TypeError):
+            return None
+    
+    def format_time_as_hhmm(self, time_str):
+        """
+        Format time string as HH:MM (without seconds)
+        
+        Args:
+            time_str: Time string to format
+        
+        Returns:
+            String in HH:MM format or empty string
+        """
+        if not time_str or not time_str.strip():
+            return ''
+        
+        time_str = str(time_str).strip()
+        
+        # Handle "0" as no time
+        if time_str in ['0', '0.0', '']:
+            return ''
+        
+        # Handle format like "06:04:00 (N)" or "06:04 (N)" - extract time parts
+        if '(' in time_str and ')' in time_str:
+            time_str = time_str.split('(')[0].strip()
+        
+        # Parse time manually
+        parts = time_str.split(':')
+        if len(parts) < 2:
+            return ''
+        
+        try:
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            
+            # Validate minutes
+            if minutes < 0 or minutes > 59:
+                return ''
+            
+            # Normalize hours > 23 using modulo 24
+            if hours >= 24:
+                hours = hours % 24
+            elif hours < 0:
+                return ''
+            
+            # Return formatted as HH:MM
+            return f"{hours:02d}:{minutes:02d}"
+        except (ValueError, TypeError):
+            return ''
     
     def validate_status(self, status):
         """
@@ -330,11 +420,16 @@ class CSVProcessor:
         time_values = {}
         for csv_field, model_field in time_fields.items():
             if csv_field in row and not is_empty(row[csv_field]):
-                time_value = self.validate_time(str(row[csv_field]))
-                if time_value is None:
-                    errors.append(f"Row {row_number}: Invalid time format in '{csv_field}' field")
+                value_str = str(row[csv_field]).strip()
+                # Check if it's "0" (valid, means no time)
+                if value_str == '0' or value_str == '0.0':
+                    time_values[model_field] = None
                 else:
-                    time_values[model_field] = time_value
+                    time_value = self.validate_time(value_str)
+                    if time_value is None:
+                        errors.append(f"Row {row_number}: Invalid time format in '{csv_field}' field")
+                    else:
+                        time_values[model_field] = time_value
             else:
                 time_values[model_field] = None
         
@@ -363,7 +458,8 @@ class CSVProcessor:
             'company': company,
             'date': date_value,
             'shift': str(row['SHIFT']).strip(),
-            'overstay': str(row.get('OVERSTAY', '')).strip() if not is_empty(row.get('OVERSTAY')) else '',
+            'overstay': self.format_time_as_hhmm(row.get('OVERSTAY', '')) if not is_empty(row.get('OVERSTAY')) else '',
+            'hours': self.format_time_as_hhmm(row.get('HOURS', '')) if not is_empty(row.get('HOURS')) else '',
             'status': str(row['STATUS']).strip(),
             **time_values
         }
@@ -509,6 +605,7 @@ class CSVProcessor:
         # ULTRA-FAST: Prepare records with minimal processing
         records_to_create = []
         batch_size = 5000  # MUCH larger batches for maximum speed
+        progress_update_interval = 100  # Update progress every 100 rows for real-time display
         
         # Process rows with minimal validation for speed
         for row_number, row in enumerate(rows, start=2):
@@ -529,15 +626,39 @@ class CSVProcessor:
             
             self.processed_rows += 1
             
+            # Update progress frequently for real-time display
+            if self.processed_rows % progress_update_interval == 0:
+                if self.progress_callback:
+                    current_ep = data.get('ep_no') if success and data else None
+                    self.progress_callback(self.processed_rows, self.total_rows, current_ep)
+            
             # Bulk save every batch_size records
             if len(records_to_create) >= batch_size:
                 try:
-                    # FASTEST: Use bulk_create with ignore_conflicts (no updates)
-                    AttendanceRecord.objects.bulk_create(
-                        records_to_create, 
-                        ignore_conflicts=True,
-                        batch_size=batch_size
-                    )
+                    # Create new records, updating existing ones
+                    created_records = []
+                    for record in records_to_create:
+                        obj, created = AttendanceRecord.objects.update_or_create(
+                            ep_no=record.ep_no,
+                            date=record.date,
+                            defaults={
+                                'ep_name': record.ep_name,
+                                'company': record.company,
+                                'shift': record.shift,
+                                'overstay': record.overstay,
+                                'status': record.status,
+                                'in_time': record.in_time,
+                                'out_time': record.out_time,
+                                'in_time_2': record.in_time_2,
+                                'out_time_2': record.out_time_2,
+                                'in_time_3': record.in_time_3,
+                                'out_time_3': record.out_time_3,
+                                'overtime': record.overtime,
+                                'overtime_to_mandays': record.overtime_to_mandays,
+                            }
+                        )
+                        if not created:
+                            self.updated_count += 1
                 except Exception as e:
                     logger.error(f'Bulk create error: {str(e)}')
                 
@@ -546,17 +667,32 @@ class CSVProcessor:
                 # Log progress less frequently for speed
                 if self.processed_rows % 5000 == 0:
                     logger.info(f'Progress: {self.processed_rows}/{self.total_rows} rows ({int(self.processed_rows/self.total_rows*100)}%)')
-                    if self.progress_callback:
-                        self.progress_callback(self.processed_rows, self.total_rows)
         
         # Save remaining records
         if records_to_create:
             try:
-                AttendanceRecord.objects.bulk_create(
-                    records_to_create, 
-                    ignore_conflicts=True,
-                    batch_size=batch_size
-                )
+                for record in records_to_create:
+                    obj, created = AttendanceRecord.objects.update_or_create(
+                        ep_no=record.ep_no,
+                        date=record.date,
+                        defaults={
+                            'ep_name': record.ep_name,
+                            'company': record.company,
+                            'shift': record.shift,
+                            'overstay': record.overstay,
+                            'status': record.status,
+                            'in_time': record.in_time,
+                            'out_time': record.out_time,
+                            'in_time_2': record.in_time_2,
+                            'out_time_2': record.out_time_2,
+                            'in_time_3': record.in_time_3,
+                            'out_time_3': record.out_time_3,
+                            'overtime': record.overtime,
+                            'overtime_to_mandays': record.overtime_to_mandays,
+                        }
+                    )
+                    if not created:
+                        self.updated_count += 1
             except Exception as e:
                 logger.error(f'Final bulk create error: {str(e)}')
         

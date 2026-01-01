@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\forms.py
+# hypothesis_version: 6.148.2
+
+['Password', 'User1', 'Username', 'admin', 'assigned_date_from', 'assigned_date_to', 'class', 'company', 'date', 'ep_name', 'ep_no', 'form-check-input', 'form-control', 'in_time', 'in_time_2', 'in_time_3', 'is_active', 'out_time', 'out_time_2', 'out_time_3', 'overstay', 'overtime', 'overtime_to_mandays', 'password', 'placeholder', 'request_user', 'required', 'role', 'shift', 'status', 'time', 'type', 'user1', 'username']

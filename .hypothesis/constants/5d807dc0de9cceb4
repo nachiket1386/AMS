@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\migrations\0003_backuplog.py
+# hypothesis_version: 6.148.2
+
+[255, '-created_at', 'BackupLog', 'Full Backup', 'ID', 'Incremental Backup', 'Restore', 'backup_full', 'backup_incremental', 'backup_logs', 'companies_count', 'core', 'created_at', 'error_message', 'filename', 'id', 'indexes', 'operation', 'ordering', 'records_added', 'records_count', 'records_skipped', 'records_updated', 'restore', 'success', 'user']

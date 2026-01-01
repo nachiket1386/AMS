@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block title %}Dashboard - AMS{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-4">
     <!-- Page Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4">
         <div>
             <h1 class="text-title-desktop hidden md:block text-black">Dashboard</h1>
             <h1 class="text-title-mobile md:hidden text-black">Dashboard</h1>
@@ -13,178 +14,641 @@
         </div>
     </div>
 
-    <!-- Stats Cards - Desktop: 4 Horizontal Cards -->
-    <div class="hidden md:grid md:grid-cols-4 gap-6">
-        <div class="card bg-white hover:shadow-md">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-light-blue/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
+    <!-- Grid Layout for Widgets -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Attendance Calendar Card -->
+        <div class="bg-white border border-light-blue rounded-lg shadow-sm" style="padding: 10px;">
+        <!-- Widget Title -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #4A70A9;">
+            <span style="font-size: 20px;">📅</span>
+            <h2 style="font-size: 16px; font-weight: 700; color: #4A70A9; letter-spacing: 0.5px;">Attendance Widget</h2>
+        </div>
+        
+        <!-- Search Form -->
+        <form method="get" action="{% url 'core:dashboard' %}" style="margin-bottom: 10px;">
+            <div style="display: flex; gap: 6px;">
+                <div style="flex: 1.2; position: relative;">
+                    <span style="position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 11px;">🔍</span>
+                    <input type="text" name="calendar_ep" value="{{ calendar_ep }}" placeholder="EP Number..." 
+                           style="width: 100%; padding: 7px 7px 7px 26px; border: 1px solid #8FABD4; border-radius: 6px; font-size: 10px; font-weight: 500; background: white; color: #000000;"
+                           onfocus="this.style.borderColor='#4A70A9'; this.style.boxShadow='0 0 0 2px rgba(74,112,169,0.1)'"
+                           onblur="this.style.borderColor='#8FABD4'; this.style.boxShadow='none'">
                 </div>
-                <div>
-                    <div class="text-card-number text-black">{{ total_records|default:"0" }}</div>
-                    <div class="text-sm text-black/70 font-medium">Employees</div>
-                </div>
+                <input type="month" name="calendar_month" value="{{ calendar_month }}" 
+                       style="flex: 1; padding: 7px 5px; border: 1px solid #8FABD4; border-radius: 6px; font-size: 10px; font-weight: 500; background: white; color: #000000;"
+                       onfocus="this.style.borderColor='#4A70A9'; this.style.boxShadow='0 0 0 2px rgba(74,112,169,0.1)'"
+                       onblur="this.style.borderColor='#8FABD4'; this.style.boxShadow='none'">
             </div>
-        </div>
+        </form>
 
-        <div class="card bg-white hover:shadow-md">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-dark-blue/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-card-number text-black">{{ total_records|default:"0" }}</div>
-                    <div class="text-sm text-black/70 font-medium">Present</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card bg-white hover:shadow-md">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-light-blue/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-card-number text-black">0</div>
-                    <div class="text-sm text-black/70 font-medium">On Leave</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card bg-white hover:shadow-md">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-black/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-card-number text-black">0</div>
-                    <div class="text-sm text-black/70 font-medium">Late</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile: 2x2 Grid with Distinct Colors -->
-    <div class="grid grid-cols-2 gap-4 md:hidden">
-        <!-- Employees Card - Light Blue -->
-        <div class="bg-light-blue rounded-dock p-6 relative aspect-square flex flex-col items-center justify-center">
-            <svg class="w-10 h-10 text-black opacity-90 absolute top-4 left-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-            <div class="text-4xl font-bold text-black mt-4">{{ total_records|default:"0" }}</div>
-            <div class="text-label text-black mt-2">Employees</div>
-        </div>
-
-        <!-- Present Card - Dark Blue -->
-        <div class="bg-dark-blue rounded-dock p-6 relative aspect-square flex flex-col items-center justify-center">
-            <svg class="w-10 h-10 text-cream opacity-90 absolute top-4 left-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div class="text-4xl font-bold text-cream mt-4">{{ total_records|default:"0" }}</div>
-            <div class="text-label text-cream mt-2">Present</div>
-        </div>
-
-        <!-- On Leave Card - Cream with Border -->
-        <div class="bg-cream rounded-dock p-6 relative aspect-square flex flex-col items-center justify-center border-2 border-light-blue">
-            <svg class="w-10 h-10 text-black opacity-90 absolute top-4 left-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <div class="text-4xl font-bold text-black mt-4">0</div>
-            <div class="text-label text-black mt-2">On Leave</div>
-        </div>
-
-        <!-- Late Card - Black -->
-        <div class="bg-black rounded-dock p-6 relative aspect-square flex flex-col items-center justify-center">
-            <svg class="w-10 h-10 text-cream opacity-90 absolute top-4 left-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div class="text-4xl font-bold text-cream mt-4">0</div>
-            <div class="text-label text-cream mt-2">Late</div>
-        </div>
-    </div>
-
-    <!-- Quick Actions and Company Info -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-cream border border-light-blue rounded-2xl p-6 md:p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-                <h2 class="text-xl font-bold text-black">Quick Actions</h2>
-            </div>
-            <div class="grid grid-cols-2 {% if user.role == 'root' or user.role == 'admin' %}xl:grid-cols-3{% else %}xl:grid-cols-2{% endif %} gap-4">
-                {% if user.role == 'root' or user.role == 'admin' %}
-                <a href="{% url 'core:upload' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-cream bg-dark-blue rounded-xl hover:bg-black transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-dark-blue/50">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <span>Upload CSV</span>
-                </a>
-                {% endif %}
-                <a href="{% url 'core:attendance_list' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-cream bg-dark-blue rounded-xl hover:bg-black transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-dark-blue/50">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    <span>View Data</span>
-                </a>
-                {% if user.role == 'root' or user.role == 'admin' %}
-                <a href="{% url 'core:user_list' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-cream bg-dark-blue rounded-xl hover:bg-black transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-dark-blue/50">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <span>Manage Users</span>
-                </a>
+        <!-- Calendar View -->
+        {% if calendar_data %}
+        <!-- Header Section -->
+        <div style="padding-bottom: 6px; margin-bottom: 7px; border-bottom: 1px solid #EFECE3;">
+            <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                <span style="font-size: 12px;">👤</span>
+                <span style="font-size: 12px; font-weight: 600; color: #000000;">{{ calendar_ep }}</span>
+                {% if employee_name %}
+                <span style="font-size: 11px; color: rgba(0,0,0,0.6); margin-left: 2px;">- {{ employee_name }}</span>
                 {% endif %}
             </div>
         </div>
 
-        <div class="bg-cream border border-light-blue rounded-2xl p-6 md:p-8">
-            <div class="flex items-center gap-3 mb-4">
-                <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                </svg>
-                <h2 class="text-xl font-bold text-black">Company Info</h2>
+        <!-- Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 8px;">
+            <!-- Present Card -->
+            <div style="padding: 6px 3px; border-radius: 5px; text-align: center; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);">
+                <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; color: #16a34a; margin-bottom: 2px;">✅ Present</div>
+                <div style="font-size: 16px; font-weight: 700; line-height: 1.1; color: #16a34a;">{{ calendar_stats.present_days }}</div>
+                <div style="font-size: 9px; opacity: 0.8; line-height: 1.2; color: #16a34a; font-weight: 600;">Days</div>
             </div>
-            <div class="space-y-3">
-                <p class="font-semibold text-black">{% if user.company %}{{ user.company.name }}{% else %}All Companies{% endif %}</p>
-                <div class="flex items-start gap-2 text-sm text-black/80">
-                    <svg class="w-5 h-5 mt-0.5 flex-shrink-0 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    <span>Attendance Management System</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Recent Activity -->
-    {% if recent_uploads %}
-    <div class="bg-cream border border-light-blue rounded-2xl p-6 md:p-8">
-        <div class="flex items-center gap-3 mb-6">
-            <svg class="w-6 h-6 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h2 class="text-xl font-bold text-black">Recent Upload Activity</h2>
+            <!-- Exceptions Card -->
+            <div style="padding: 6px 3px; border-radius: 5px; text-align: center; background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.3);">
+                <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; color: #ca8a04; margin-bottom: 2px;">⚠️ Exceptions</div>
+                <div style="font-size: 16px; font-weight: 700; line-height: 1.1; color: #ca8a04;">{{ calendar_stats.exception_days }}</div>
+                <div style="font-size: 9px; opacity: 0.8; line-height: 1.2; color: #ca8a04; font-weight: 600;">{{ calendar_stats.exception_type }}</div>
+            </div>
+
+            <!-- Total Logged Card -->
+            <div style="padding: 6px 3px; border-radius: 5px; text-align: center; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);">
+                <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; color: #dc2626; margin-bottom: 2px;">🗓️ Total</div>
+                <div style="font-size: 16px; font-weight: 700; line-height: 1.1; color: #dc2626;">{{ calendar_stats.total_logged }}</div>
+                <div style="font-size: 9px; opacity: 0.8; line-height: 1.2; color: #dc2626; font-weight: 600;">of {{ calendar_stats.total_days }}</div>
+            </div>
         </div>
-        <div class="space-y-3">
-            {% for log in recent_uploads %}
-            <div class="flex items-center justify-between p-4 bg-cream border border-light-blue/50 rounded-xl">
-                <div class="flex-1">
-                    <p class="font-semibold text-black">{{ log.filename }}</p>
-                    <p class="text-sm text-black/70">By {{ log.user.username }} • {{ log.uploaded_at|date:"M d, Y H:i" }}</p>
-                </div>
-                <div class="flex gap-2 text-sm">
-                    <span class="px-2 py-1 bg-dark-blue/10 text-dark-blue rounded-lg font-semibold">✓ {{ log.success_count }}</span>
-                    <span class="px-2 py-1 bg-light-blue/30 text-black rounded-lg font-semibold">↻ {{ log.updated_count }}</span>
-                    {% if log.error_count > 0 %}
-                    <span class="px-2 py-1 bg-black/10 text-black rounded-lg font-semibold">✗ {{ log.error_count }}</span>
+
+        <!-- Week Days Header -->
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 3px 0; margin-bottom: 3px;">
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Su</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Mo</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Tu</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">We</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Th</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Fr</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Sa</div>
+        </div>
+
+        <!-- Calendar Days Grid -->
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
+            {% for day in calendar_data %}
+            <div style="aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; transition: transform 0.15s ease; position: relative;
+                {% if not day.is_other_month %}
+                    {% if day.status == 'P' %}background: rgba(34,197,94,0.1);
+                    {% elif day.status == 'A' %}background: rgba(239,68,68,0.1);
+                    {% elif day.status == 'L' or day.status == 'PD' %}background: rgba(234,179,8,0.1);
+                    {% else %}background: rgba(255,255,255,0.5);{% endif %}
+                {% endif %}"
+                 onmouseover="this.style.transform='scale(1.25)'; this.style.zIndex='10';"
+                 onmouseout="this.style.transform='scale(1)'; this.style.zIndex='1';"
+                 title="{% if day.day %}Day {{ day.day }}: {% if day.status == 'P' %}Present ✓{% elif day.status == 'A' %}Absent ✗{% elif day.status == 'L' or day.status == 'PD' %}{{ day.deduction }} Deduction{% else %}No data{% endif %}{% endif %}">
+                {% if day.day %}
+                    {% if day.status == 'P' %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
+                    {% elif day.status == 'A' %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #ef4444; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
+                    {% elif day.status == 'L' or day.status == 'PD' %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #eab308; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
+                    {% else %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #ffffff; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
                     {% endif %}
-                </div>
+                {% endif %}
             </div>
             {% endfor %}
+        </div>
+
+        <!-- Legend -->
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #EFECE3;">
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">Present</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #eab308; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">Half Day</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">Absent</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ffffff; border: 1px solid #e5e7eb; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">No Data</span>
+            </div>
+        </div>
+        {% elif calendar_ep %}
+        <div style="text-align: center; padding: 20px 10px; color: rgba(0,0,0,0.5);">
+            <div style="font-size: 32px; margin-bottom: 6px;">📅</div>
+            <p style="font-weight: 600; font-size: 10px; margin-bottom: 2px;">No records found</p>
+            <p style="font-size: 9px;">No attendance for EP: {{ calendar_ep }}</p>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 20px 10px; color: rgba(0,0,0,0.5);">
+            <div style="font-size: 32px; margin-bottom: 6px;">📅</div>
+            <p style="font-weight: 600; font-size: 10px; margin-bottom: 2px;">View Attendance Calendar</p>
+            <p style="font-size: 9px;">Enter an EP Number to view calendar</p>
+        </div>
+        {% endif %}
+        </div>
+
+        <!-- Overtime Summary Table -->
+        {% if eic_pending_requests %}
+        <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm">
+            <div class="bg-dark-blue text-cream px-3 py-2">
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Overtime Summary
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-black" style="font-size: 11px;">
+                    <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 10px;">
+                        <tr>
+                            <th class="px-2 py-2 border-r border-light-blue/30 font-bold">EIC NAME</th>
+                            <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Approved</th>
+                            <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Pending</th>
+                            <th class="px-2 py-2 text-center font-bold">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eic in eic_pending_requests %}
+                        <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                            <td class="px-2 py-2 font-medium border-r border-light-blue/20" style="font-size: 10px;">{{ eic.requested_eic_name|truncatewords:4 }}</td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                                {% if eic.approved_count > 0 %}{{ eic.approved_count }}{% endif %}
+                            </td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                                {% if eic.pending_count > 0 %}{{ eic.pending_count }}{% endif %}
+                            </td>
+                            <td class="px-2 py-2 text-center font-bold">{{ eic.total_count }}</td>
+                        </tr>
+                        {% endfor %}
+                        <!-- Grand Total Row -->
+                        <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                            <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ grand_total_approved }}</td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ grand_total_pending }}</td>
+                            <td class="px-2 py-2 text-center">{{ grand_total_all }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Regularization Summary Table -->
+        {% if regularization_by_eic %}
+        <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm">
+            <div class="bg-dark-blue text-cream px-3 py-2">
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Regularization Summary
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-black" style="font-size: 11px;">
+                    <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 10px;">
+                        <tr>
+                            <th class="px-2 py-2 border-r border-light-blue/30 font-bold">EIC NAME</th>
+                            <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Approved</th>
+                            <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Pending</th>
+                            <th class="px-2 py-2 text-center font-bold">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eic in regularization_by_eic %}
+                        <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                            <td class="px-2 py-2 font-medium border-r border-light-blue/20" style="font-size: 10px;">{{ eic.requested_eic_name|truncatewords:4 }}</td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                                {% if eic.approved_count > 0 %}{{ eic.approved_count }}{% endif %}
+                            </td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                                {% if eic.pending_count > 0 %}{{ eic.pending_count }}{% endif %}
+                            </td>
+                            <td class="px-2 py-2 text-center font-bold">{{ eic.total_count }}</td>
+                        </tr>
+                        {% endfor %}
+                        <!-- Grand Total Row -->
+                        <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                            <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ reg_total_approved }}</td>
+                            <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ reg_total_pending }}</td>
+                            <td class="px-2 py-2 text-center">{{ reg_total_count }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Second Row: Partial Day Report -->
+    {% if partial_day_by_eic %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm">
+            <div class="bg-dark-blue text-cream px-3 py-2">
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Partial Day Report
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-black" style="font-size: 11px;">
+                    <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 10px;">
+                        <tr>
+                            <th class="px-2 py-2 border-r border-light-blue/30 font-bold">EIC NAME</th>
+                            <th class="px-2 py-2 text-center font-bold">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eic in partial_day_by_eic %}
+                        <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                            <td class="px-2 py-2 font-medium border-r border-light-blue/20" style="font-size: 10px;">{{ eic.requested_eic_name|truncatewords:4 }}</td>
+                            <td class="px-2 py-2 text-center font-bold">{{ eic.total_count }}</td>
+                        </tr>
+                        {% endfor %}
+                        <!-- Grand Total Row -->
+                        <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                            <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                            <td class="px-2 py-2 text-center">{{ pd_grand_total }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ARC Summary Table - Full Width -->
+    {% if arc_summary_data %}
+    <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm">
+        <div class="bg-dark-blue text-cream px-3 py-2">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                📊 ARC Summary
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-black" style="font-size: 13px;">
+                <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 12px;">
+                    <tr>
+                        <th class="px-2 py-2 border-r border-light-blue/30 font-bold whitespace-nowrap">Trade</th>
+                        {% for contractor in arc_contractors %}
+                        <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold whitespace-nowrap">{{ contractor }}</th>
+                        {% endfor %}
+                        <th class="px-2 py-2 text-center font-bold whitespace-nowrap">Grand Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in arc_summary_data %}
+                    <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                        <td class="px-2 py-2 font-medium border-r border-light-blue/20 whitespace-nowrap" style="font-size: 12px;">{{ row.trade }}</td>
+                        {% for contractor in arc_contractors %}
+                        <td class="px-2 py-2 text-center border-r border-light-blue/20">
+                            {% if row.contractors|get_item:contractor > 0 %}
+                                {{ row.contractors|get_item:contractor|floatformat:4 }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="px-2 py-2 text-center font-bold">{{ row.total|floatformat:4 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Grand Total Row -->
+                    <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                        <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                        {% for contractor in arc_contractors %}
+                        <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ arc_grand_totals|get_item:contractor|floatformat:4 }}</td>
+                        {% endfor %}
+                        <td class="px-2 py-2 text-center">{{ arc_grand_totals.total|floatformat:4 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+        <!-- Attendance Calendar Card -->
+        <div class="bg-white border border-light-blue rounded-lg shadow-sm" style="max-width: 300px; padding: 10px;">
+        <!-- Widget Title -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #4A70A9;">
+            <span style="font-size: 20px;">📅</span>
+            <h2 style="font-size: 16px; font-weight: 700; color: #4A70A9; letter-spacing: 0.5px;">Attendance Widget</h2>
+        </div>
+        
+        <!-- Search Form -->
+        <form method="get" action="{% url 'core:dashboard' %}" style="margin-bottom: 10px;">
+            <div style="display: flex; gap: 6px;">
+                <div style="flex: 1.2; position: relative;">
+                    <span style="position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 11px;">🔍</span>
+                    <input type="text" name="calendar_ep" value="{{ calendar_ep }}" placeholder="EP Number..." 
+                           style="width: 100%; padding: 7px 7px 7px 26px; border: 1px solid #8FABD4; border-radius: 6px; font-size: 10px; font-weight: 500; background: white; color: #000000;"
+                           onfocus="this.style.borderColor='#4A70A9'; this.style.boxShadow='0 0 0 2px rgba(74,112,169,0.1)'"
+                           onblur="this.style.borderColor='#8FABD4'; this.style.boxShadow='none'">
+                </div>
+                <input type="month" name="calendar_month" value="{{ calendar_month }}" 
+                       style="flex: 1; padding: 7px 5px; border: 1px solid #8FABD4; border-radius: 6px; font-size: 10px; font-weight: 500; background: white; color: #000000;"
+                       onfocus="this.style.borderColor='#4A70A9'; this.style.boxShadow='0 0 0 2px rgba(74,112,169,0.1)'"
+                       onblur="this.style.borderColor='#8FABD4'; this.style.boxShadow='none'">
+            </div>
+        </form>
+
+        <!-- Calendar View -->
+        {% if calendar_data %}
+        <!-- Header Section -->
+        <div style="padding-bottom: 6px; margin-bottom: 7px; border-bottom: 1px solid #EFECE3;">
+            <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                <span style="font-size: 12px;">👤</span>
+                <span style="font-size: 12px; font-weight: 600; color: #000000;">{{ calendar_ep }}</span>
+                {% if employee_name %}
+                <span style="font-size: 11px; color: rgba(0,0,0,0.6); margin-left: 2px;">- {{ employee_name }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 8px;">
+            <!-- Present Card -->
+            <div style="padding: 6px 3px; border-radius: 5px; text-align: center; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);">
+                <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; color: #16a34a; margin-bottom: 2px;">✅ Present</div>
+                <div style="font-size: 16px; font-weight: 700; line-height: 1.1; color: #16a34a;">{{ calendar_stats.present_days }}</div>
+                <div style="font-size: 9px; opacity: 0.8; line-height: 1.2; color: #16a34a; font-weight: 600;">Days</div>
+            </div>
+
+            <!-- Exceptions Card -->
+            <div style="padding: 6px 3px; border-radius: 5px; text-align: center; background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.3);">
+                <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; color: #ca8a04; margin-bottom: 2px;">⚠️ Exceptions</div>
+                <div style="font-size: 16px; font-weight: 700; line-height: 1.1; color: #ca8a04;">{{ calendar_stats.exception_days }}</div>
+                <div style="font-size: 9px; opacity: 0.8; line-height: 1.2; color: #ca8a04; font-weight: 600;">{{ calendar_stats.exception_type }}</div>
+            </div>
+
+            <!-- Total Logged Card -->
+            <div style="padding: 6px 3px; border-radius: 5px; text-align: center; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);">
+                <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; color: #dc2626; margin-bottom: 2px;">🗓️ Total</div>
+                <div style="font-size: 16px; font-weight: 700; line-height: 1.1; color: #dc2626;">{{ calendar_stats.total_logged }}</div>
+                <div style="font-size: 9px; opacity: 0.8; line-height: 1.2; color: #dc2626; font-weight: 600;">of {{ calendar_stats.total_days }}</div>
+            </div>
+        </div>
+
+        <!-- Week Days Header -->
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 3px 0; margin-bottom: 3px;">
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Su</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Mo</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Tu</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">We</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Th</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Fr</div>
+            <div style="text-align: center; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.7);">Sa</div>
+        </div>
+
+        <!-- Calendar Days Grid -->
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
+            {% for day in calendar_data %}
+            <div style="aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; transition: transform 0.15s ease; position: relative;
+                {% if not day.is_other_month %}
+                    {% if day.status == 'P' %}background: rgba(34,197,94,0.1);
+                    {% elif day.status == 'A' %}background: rgba(239,68,68,0.1);
+                    {% elif day.status == 'L' or day.status == 'PD' %}background: rgba(234,179,8,0.1);
+                    {% else %}background: rgba(255,255,255,0.5);{% endif %}
+                {% endif %}"
+                 onmouseover="this.style.transform='scale(1.25)'; this.style.zIndex='10';"
+                 onmouseout="this.style.transform='scale(1)'; this.style.zIndex='1';"
+                 title="{% if day.day %}Day {{ day.day }}: {% if day.status == 'P' %}Present ✓{% elif day.status == 'A' %}Absent ✗{% elif day.status == 'L' or day.status == 'PD' %}{{ day.deduction }} Deduction{% else %}No data{% endif %}{% endif %}">
+                {% if day.day %}
+                    {% if day.status == 'P' %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
+                    {% elif day.status == 'A' %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #ef4444; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
+                    {% elif day.status == 'L' or day.status == 'PD' %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #eab308; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
+                    {% else %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #ffffff; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 10px; font-weight: 600;">{{ day.day }}</div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Legend -->
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #EFECE3;">
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">Present</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #eab308; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">Half Day</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">Absent</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ffffff; border: 1px solid #e5e7eb; flex-shrink: 0;"></div>
+                <span style="font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.7);">No Data</span>
+            </div>
+        </div>
+        {% elif calendar_ep %}
+        <div style="text-align: center; padding: 20px 10px; color: rgba(0,0,0,0.5);">
+            <div style="font-size: 32px; margin-bottom: 6px;">📅</div>
+            <p style="font-weight: 600; font-size: 10px; margin-bottom: 2px;">No records found</p>
+            <p style="font-size: 9px;">No attendance for EP: {{ calendar_ep }}</p>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 20px 10px; color: rgba(0,0,0,0.5);">
+            <div style="font-size: 32px; margin-bottom: 6px;">📅</div>
+            <p style="font-weight: 600; font-size: 10px; margin-bottom: 2px;">View Attendance Calendar</p>
+            <p style="font-size: 9px;">Enter an EP Number to view calendar</p>
+        </div>
+        {% endif %}
+        </div>
+    </div>
+
+    <!-- EIC Pending Requests Table -->
+    {% if eic_pending_requests %}
+    <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm" style="max-width: 400px;">
+        <div class="bg-dark-blue text-cream px-3 py-2">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Overtime Summary
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-black" style="font-size: 11px;">
+                <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 10px;">
+                    <tr>
+                        <th class="px-2 py-2 border-r border-light-blue/30 font-bold">EIC NAME</th>
+                        <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Approved</th>
+                        <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Pending</th>
+                        <th class="px-2 py-2 text-center font-bold">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eic in eic_pending_requests %}
+                    <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                        <td class="px-2 py-2 font-medium border-r border-light-blue/20" style="font-size: 10px;">{{ eic.requested_eic_name|truncatewords:4 }}</td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                            {% if eic.approved_count > 0 %}{{ eic.approved_count }}{% endif %}
+                        </td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                            {% if eic.pending_count > 0 %}{{ eic.pending_count }}{% endif %}
+                        </td>
+                        <td class="px-2 py-2 text-center font-bold">{{ eic.total_count }}</td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Grand Total Row -->
+                    <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                        <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ grand_total_approved }}</td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ grand_total_pending }}</td>
+                        <td class="px-2 py-2 text-center">{{ grand_total_all }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        </div>
+    {% endif %}
+
+    <!-- Partial Day Report Table -->
+    {% if partial_day_by_eic %}
+    <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm" style="max-width: 400px;">
+        <div class="bg-dark-blue text-cream px-3 py-2">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Partial Day Report
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-black" style="font-size: 11px;">
+                <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 10px;">
+                    <tr>
+                        <th class="px-2 py-2 border-r border-light-blue/30 font-bold">EIC NAME</th>
+                        <th class="px-2 py-2 text-center font-bold">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eic in partial_day_by_eic %}
+                    <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                        <td class="px-2 py-2 font-medium border-r border-light-blue/20" style="font-size: 10px;">{{ eic.requested_eic_name|truncatewords:4 }}</td>
+                        <td class="px-2 py-2 text-center font-bold">{{ eic.total_count }}</td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Grand Total Row -->
+                    <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                        <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                        <td class="px-2 py-2 text-center">{{ pd_grand_total }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Regularization Report Table -->
+    {% if regularization_by_eic %}
+    <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm" style="max-width: 400px;">
+        <div class="bg-dark-blue text-cream px-3 py-2">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Regularization Summary
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-black" style="font-size: 11px;">
+                <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 10px;">
+                    <tr>
+                        <th class="px-2 py-2 border-r border-light-blue/30 font-bold">EIC NAME</th>
+                        <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Approved</th>
+                        <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold">Pending</th>
+                        <th class="px-2 py-2 text-center font-bold">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eic in regularization_by_eic %}
+                    <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                        <td class="px-2 py-2 font-medium border-r border-light-blue/20" style="font-size: 10px;">{{ eic.requested_eic_name|truncatewords:4 }}</td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                            {% if eic.approved_count > 0 %}{{ eic.approved_count }}{% endif %}
+                        </td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/20 font-semibold">
+                            {% if eic.pending_count > 0 %}{{ eic.pending_count }}{% endif %}
+                        </td>
+                        <td class="px-2 py-2 text-center font-bold">{{ eic.total_count }}</td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Grand Total Row -->
+                    <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                        <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ reg_total_approved }}</td>
+                        <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ reg_total_pending }}</td>
+                        <td class="px-2 py-2 text-center">{{ reg_total_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ARC Summary Table -->
+    {% if arc_summary_data %}
+    <div class="bg-white border border-light-blue rounded-lg overflow-hidden shadow-sm" style="max-width: 100%;">
+        <div class="bg-dark-blue text-cream px-3 py-2">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                📊 ARC Summary
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-black" style="font-size: 13px;">
+                <thead class="bg-cream text-black border-b border-light-blue" style="font-size: 12px;">
+                    <tr>
+                        <th class="px-2 py-2 border-r border-light-blue/30 font-bold whitespace-nowrap">Trade</th>
+                        {% for contractor in arc_contractors %}
+                        <th class="px-2 py-2 border-r border-light-blue/30 text-center font-bold whitespace-nowrap">{{ contractor }}</th>
+                        {% endfor %}
+                        <th class="px-2 py-2 text-center font-bold whitespace-nowrap">Grand Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in arc_summary_data %}
+                    <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/20">
+                        <td class="px-2 py-2 font-medium border-r border-light-blue/20 whitespace-nowrap" style="font-size: 12px;">{{ row.trade }}</td>
+                        {% for contractor in arc_contractors %}
+                        <td class="px-2 py-2 text-center border-r border-light-blue/20">
+                            {% if row.contractors|get_item:contractor > 0 %}
+                                {{ row.contractors|get_item:contractor|floatformat:4 }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="px-2 py-2 text-center font-bold">{{ row.total|floatformat:4 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Grand Total Row -->
+                    <tr class="bg-light-blue font-bold border-t-2 border-dark-blue">
+                        <td class="px-2 py-2 border-r border-light-blue/30">Grand Total</td>
+                        {% for contractor in arc_contractors %}
+                        <td class="px-2 py-2 text-center border-r border-light-blue/30">{{ arc_grand_totals|get_item:contractor|floatformat:4 }}</td>
+                        {% endfor %}
+                        <td class="px-2 py-2 text-center">{{ arc_grand_totals.total|floatformat:4 }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     {% endif %}

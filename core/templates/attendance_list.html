@@ -28,144 +28,149 @@
         {% endif %}
     </div> 
 
-    <!-- Filters -->
-    <div class="bg-cream border border-light-blue rounded-2xl p-4 md:p-6">
-        <form method="get" class="space-y-4">
-            <!-- Mobile: Stacked Layout -->
-            <div class="flex flex-col gap-4 md:hidden">
-                <div>
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Search</label>
-                    <input type="text" name="ep_no" value="{{ request.GET.ep_no }}" placeholder="Search by EP NO..." class="w-full px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black placeholder:text-black/50 text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-sm font-semibold text-black/80 mb-1 block">Date From</label>
-                        <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="w-full px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm">
-                    </div>
-                    <div>
-                        <label class="text-sm font-semibold text-black/80 mb-1 block">Date To</label>
-                        <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="w-full px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm">
-                    </div>
-                </div>
-                <div>
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Status</label>
-                    <select name="status" class="w-full px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm">
-                        <option value="">All Status</option>
-                        <option value="P" {% if request.GET.status == 'P' %}selected{% endif %}>P</option>
-                        <option value="A" {% if request.GET.status == 'A' %}selected{% endif %}>A</option>
-                        <option value="PH" {% if request.GET.status == 'PH' %}selected{% endif %}>PH</option>
-                        <option value="-0.5" {% if request.GET.status == '-0.5' %}selected{% endif %}>-0.5</option>
-                        <option value="-1" {% if request.GET.status == '-1' %}selected{% endif %}>-1</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Overstay</label>
-                    <select name="overstay_filter" class="w-full px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm">
-                        <option value="">All</option>
-                        <option value="has_overstay" {% if request.GET.overstay_filter == 'has_overstay' %}selected{% endif %}>Has Overstay</option>
-                        <option value="no_overstay" {% if request.GET.overstay_filter == 'no_overstay' %}selected{% endif %}>No Overstay</option>
-                        <option value="range_1_2" {% if request.GET.overstay_filter == 'range_1_2' %}selected{% endif %}>1-2 Hours</option>
-                        <option value="range_2_3" {% if request.GET.overstay_filter == 'range_2_3' %}selected{% endif %}>2-3 Hours</option>
-                        <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4 Hours</option>
-                        <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5 Hours</option>
-                        <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>> 5 Hours</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="submit" class="bg-dark-blue text-cream px-4 py-2 rounded-xl font-semibold hover:bg-black transition text-sm">Filter</button>
-                    <a href="{% url 'core:attendance_list' %}" class="bg-light-blue text-black px-4 py-2 rounded-xl font-semibold hover:bg-light-blue/70 transition text-center text-sm">Clear</a>
-                </div>
-            </div>
-
-            <!-- Desktop: Single Row Layout with Wrapping -->
-            <div class="hidden md:flex md:flex-row md:flex-wrap gap-3 items-end">
-                <div class="w-auto flex-shrink-0">
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Search</label>
-                    <input type="text" name="ep_no" value="{{ request.GET.ep_no }}" placeholder="EP NO..." class="px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black placeholder:text-black/50 text-sm w-36">
-                </div>
-                <div class="w-auto flex-shrink-0">
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Date From</label>
-                    <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm w-36">
-                </div>
-                <div class="w-auto flex-shrink-0">
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Date To</label>
-                    <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm w-36">
-                </div>
-                <div class="w-auto flex-shrink-0">
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Status</label>
-                    <select name="status" class="px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm w-32">
-                        <option value="">All Status</option>
-                        <option value="P" {% if request.GET.status == 'P' %}selected{% endif %}>P</option>
-                        <option value="A" {% if request.GET.status == 'A' %}selected{% endif %}>A</option>
-                        <option value="PH" {% if request.GET.status == 'PH' %}selected{% endif %}>PH</option>
-                        <option value="-0.5" {% if request.GET.status == '-0.5' %}selected{% endif %}>-0.5</option>
-                        <option value="-1" {% if request.GET.status == '-1' %}selected{% endif %}>-1</option>
-                    </select>
-                </div>
-                <div class="w-auto flex-shrink-0">
-                    <label class="text-sm font-semibold text-black/80 mb-1 block">Overstay</label>
-                    <select name="overstay_filter" class="px-3 py-2 bg-cream border border-light-blue rounded-xl focus:ring-2 focus:ring-dark-blue focus:border-transparent transition text-black text-sm w-36">
-                        <option value="">All</option>
-                        <option value="has_overstay" {% if request.GET.overstay_filter == 'has_overstay' %}selected{% endif %}>Has Overstay</option>
-                        <option value="no_overstay" {% if request.GET.overstay_filter == 'no_overstay' %}selected{% endif %}>No Overstay</option>
-                        <option value="range_1_2" {% if request.GET.overstay_filter == 'range_1_2' %}selected{% endif %}>1-2 Hours</option>
-                        <option value="range_2_3" {% if request.GET.overstay_filter == 'range_2_3' %}selected{% endif %}>2-3 Hours</option>
-                        <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4 Hours</option>
-                        <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5 Hours</option>
-                        <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>> 5 Hours</option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-dark-blue text-cream px-4 py-2 rounded-xl font-semibold hover:bg-black transition text-sm whitespace-nowrap flex-shrink-0">Filter</button>
-                <a href="{% url 'core:attendance_list' %}" class="bg-light-blue text-black px-4 py-2 rounded-xl font-semibold hover:bg-light-blue/70 transition text-center text-sm whitespace-nowrap flex-shrink-0">Clear</a>
-            </div>
-        </form>
-        
-        <!-- Download Button (Separate for both mobile and desktop) -->
-        <div class="mt-4">
-            <a href="{% url 'core:attendance_export' %}?{{ request.GET.urlencode }}" class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2 bg-black text-cream rounded-xl font-semibold hover:bg-black/80 transition text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                Download XLSX
+    <!-- Report Tabs Navigation -->
+    <div class="bg-cream border border-light-blue rounded-xl p-2">
+        <div class="flex gap-2 overflow-x-auto">
+            <a href="{% url 'core:attendance_list' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap bg-dark-blue text-cream">
+                📋 Attendance
+            </a>
+            <a href="{% url 'core:arc_summary_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap bg-white text-black hover:bg-light-blue">
+                📊 ARC Summary
+            </a>
+            <a href="{% url 'core:overtime_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap bg-white text-black hover:bg-light-blue">
+                ⏰ Overtime
+            </a>
+            <a href="{% url 'core:partial_day_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap bg-white text-black hover:bg-light-blue">
+                📅 Partial Day
+            </a>
+            <a href="{% url 'core:regularization_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap bg-white text-black hover:bg-light-blue">
+                ✏️ Regularization
             </a>
         </div>
     </div>
 
-    <!-- Active Filters & Record Count -->
-    <div class="space-y-2">
+    <!-- Filters - Compact Single Row -->
+    <div class="bg-cream border border-light-blue rounded-xl p-3">
+        <form method="get" id="filterForm">
+            <!-- Mobile: Stacked Layout -->
+            <div class="flex flex-col gap-2 md:hidden">
+                <input type="text" name="ep_no" value="{{ request.GET.ep_no }}" placeholder="Search EP NO..." class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black placeholder:text-black/50 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="date" name="date_from" value="{{ date_from }}" class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs">
+                    <input type="date" name="date_to" value="{{ date_to }}" class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <select name="status" class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs">
+                        <option value="">Status</option>
+                        <option value="P" {% if request.GET.status == 'P' %}selected{% endif %}>P</option>
+                        <option value="A" {% if request.GET.status == 'A' %}selected{% endif %}>A</option>
+                        <option value="PH" {% if request.GET.status == 'PH' %}selected{% endif %}>PH</option>
+                        <option value="-0.5" {% if request.GET.status == '-0.5' %}selected{% endif %}>-0.5</option>
+                        <option value="-1" {% if request.GET.status == '-1' %}selected{% endif %}>-1</option>
+                    </select>
+                    <select name="overstay_filter" class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs">
+                        <option value="">Overstay</option>
+                        <option value="has_overstay" {% if request.GET.overstay_filter == 'has_overstay' %}selected{% endif %}>Has</option>
+                        <option value="no_overstay" {% if request.GET.overstay_filter == 'no_overstay' %}selected{% endif %}>None</option>
+                        <option value="range_1_2" {% if request.GET.overstay_filter == 'range_1_2' %}selected{% endif %}>1-2h</option>
+                        <option value="range_2_3" {% if request.GET.overstay_filter == 'range_2_3' %}selected{% endif %}>2-3h</option>
+                        <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4h</option>
+                        <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5h</option>
+                        <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>>5h</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="submit" class="bg-dark-blue text-cream px-3 py-1.5 rounded-lg font-semibold hover:bg-black transition text-xs">Filter</button>
+                    <a href="{% url 'core:attendance_list' %}" class="bg-light-blue text-black px-3 py-1.5 rounded-lg font-semibold hover:bg-light-blue/70 transition text-center text-xs">Clear</a>
+                    <a href="{% url 'core:attendance_export' %}?{{ request.GET.urlencode }}" class="bg-black text-cream px-3 py-1.5 rounded-lg font-semibold hover:bg-black/80 transition text-center text-xs">Export</a>
+                </div>
+            </div>
+
+            <!-- Desktop: Compact Single Row -->
+            <div class="hidden md:flex md:flex-row gap-2 items-center">
+                <input type="text" name="ep_no" value="{{ request.GET.ep_no }}" placeholder="Search EP NO..." class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black placeholder:text-black/50 text-xs w-32">
+                <input type="date" name="date_from" value="{{ date_from }}" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-32">
+                <input type="date" name="date_to" value="{{ date_to }}" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-32">
+                <select name="status" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-24">
+                    <option value="">Status</option>
+                    <option value="P" {% if request.GET.status == 'P' %}selected{% endif %}>P</option>
+                    <option value="A" {% if request.GET.status == 'A' %}selected{% endif %}>A</option>
+                    <option value="PH" {% if request.GET.status == 'PH' %}selected{% endif %}>PH</option>
+                    <option value="-0.5" {% if request.GET.status == '-0.5' %}selected{% endif %}>-0.5</option>
+                    <option value="-1" {% if request.GET.status == '-1' %}selected{% endif %}>-1</option>
+                </select>
+                <select name="overstay_filter" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-28">
+                    <option value="">Overstay</option>
+                    <option value="has_overstay" {% if request.GET.overstay_filter == 'has_overstay' %}selected{% endif %}>Has</option>
+                    <option value="no_overstay" {% if request.GET.overstay_filter == 'no_overstay' %}selected{% endif %}>None</option>
+                    <option value="range_1_2" {% if request.GET.overstay_filter == 'range_1_2' %}selected{% endif %}>1-2h</option>
+                    <option value="range_2_3" {% if request.GET.overstay_filter == 'range_2_3' %}selected{% endif %}>2-3h</option>
+                    <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4h</option>
+                    <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5h</option>
+                    <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>>5h</option>
+                </select>
+                <button type="submit" class="bg-dark-blue text-cream px-3 py-1.5 rounded-lg font-semibold hover:bg-black transition text-xs whitespace-nowrap">Filter</button>
+                <a href="{% url 'core:attendance_list' %}" class="bg-light-blue text-black px-3 py-1.5 rounded-lg font-semibold hover:bg-light-blue/70 transition text-xs whitespace-nowrap">Clear</a>
+                <a href="{% url 'core:attendance_export' %}?{{ request.GET.urlencode }}" class="bg-black text-cream px-3 py-1.5 rounded-lg font-semibold hover:bg-black/80 transition text-xs whitespace-nowrap inline-flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Export
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filters & Record Count - Compact -->
+    <div class="flex flex-wrap gap-2 items-center justify-between text-xs">
         {% if request.GET.ep_no or request.GET.date_from or request.GET.date_to or request.GET.status or request.GET.overstay_filter %}
-        <div class="flex flex-wrap gap-2 items-center">
-            <span class="text-sm font-semibold text-black/70">Active Filters:</span>
+        <div class="flex flex-wrap gap-1.5 items-center">
+            <span class="font-semibold text-black/70">Filters:</span>
             {% if request.GET.ep_no %}
-            <span class="px-3 py-1 bg-dark-blue text-cream rounded-lg text-xs font-semibold">EP NO: {{ request.GET.ep_no }}</span>
+            <span class="px-2 py-0.5 bg-dark-blue text-cream rounded text-xs">EP: {{ request.GET.ep_no }}</span>
             {% endif %}
             {% if request.GET.date_from %}
-            <span class="px-3 py-1 bg-dark-blue text-cream rounded-lg text-xs font-semibold">From: {{ request.GET.date_from }}</span>
+            <span class="px-2 py-0.5 bg-dark-blue text-cream rounded text-xs">From: {{ request.GET.date_from }}</span>
             {% endif %}
             {% if request.GET.date_to %}
-            <span class="px-3 py-1 bg-dark-blue text-cream rounded-lg text-xs font-semibold">To: {{ request.GET.date_to }}</span>
+            <span class="px-2 py-0.5 bg-dark-blue text-cream rounded text-xs">To: {{ request.GET.date_to }}</span>
             {% endif %}
             {% if request.GET.status %}
-            <span class="px-3 py-1 bg-dark-blue text-cream rounded-lg text-xs font-semibold">Status: {{ request.GET.status }}</span>
+            <span class="px-2 py-0.5 bg-dark-blue text-cream rounded text-xs">{{ request.GET.status }}</span>
             {% endif %}
             {% if request.GET.overstay_filter %}
-            <span class="px-3 py-1 bg-dark-blue text-cream rounded-lg text-xs font-semibold">
-                {% if request.GET.overstay_filter == 'has_overstay' %}Has Overstay
-                {% elif request.GET.overstay_filter == 'no_overstay' %}No Overstay
-                {% elif request.GET.overstay_filter == 'range_1_2' %}Overstay: 1-2 Hours
-                {% elif request.GET.overstay_filter == 'range_2_3' %}Overstay: 2-3 Hours
-                {% elif request.GET.overstay_filter == 'range_3_4' %}Overstay: 3-4 Hours
-                {% elif request.GET.overstay_filter == 'range_4_5' %}Overstay: 4-5 Hours
-                {% elif request.GET.overstay_filter == 'gt_5' %}Overstay > 5 Hours
+            <span class="px-2 py-0.5 bg-dark-blue text-cream rounded text-xs">
+                {% if request.GET.overstay_filter == 'has_overstay' %}Has OT
+                {% elif request.GET.overstay_filter == 'no_overstay' %}No OT
+                {% elif request.GET.overstay_filter == 'range_1_2' %}1-2h
+                {% elif request.GET.overstay_filter == 'range_2_3' %}2-3h
+                {% elif request.GET.overstay_filter == 'range_3_4' %}3-4h
+                {% elif request.GET.overstay_filter == 'range_4_5' %}4-5h
+                {% elif request.GET.overstay_filter == 'gt_5' %}>5h
                 {% endif %}
             </span>
             {% endif %}
         </div>
         {% endif %}
-        <div class="flex justify-between items-center">
-            <p class="text-sm text-black/70">Showing {{ page_obj.paginator.count }} records</p>
-        </div>
+        <p class="text-xs text-black/70 font-medium">{{ page_obj.paginator.count }} records ({{ page_obj|length }} shown)</p>
     </div>
+
+    <!-- Compact Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="hidden xl:flex justify-center items-center gap-2 bg-cream border border-light-blue rounded-lg p-2">
+        {% if page_obj.has_previous %}
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page=1" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">First</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Previous</a>
+        {% endif %}
+        
+        <span class="px-3 py-1 bg-dark-blue text-cream rounded font-semibold text-xs">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Next</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- Mobile & Tablet Card Stack View (< xl) -->
     <div class="xl:hidden space-y-4">
@@ -243,38 +248,144 @@
         {% endfor %}
     </div>
 
-    <!-- Desktop Table View (xl and up) -->
-    <div class="bg-white border border-light-blue rounded-2xl overflow-hidden hidden xl:block">
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-light-blue scrollbar-track-cream">
-            <table class="w-full text-left text-black text-sm min-w-max">
-                <thead class="text-xs font-semibold uppercase bg-light-blue text-black">
+    <!-- Desktop Table View (xl and up) - Excel-like Style -->
+    <div class="bg-white border-2 border-dark-blue/20 rounded-lg overflow-hidden hidden xl:block shadow-lg">
+        <!-- Clear All Filters Button -->
+        <div id="clearAllFiltersContainer" class="bg-cream border-b-2 border-light-blue p-3 flex items-center justify-between" style="display: none;">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                </svg>
+                <span class="text-sm font-semibold text-black">Active Column Filters</span>
+                <span id="activeFilterCount" class="px-2 py-0.5 bg-dark-blue text-cream rounded-full text-xs font-bold">0</span>
+            </div>
+            <button id="clearAllFiltersBtn" class="px-4 py-2 bg-black text-cream rounded-lg font-semibold hover:bg-black/80 transition text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Clear All Filters
+            </button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-black text-sm min-w-max border-collapse" id="attendanceTable">
+                <thead class="text-xs font-bold uppercase bg-dark-blue text-cream sticky top-0" style="z-index: 5;">
                     <tr>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">EP NO</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">NAME</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">DATE</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">SHIFT</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">TIME PAIRS</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">HRS</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">OVERSTAY</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">STATUS</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">OT</th>
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">OT DAYS</th>
-                        {% if can_edit or can_delete %}
-                        <th scope="col" class="px-4 py-3 whitespace-nowrap">ACTIONS</th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>EP NO</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="0">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 relative group">
+                            <div class="flex items-center gap-1">
+                                <span>NAME</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="1">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>DATE</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="2">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>SHIFT</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="3">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>TIME PAIRS</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="4">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>HRS</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="5">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>OVERSTAY</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="6">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>STATUS</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="7">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>OT</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="8">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                            <div class="flex items-center justify-center gap-1">
+                                <span>OT DAYS</span>
+                                <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="9">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </th>
+                        {% if can_edit or can_delete or user.role == 'user1' %}
+                        <th scope="col" class="px-3 py-3 whitespace-nowrap text-center">ACTIONS</th>
                         {% endif %}
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-light-blue/30">
+                <tbody>
                     {% for record in page_obj %}
-                    <tr class="{% if record.overstay|has_excessive_overstay %}bg-red-50{% else %}bg-white{% endif %} hover:bg-light-blue/10 transition-colors duration-200">
-                        <td class="px-4 py-3 font-semibold whitespace-nowrap">{{ record.ep_no }}</td>
-                        <td class="px-4 py-3 font-medium whitespace-nowrap">{{ record.ep_name }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ record.date|date:"d/m/y" }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ record.shift_code }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap font-mono text-base font-semibold">{{ record|format_time_pairs }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ record.hours|default:"-" }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ record.overstay|format_overstay }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
+                    <tr class="{% if record.overstay|has_excessive_overstay %}bg-red-50{% else %}{% cycle 'bg-white' 'bg-cream/30' %}{% endif %} hover:bg-light-blue/20 transition-colors duration-75 border-b border-light-blue/50">
+                        <td class="px-1.5 py-1 font-bold whitespace-nowrap border-r border-light-blue/50 text-center text-dark-blue text-xs">{{ record.ep_no }}</td>
+                        <td class="px-1.5 py-1 font-semibold whitespace-nowrap border-r border-light-blue/50 text-xs">{{ record.ep_name }}</td>
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.date|date:"d/m/y" }}</td>
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{{ record.shift_code }}</td>
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-mono text-xs font-bold text-dark-blue">{{ record|format_time_pairs }}</td>
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{{ record.hours|default:"-" }}</td>
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{{ record.overstay|format_overstay }}</td>
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center">
                             {% if record.status == 'P' %}
                             <span class="badge-present">P</span>
                             {% elif record.status == 'PH' or record.status == 'WO' %}
@@ -289,14 +400,21 @@
                             <span class="badge-late">{{ record.status }}</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ record.overtime|default:"-" }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ record.overtime_to_mandays|default:"-" }}</td>
-                        {% if can_edit or can_delete %}
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <div class="flex items-center gap-2">
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{{ record.overtime|default:"-" }}</td>
+                        <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{{ record.overtime_to_mandays|default:"-" }}</td>
+                        {% if can_edit or can_delete or user.role == 'user1' %}
+                        <td class="px-1.5 py-1 whitespace-nowrap text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                {% if user.role == 'user1' %}
+                                <a href="{% url 'core:add_remark' record.id %}" class="p-1 rounded text-cream bg-green-600 hover:bg-green-700 transition-colors duration-150" title="Add Remark">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                                    </svg>
+                                </a>
+                                {% endif %}
                                 {% if can_edit %}
-                                <a href="{% url 'core:attendance_edit' record.id %}" class="p-1.5 rounded-lg text-cream bg-dark-blue hover:bg-black transition-colors duration-200" title="Edit">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <a href="{% url 'core:attendance_edit' record.id %}" class="p-1 rounded text-cream bg-dark-blue hover:bg-black transition-colors duration-150" title="Edit">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg>
                                 </a>
@@ -304,8 +422,8 @@
                                 {% if can_delete %}
                                 <form method="post" action="{% url 'core:attendance_delete' record.id %}" onsubmit="return confirm('Delete this record?');" class="inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="p-1.5 rounded-lg text-cream bg-black hover:bg-black/80 transition-colors duration-200" title="Delete">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <button type="submit" class="p-1 rounded text-cream bg-black hover:bg-black/80 transition-colors duration-150" title="Delete">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </button>
@@ -321,22 +439,7 @@
         </div>
     </div>
 
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <div class="flex justify-center items-center gap-2">
-        {% if page_obj.has_previous %}
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page=1" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">First</a>
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">Previous</a>
-        {% endif %}
-        
-        <span class="px-4 py-2 bg-dark-blue text-cream rounded-lg font-semibold">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        
-        {% if page_obj.has_next %}
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">Next</a>
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.overstay_filter %}overstay_filter={{ request.GET.overstay_filter }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 bg-cream border border-light-blue text-black rounded-lg hover:bg-light-blue transition">Last</a>
-        {% endif %}
-    </div>
-    {% endif %}
+
 </div>
 {% endblock %}
 
@@ -550,6 +653,403 @@ document.addEventListener('DOMContentLoaded', function() {
             searchInputs[0]?.focus();
         }
     });
+    
+    // Excel-like Column Filters
+    const table = document.getElementById('attendanceTable');
+    console.log('Table found:', table);
+    if (table) {
+        const columnFilters = {};
+        let activeFilterDropdown = null;
+        
+        // Get all filter buttons
+        const filterButtons = table.querySelectorAll('.column-filter-btn');
+        console.log('Filter buttons found:', filterButtons.length);
+        
+        // Clear All Filters button
+        const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
+        const clearAllFiltersContainer = document.getElementById('clearAllFiltersContainer');
+        const activeFilterCount = document.getElementById('activeFilterCount');
+        
+        if (clearAllFiltersBtn) {
+            clearAllFiltersBtn.addEventListener('click', function() {
+                // Clear all filters
+                Object.keys(columnFilters).forEach(key => delete columnFilters[key]);
+                
+                // Reset all filter button colors
+                filterButtons.forEach(btn => {
+                    btn.style.color = '';
+                });
+                
+                // Reapply filters (which will show all rows)
+                applyAllFilters();
+                
+                // Hide the clear all button
+                updateClearAllButton();
+            });
+        }
+        
+        function updateClearAllButton() {
+            const filterCount = Object.keys(columnFilters).length;
+            if (filterCount > 0) {
+                clearAllFiltersContainer.style.display = 'flex';
+                activeFilterCount.textContent = filterCount;
+            } else {
+                clearAllFiltersContainer.style.display = 'none';
+            }
+        }
+        
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                const columnIndex = parseInt(this.dataset.column);
+                
+                console.log('Filter button clicked for column:', columnIndex);
+                
+                // Close existing dropdown if clicking same button
+                if (activeFilterDropdown && activeFilterDropdown.dataset.column === this.dataset.column) {
+                    console.log('Closing existing dropdown');
+                    activeFilterDropdown.remove();
+                    activeFilterDropdown = null;
+                    return;
+                }
+                
+                // Close any existing dropdown
+                if (activeFilterDropdown) {
+                    console.log('Removing previous dropdown');
+                    activeFilterDropdown.remove();
+                }
+                
+                // Create and show dropdown
+                console.log('Creating new dropdown');
+                showColumnFilterDropdown(this, columnIndex);
+            });
+        });
+        
+        function showColumnFilterDropdown(button, columnIndex) {
+            let sortedValues = [];
+            
+            // Special handling for OVERSTAY column (index 6)
+            if (columnIndex === 6) {
+                // Predefined overstay ranges
+                sortedValues = [
+                    { label: 'Has Overstay', value: 'has_overstay' },
+                    { label: 'No Overstay', value: 'no_overstay' },
+                    { label: '30min-1hr', value: 'range_0.5_1' },
+                    { label: '1-2hrs', value: 'range_1_2' },
+                    { label: '2-4hrs', value: 'range_2_4' },
+                    { label: '4-6hrs', value: 'range_4_6' },
+                    { label: '6-8hrs', value: 'range_6_8' },
+                    { label: '8-12hrs', value: 'range_8_12' },
+                    { label: '12-16hrs', value: 'range_12_16' },
+                    { label: '> 16hrs', value: 'gt_16' }
+                ];
+            } else {
+                // Get unique values from column for other columns
+                const rows = table.querySelectorAll('tbody tr');
+                const values = new Set();
+                
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const cell = row.cells[columnIndex];
+                        if (cell) {
+                            // For status column, extract text from badge
+                            let value = cell.textContent.trim();
+                            if (columnIndex === 7) { // STATUS column
+                                const badge = cell.querySelector('span[class^="badge-"]');
+                                if (badge) {
+                                    value = badge.textContent.trim();
+                                }
+                            }
+                            if (value && value !== '-') {
+                                values.add(value);
+                            }
+                        }
+                    }
+                });
+                
+                // Sort values
+                sortedValues = Array.from(values).sort((a, b) => {
+                    // Try numeric sort first
+                    const numA = parseFloat(a);
+                    const numB = parseFloat(b);
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        return numA - numB;
+                    }
+                    return a.localeCompare(b);
+                }).map(v => ({ label: v, value: v }));
+            }
+            
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'absolute top-full left-0 mt-1 bg-white border-2 border-dark-blue rounded-lg shadow-xl min-w-[200px] max-h-[400px] overflow-hidden flex flex-col text-black';
+            dropdown.style.zIndex = '9999';
+            dropdown.dataset.column = columnIndex;
+            
+            // Search box
+            const searchBox = document.createElement('div');
+            searchBox.className = 'p-2 border-b border-light-blue sticky top-0 bg-white';
+            searchBox.innerHTML = `
+                <input type="text" 
+                    placeholder="Search..." 
+                    class="w-full px-2 py-1 text-xs border border-light-blue rounded focus:ring-1 focus:ring-dark-blue focus:outline-none text-black"
+                    id="filterSearch${columnIndex}">
+            `;
+            dropdown.appendChild(searchBox);
+            
+            // Options container
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'overflow-y-auto flex-1 bg-white';
+            
+            // Select All option
+            const selectAllDiv = document.createElement('div');
+            selectAllDiv.className = 'px-3 py-2 hover:bg-light-blue cursor-pointer border-b border-light-blue/30 sticky top-0 bg-cream font-semibold text-xs text-black';
+            selectAllDiv.innerHTML = `
+                <label class="flex items-center gap-2 cursor-pointer text-black">
+                    <input type="checkbox" class="filter-select-all" checked>
+                    <span class="text-black">(Select All)</span>
+                </label>
+            `;
+            optionsContainer.appendChild(selectAllDiv);
+            
+            // Add value options
+            sortedValues.forEach(item => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'px-3 py-2 hover:bg-light-blue cursor-pointer text-xs filter-option bg-white';
+                optionDiv.dataset.value = item.value;
+                optionDiv.innerHTML = `
+                    <label class="flex items-center gap-2 cursor-pointer text-black">
+                        <input type="checkbox" class="filter-checkbox" value="${item.value}" data-label="${item.label}" checked>
+                        <span class="text-black">${item.label}</span>
+                    </label>
+                `;
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            dropdown.appendChild(optionsContainer);
+            
+            // Action buttons
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'p-2 border-t border-light-blue bg-cream flex gap-2';
+            actionsDiv.innerHTML = `
+                <button class="flex-1 px-3 py-1.5 bg-dark-blue text-cream rounded text-xs font-semibold hover:bg-black transition" id="applyFilter${columnIndex}">
+                    Apply
+                </button>
+                <button class="flex-1 px-3 py-1.5 bg-light-blue text-black rounded text-xs font-semibold hover:bg-light-blue/70 transition" id="clearFilter${columnIndex}">
+                    Clear
+                </button>
+            `;
+            dropdown.appendChild(actionsDiv);
+            
+            // Position dropdown
+            const buttonRect = button.getBoundingClientRect();
+            const thElement = button.closest('th');
+            thElement.style.position = 'relative';
+            thElement.style.overflow = 'visible';
+            thElement.appendChild(dropdown);
+            
+            console.log('Filter dropdown created for column:', columnIndex, 'with', sortedValues.length, 'values');
+            
+            activeFilterDropdown = dropdown;
+            
+            // Focus search box
+            const searchInput = dropdown.querySelector(`#filterSearch${columnIndex}`);
+            setTimeout(() => searchInput.focus(), 50);
+            
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const options = dropdown.querySelectorAll('.filter-option');
+                
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Select all functionality
+            const selectAllCheckbox = dropdown.querySelector('.filter-select-all');
+            const checkboxes = dropdown.querySelectorAll('.filter-checkbox');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                checkboxes.forEach(cb => {
+                    if (cb.closest('.filter-option').style.display !== 'none') {
+                        cb.checked = this.checked;
+                    }
+                });
+            });
+            
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const visibleCheckboxes = Array.from(checkboxes).filter(
+                        c => c.closest('.filter-option').style.display !== 'none'
+                    );
+                    const allChecked = visibleCheckboxes.every(c => c.checked);
+                    selectAllCheckbox.checked = allChecked;
+                });
+            });
+            
+            // Apply filter
+            dropdown.querySelector(`#applyFilter${columnIndex}`).addEventListener('click', function() {
+                const selectedValues = new Set();
+                checkboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedValues.add(cb.value);
+                    }
+                });
+                
+                columnFilters[columnIndex] = selectedValues;
+                applyAllFilters();
+                
+                // Update button appearance
+                if (selectedValues.size < sortedValues.length) {
+                    button.style.color = '#FFD700'; // Gold color for active filter
+                } else {
+                    button.style.color = '';
+                    delete columnFilters[columnIndex]; // Remove if all selected
+                }
+                
+                // Update clear all button visibility
+                updateClearAllButton();
+                
+                dropdown.remove();
+                activeFilterDropdown = null;
+            });
+            
+            // Clear filter
+            dropdown.querySelector(`#clearFilter${columnIndex}`).addEventListener('click', function() {
+                delete columnFilters[columnIndex];
+                applyAllFilters();
+                button.style.color = '';
+                
+                // Update clear all button visibility
+                updateClearAllButton();
+                
+                dropdown.remove();
+                activeFilterDropdown = null;
+            });
+        }
+        
+        function applyAllFilters() {
+            const rows = table.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                let shouldShow = true;
+                
+                // Check each active filter
+                for (const [columnIndex, allowedValues] of Object.entries(columnFilters)) {
+                    const colIdx = parseInt(columnIndex);
+                    const cell = row.cells[colIdx];
+                    
+                    if (cell) {
+                        // Special handling for OVERSTAY column (index 6)
+                        if (colIdx === 6) {
+                            const overstayText = cell.textContent.trim();
+                            const overstayMatch = overstayText.match(/(\d+):(\d+)/);
+                            
+                            let matchesFilter = false;
+                            
+                            if (overstayText === '-' || overstayText === '00:00') {
+                                // No overstay
+                                matchesFilter = allowedValues.has('no_overstay');
+                            } else if (overstayMatch) {
+                                const hours = parseInt(overstayMatch[1]);
+                                const minutes = parseInt(overstayMatch[2]);
+                                const totalHours = hours + (minutes / 60);
+                                
+                                // Check if matches any selected range
+                                for (const filterValue of allowedValues) {
+                                    if (filterValue === 'has_overstay' && totalHours > 0) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'no_overstay' && totalHours === 0) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'range_0.5_1' && totalHours >= 0.5 && totalHours < 1) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'range_1_2' && totalHours >= 1 && totalHours < 2) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'range_2_4' && totalHours >= 2 && totalHours < 4) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'range_4_6' && totalHours >= 4 && totalHours < 6) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'range_6_8' && totalHours >= 6 && totalHours < 8) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'range_8_12' && totalHours >= 8 && totalHours < 12) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'range_12_16' && totalHours >= 12 && totalHours < 16) {
+                                        matchesFilter = true;
+                                        break;
+                                    } else if (filterValue === 'gt_16' && totalHours >= 16) {
+                                        matchesFilter = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!matchesFilter) {
+                                shouldShow = false;
+                                break;
+                            }
+                        } else {
+                            // Regular column filtering
+                            let cellValue = cell.textContent.trim();
+                            
+                            // For status column, extract text from badge
+                            if (colIdx === 7) {
+                                const badge = cell.querySelector('span[class^="badge-"]');
+                                if (badge) {
+                                    cellValue = badge.textContent.trim();
+                                }
+                            }
+                            
+                            if (!allowedValues.has(cellValue) && cellValue !== '-') {
+                                shouldShow = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (shouldShow) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update record count
+            updateRecordCount(visibleCount, rows.length);
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (activeFilterDropdown && !activeFilterDropdown.contains(e.target)) {
+                activeFilterDropdown.remove();
+                activeFilterDropdown = null;
+            }
+        });
+        
+        // Prevent dropdown from closing when clicking inside
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.column-filter-btn')) {
+                e.stopPropagation();
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
+

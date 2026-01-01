@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\manday_processor.py
+# hypothesis_version: 6.148.2
+
+[b'<', 100, 1000, '%Y-%m-%d', '%Y.%m.%d', '%Y/%m/%d', '%d-%m-%Y', '%d.%m.%Y', '%d/%m/%Y', '%m/%d/%Y', '.csv', '.xls', '.xlsx', ':', '; ', 'CONTRACT', 'Default Company', 'EP NO', 'EPNO', 'EP_NO', 'File has no headers', 'MAN DAYS', 'MANDAYS', 'OT', 'OVERTIME', 'PLANT', 'PLANT DESC', 'PLANTDESC', 'PLANT_DESC', 'PUNCH DATE', 'PUNCHDATE', 'PUNCH_DATE', 'REGULAR MANDAY HR', 'REGULARMANDAYHR', 'REGULAR_MANDAY_HR', 'SKILL', 'TRADE', 'admin', 'company', 'contract', 'epNo', 'ep_no', 'error_count', 'errors', 'mandays', 'openpyxl', 'ot', 'plant', 'plantDesc', 'plant_desc', 'processed_rows', 'punchDate', 'punch_date', 'records', 'regularMandayHr', 'regular_manday_hr', 'skill', 'success', 'success_count', 'total_rows', 'trade', 'updated_count', 'utf-8', 'valid', 'xlrd']

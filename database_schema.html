@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema - Attendance Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #1F4788;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        .table-section {
+            margin-bottom: 50px;
+            border: 2px solid #1F4788;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .table-header {
+            background: linear-gradient(135deg, #1F4788 0%, #2563eb 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .table-purpose {
+            background: #f0f4ff;
+            padding: 15px 20px;
+            font-style: italic;
+            color: #555;
+            border-bottom: 2px solid #e0e7ff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #1F4788;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-right: 1px solid rgba(255,255,255,0.2);
+        }
+        th:last-child { border-right: none; }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+        }
+        td:last-child { border-right: none; }
+        tr:nth-child(even) { background: #f9fafb; }
+        tr:hover { background: #e0f2fe; }
+        .sample-data-header {
+            background: #10b981;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+        .type-badge {
+            background: #fbbf24;
+            color: #78350f;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .key-badge {
+            background: #ef4444;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+        .relationships {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .relationships h2 {
+            color: #92400e;
+            margin-bottom: 15px;
+        }
+        .relationship-item {
+            background: white;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+        .legend {
+            background: #e0f2fe;
+            border: 2px solid #0ea5e9;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .legend h3 {
+            color: #0c4a6e;
+            margin-bottom: 15px;
+        }
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .legend-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #0ea5e9;
+        }
+        .legend-item strong {
+            color: #0c4a6e;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Database Schema</h1>
+        <p class="subtitle">Attendance Management System - Complete Database Structure</p>
+
+        <!-- Table 1: Companies -->
+        <div class="table-section">
+            <div class="table-header">📊 Table 1: core_company</div>
+            <div class="table-purpose">Purpose: Stores company information for multi-tenant data isolation</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Column Name</th>
+                        <th>Data Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>id</strong> <span class="key-badge">PK</span></td>
+                        <td><span class="type-badge">INTEGER</span></td>
+                        <td>Primary Key - Unique identifier</td>
+                    </tr>
+                    <tr>
+                        <td><strong>name</strong></td>
+                        <td><span class="type-badge">VARCHAR(255)</span></td>
+                        <td>Company name (unique)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>created_at</strong></td>
+                        <td><span class="type-badge">DATETIME</span></td>
+                        <td>When company was created</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="sample-data-header">📝 Sample Data (5 rows)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>name</th>
+                        <th>created_at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>ADAGE AUTOMATION PVT LTD</td><td>2025-01-15 10:30:00</td></tr>
+                    <tr><td>2</td><td>AVON ENGINEERING</td><td>2025-01-16 11:45:00</td></tr>
+                    <tr><td>3</td><td>BUREAU VERITAS (INDIA) PVT LTD</td><td>2025-01-17 09:20:00</td></tr>
+                    <tr><td>4</td><td>CREATIVE INFOTECH SOLUTIONS</td><td>2025-01-18 14:10:00</td></tr>
+                    <tr><td>5</td><td>IDEAL HANDLING PVT LTD</td><td>2025-01-19 16:55:00</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table 2: Users -->
+        <div class="table-section">
+            <div class="table-header">👥 Table 2: core_user</div>
+            <div class="table-purpose">Purpose: User accounts with role-based access control (root/admin/user1)</div>
+            <table>
+                <thead>
+                    <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>id</strong> <span class="key-badge">PK</span></td><td><span class="type-badge">INTEGER</span></td><td>Primary Key</td></tr>
+                    <tr><td><strong>username</strong></td><td><span class="type-badge">VARCHAR(150)</span></td><td>Login username (unique)</td></tr>
+                    <tr><td><strong>email</strong></td><td><span class="type-badge">VARCHAR(254)</span></td><td>Email address</td></tr>
+                    <tr><td><strong>role</strong></td><td><span class="type-badge">VARCHAR(10)</span></td><td>User role: root/admin/user1</td></tr>
+                    <tr><td><strong>company_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to core_company</td></tr>
+                    <tr><td><strong>assigned_date_from</strong></td><td><span class="type-badge">DATE</span></td><td>Access start date (User1 only)</td></tr>
+                    <tr><td><strong>assigned_date_to</strong></td><td><span class="type-badge">DATE</span></td><td>Access end date (User1 only)</td></tr>
+                    <tr><td><strong>is_active</strong></td><td><span class="type-badge">BOOLEAN</span></td><td>Account active status</td></tr>
+                </tbody>
+            </table>
+            <div class="sample-data-header">📝 Sample Data (5 rows)</div>
+            <table>
+                <thead>
+                    <tr><th>id</th><th>username</th><th>email</th><th>role</th><th>company_id</th><th>assigned_date_from</th><th>assigned_date_to</th><th>is_active</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>root</td><td>root@system.com</td><td>root</td><td>NULL</td><td>NULL</td><td>NULL</td><td>✅</td></tr>
+                    <tr><td>2</td><td>admin1</td><td>admin1@adage.com</td><td>admin</td><td>1</td><td>NULL</td><td>NULL</td><td>✅</td></tr>
+                    <tr><td>3</td><td>admin2</td><td>admin2@avon.com</td><td>admin</td><td>2</td><td>NULL</td><td>NULL</td><td>✅</td></tr>
+                    <tr><td>4</td><td>user1_a</td><td>user1@adage.com</td><td>user1</td><td>1</td><td>2025-01-01</td><td>2025-12-31</td><td>✅</td></tr>
+                    <tr><td>5</td><td>user1_b</td><td>user1@avon.com</td><td>user1</td><td>2</td><td>2025-06-01</td><td>2025-12-31</td><td>✅</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table 3: Attendance Records -->
+        <div class="table-section">
+            <div class="table-header">📅 Table 3: core_attendancerecord</div>
+            <div class="table-purpose">Purpose: Stores daily attendance records for employees with punch times and overtime</div>
+            <table>
+                <thead>
+                    <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>id</strong> <span class="key-badge">PK</span></td><td><span class="type-badge">INTEGER</span></td><td>Primary Key</td></tr>
+                    <tr><td><strong>ep_no</strong></td><td><span class="type-badge">VARCHAR(50)</span></td><td>Employee number</td></tr>
+                    <tr><td><strong>ep_name</strong></td><td><span class="type-badge">VARCHAR(255)</span></td><td>Employee name</td></tr>
+                    <tr><td><strong>date</strong></td><td><span class="type-badge">DATE</span></td><td>Attendance date</td></tr>
+                    <tr><td><strong>company_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to core_company</td></tr>
+                    <tr><td><strong>shift</strong></td><td><span class="type-badge">VARCHAR(100)</span></td><td>Shift code/name</td></tr>
+                    <tr><td><strong>time_in_1</strong></td><td><span class="type-badge">VARCHAR(20)</span></td><td>First check-in time</td></tr>
+                    <tr><td><strong>time_out_1</strong></td><td><span class="type-badge">VARCHAR(20)</span></td><td>First check-out time</td></tr>
+                    <tr><td><strong>hours</strong></td><td><span class="type-badge">VARCHAR(20)</span></td><td>Total hours worked</td></tr>
+                    <tr><td><strong>overstay</strong></td><td><span class="type-badge">VARCHAR(20)</span></td><td>Overstay hours</td></tr>
+                    <tr><td><strong>status</strong></td><td><span class="type-badge">VARCHAR(10)</span></td><td>P/A/PH/WO/PD/-0.5/-1</td></tr>
+                    <tr><td><strong>overtime</strong></td><td><span class="type-badge">VARCHAR(20)</span></td><td>Overtime hours</td></tr>
+                </tbody>
+            </table>
+            <div class="sample-data-header">📝 Sample Data (5 rows)</div>
+            <table>
+                <thead>
+                    <tr><th>id</th><th>ep_no</th><th>ep_name</th><th>date</th><th>shift</th><th>time_in_1</th><th>time_out_1</th><th>hours</th><th>overstay</th><th>status</th><th>overtime</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>PP5000012345</td><td>RAJESH KUMAR</td><td>2025-12-13</td><td>G</td><td>08:00</td><td>17:00</td><td>09:00</td><td>01:00</td><td>P</td><td>01:00</td></tr>
+                    <tr><td>2</td><td>PP5000012346</td><td>AMIT PATEL</td><td>2025-12-13</td><td>G</td><td>08:15</td><td>17:30</td><td>09:15</td><td>01:30</td><td>P</td><td>01:30</td></tr>
+                    <tr><td>3</td><td>PP5000012347</td><td>SURESH SINGH</td><td>2025-12-13</td><td>N</td><td>20:00</td><td>05:00</td><td>09:00</td><td>00:00</td><td>P</td><td>00:00</td></tr>
+                    <tr><td>4</td><td>PP5000012348</td><td>VIJAY SHARMA</td><td>2025-12-13</td><td>G</td><td>-</td><td>-</td><td>-</td><td>-</td><td>A</td><td>-</td></tr>
+                    <tr><td>5</td><td>PP5000012349</td><td>PRAKASH MEHTA</td><td>2025-12-13</td><td>G</td><td>08:00</td><td>17:45</td><td>09:45</td><td>01:45</td><td>P</td><td>01:45</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table 4: Remark Reasons -->
+        <div class="table-section">
+            <div class="table-header">🏷️ Table 4: remark_reasons</div>
+            <div class="table-purpose">Purpose: Categories/reasons for remarks (managed by Admin)</div>
+            <table>
+                <thead>
+                    <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>id</strong> <span class="key-badge">PK</span></td><td><span class="type-badge">INTEGER</span></td><td>Primary Key</td></tr>
+                    <tr><td><strong>company_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to core_company</td></tr>
+                    <tr><td><strong>reason</strong></td><td><span class="type-badge">VARCHAR(255)</span></td><td>Reason/category name</td></tr>
+                    <tr><td><strong>is_active</strong></td><td><span class="type-badge">BOOLEAN</span></td><td>Active status</td></tr>
+                    <tr><td><strong>created_by_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to core_user</td></tr>
+                    <tr><td><strong>created_at</strong></td><td><span class="type-badge">DATETIME</span></td><td>Creation timestamp</td></tr>
+                </tbody>
+            </table>
+            <div class="sample-data-header">📝 Sample Data (5 rows)</div>
+            <table>
+                <thead>
+                    <tr><th>id</th><th>company_id</th><th>reason</th><th>is_active</th><th>created_by_id</th><th>created_at</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>1</td><td>Overtime Request</td><td>✅</td><td>2</td><td>2025-12-01 10:00:00</td></tr>
+                    <tr><td>2</td><td>1</td><td>Regularization</td><td>✅</td><td>2</td><td>2025-12-01 10:05:00</td></tr>
+                    <tr><td>3</td><td>1</td><td>Leave Adjustment</td><td>✅</td><td>2</td><td>2025-12-01 10:10:00</td></tr>
+                    <tr><td>4</td><td>2</td><td>Time Correction</td><td>✅</td><td>3</td><td>2025-12-02 11:00:00</td></tr>
+                    <tr><td>5</td><td>2</td><td>Shift Change Request</td><td>✅</td><td>3</td><td>2025-12-02 11:15:00</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table 5: Attendance Remarks -->
+        <div class="table-section">
+            <div class="table-header">💬 Table 5: attendance_remarks</div>
+            <div class="table-purpose">Purpose: Remarks added by User1 for attendance records with admin response tracking</div>
+            <table>
+                <thead>
+                    <tr><th>Column Name</th><th>Data Type</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>id</strong> <span class="key-badge">PK</span></td><td><span class="type-badge">INTEGER</span></td><td>Primary Key</td></tr>
+                    <tr><td><strong>attendance_record_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to core_attendancerecord</td></tr>
+                    <tr><td><strong>ep_no</strong></td><td><span class="type-badge">VARCHAR(50)</span></td><td>Employee number</td></tr>
+                    <tr><td><strong>date</strong></td><td><span class="type-badge">DATE</span></td><td>Attendance date</td></tr>
+                    <tr><td><strong>reason_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to remark_reasons</td></tr>
+                    <tr><td><strong>remarks_text</strong></td><td><span class="type-badge">TEXT</span></td><td>Detailed remarks/comments</td></tr>
+                    <tr><td><strong>created_by_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to core_user (User1)</td></tr>
+                    <tr><td><strong>created_at</strong></td><td><span class="type-badge">DATETIME</span></td><td>When remark was created</td></tr>
+                    <tr><td><strong>status</strong></td><td><span class="type-badge">VARCHAR(20)</span></td><td>pending/reviewed/resolved</td></tr>
+                    <tr><td><strong>admin_response</strong></td><td><span class="type-badge">TEXT</span></td><td>Admin's response</td></tr>
+                    <tr><td><strong>responded_by_id</strong> <span class="key-badge">FK</span></td><td><span class="type-badge">INTEGER</span></td><td>Foreign Key to core_user (Admin)</td></tr>
+                </tbody>
+            </table>
+            <div class="sample-data-header">📝 Sample Data (5 rows)</div>
+            <table>
+                <thead>
+                    <tr><th>id</th><th>ep_no</th><th>date</th><th>reason_id</th><th>remarks_text</th><th>created_by_id</th><th>created_at</th><th>status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>PP5000012345</td><td>2025-12-13</td><td>1</td><td>Worked extra 1 hour for urgent project delivery</td><td>4</td><td>2025-12-14 09:30:00</td><td>pending</td></tr>
+                    <tr><td>2</td><td>PP5000012346</td><td>2025-12-13</td><td>2</td><td>Forgot to punch out, actually left at 17:00</td><td>4</td><td>2025-12-14 10:15:00</td><td>reviewed</td></tr>
+                    <tr><td>3</td><td>PP5000012349</td><td>2025-12-13</td><td>1</td><td>Extended shift for client meeting</td><td>5</td><td>2025-12-14 11:00:00</td><td>resolved</td></tr>
+                    <tr><td>4</td><td>PP5000012345</td><td>2025-12-12</td><td>3</td><td>Was on approved leave but marked present</td><td>4</td><td>2025-12-13 14:20:00</td><td>pending</td></tr>
+                    <tr><td>5</td><td>PP5000012346</td><td>2025-12-12</td><td>4</td><td>Check-in time should be 08:00 not 08:15</td><td>4</td><td>2025-12-13 15:45:00</td><td>reviewed</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Relationships -->
+        <div class="relationships">
+            <h2>🔗 Table Relationships</h2>
+            <div class="relationship-item"><strong>core_company</strong> (1) ----&lt; (Many) <strong>core_user</strong> - One company has many users</div>
+            <div class="relationship-item"><strong>core_company</strong> (1) ----&lt; (Many) <strong>core_attendancerecord</strong> - One company has many attendance records</div>
+            <div class="relationship-item"><strong>core_company</strong> (1) ----&lt; (Many) <strong>remark_reasons</strong> - One company has many remark reasons</div>
+            <div class="relationship-item"><strong>core_user</strong> (1) ----&lt; (Many) <strong>remark_reasons</strong> - One user creates many reasons</div>
+            <div class="relationship-item"><strong>core_user</strong> (1) ----&lt; (Many) <strong>attendance_remarks</strong> - One user creates many remarks</div>
+            <div class="relationship-item"><strong>core_attendancerecord</strong> (1) ----&lt; (Many) <strong>attendance_remarks</strong> - One attendance record can have many remarks</div>
+            <div class="relationship-item"><strong>remark_reasons</strong> (1) ----&lt; (Many) <strong>attendance_remarks</strong> - One reason used in many remarks</div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <h3>📖 Legend & Status Values</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <strong>User Roles:</strong><br>
+                    • root - Full system access<br>
+                    • admin - Company admin<br>
+                    • user1 - Limited user
+                </div>
+                <div class="legend-item">
+                    <strong>Attendance Status:</strong><br>
+                    • P - Present<br>
+                    • A - Absent<br>
+                    • PH - Public Holiday<br>
+                    • WO - Week Off<br>
+                    • PD - Partial Day
+                </div>
+                <div class="legend-item">
+                    <strong>Remark Status:</strong><br>
+                    • pending - Awaiting review<br>
+                    • reviewed - Admin reviewed<br>
+                    • resolved - Issue resolved
+                </div>
+                <div class="legend-item">
+                    <strong>Key Types:</strong><br>
+                    • PK - Primary Key<br>
+                    • FK - Foreign Key<br>
+                    • ✅ - True/Active<br>
+                    • ❌ - False/Inactive
+                </div>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: #666; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+            <strong>Generated:</strong> December 17, 2025 | <strong>System:</strong> Attendance Management System v1.0
+        </p>
+    </div>
+</body>
+</html>

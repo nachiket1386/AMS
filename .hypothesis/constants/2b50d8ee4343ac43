@@ -1,0 +1,4 @@
+# file: E:\delete\CLAS_Related\core\urls.py
+# hypothesis_version: 6.148.2
+
+['approve-requests/', 'approve_request', 'approve_requests', 'attendance/', 'attendance/export/', 'attendance_delete', 'attendance_edit', 'attendance_export', 'attendance_list', 'backup/', 'backup/download/', 'backup_data', 'cancel_request', 'core', 'dashboard', 'download_backup', 'download_template', 'export', 'export/', 'login', 'login/', 'logout', 'logout/', 'manage-assignments/', 'manage_assignments', 'my-requests/', 'my_requests', 'reject_request', 'remove_assignment', 'request-access/', 'request_access', 'restore/', 'restore/apply/', 'restore/preview/', 'restore_apply', 'restore_data', 'restore_preview', 'upload', 'upload/', 'upload/logs/', 'upload/progress/', 'upload/template/', 'upload_logs', 'upload_progress', 'user_create', 'user_delete', 'user_edit', 'user_list', 'users/', 'users/create/']

@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database ER Diagram - Attendance Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .diagram-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .table-card {
+            background: white;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-icon {
+            font-size: 1.5em;
+        }
+        
+        .table-body {
+            padding: 20px;
+        }
+        
+        .field {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        
+        .field:last-child {
+            border-bottom: none;
+        }
+        
+        .field-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .field-type {
+            color: #718096;
+            font-size: 0.85em;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .badge-pk {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .badge-fk {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .badge-uk {
+            background: #ed8936;
+            color: white;
+        }
+        
+        .record-count {
+            background: #f7fafc;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .relationships {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .relationships h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .relationship-item {
+            background: white;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .relationship-item strong {
+            color: #667eea;
+        }
+        
+        .normalization {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .normalization h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .norm-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .norm-item h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Database ER Diagram</h1>
+        <p class="subtitle">Attendance Management System - SQLite Database Schema</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">13</div>
+                <div class="stat-label">Total Tables</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">96,315</div>
+                <div class="stat-label">Attendance Records</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">37,086</div>
+                <div class="stat-label">Mandays Records</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">104</div>
+                <div class="stat-label">Companies</div>
+            </div>
+        </div>
+
+        <!-- Database Tables -->
+        <div class="diagram-container">
+            <!-- Company Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>🏢 core_company</span>
+                    <span class="table-icon">📊</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">name <span class="badge badge-uk">UK</span></span>
+                        <span class="field-type">VARCHAR(255)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">DATETIME</span>
+                    </div>
+                    <div class="record-count">📈 104 records</div>
+                </div>
+            </div>
+
+            <!-- User Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>👤 core_user</span>
+                    <span class="table-icon">🔐</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">username <span class="badge badge-uk">UK</span></span>
+                        <span class="field-type">VARCHAR(150)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">password</span>
+                        <span class="field-type">VARCHAR(128)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">email</span>
+                        <span class="field-type">VARCHAR(254)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">role</span>
+                        <span class="field-type">VARCHAR(10)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">company_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">assigned_date_from</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">assigned_date_to</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_staff</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_active</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="record-count">📈 3 records</div>
+                </div>
+            </div>
+
+            <!-- Attendance Record Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>📋 core_attendancerecord</span>
+                    <span class="table-icon">✅</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">ep_no</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">ep_name</span>
+                        <span class="field-type">VARCHAR(255)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">company_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">date</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">shift</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">status</span>
+                        <span class="field-type">VARCHAR(10)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">in_time</span>
+                        <span class="field-type">TIME</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">out_time</span>
+                        <span class="field-type">TIME</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">overtime</span>
+                        <span class="field-type">TIME</span>
+                    </div>
+                    <div class="record-count">📈 96,315 records</div>
+                </div>
+            </div>
+
+            <!-- Manday Summary Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>⏰ core_mandaysummaryrecord</span>
+                    <span class="table-icon">📊</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">ep_no</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">company_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">punch_date</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">mandays</span>
+                        <span class="field-type">DECIMAL</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">ot</span>
+                        <span class="field-type">DECIMAL</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">regular_manday_hr</span>
+                        <span class="field-type">TIME</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">trade</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">contract</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="record-count">📈 37,086 records</div>
+                </div>
+            </div>
+
+            <!-- Employee Assignment Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>🔐 core_employeeassignment</span>
+                    <span class="table-icon">👥</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">user_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">ep_no</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">ep_name</span>
+                        <span class="field-type">VARCHAR(255)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">company_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">access_from</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">access_to</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_active</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="record-count">📈 1 record</div>
+                </div>
+            </div>
+
+            <!-- Access Request Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>📝 core_accessrequest</span>
+                    <span class="table-icon">🔔</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">requester_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">ep_no</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">company_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">access_type</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">status</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">justification</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="record-count">📈 1 record</div>
+                </div>
+            </div>
+
+            <!-- Upload Log Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>📤 core_uploadlog</span>
+                    <span class="table-icon">📁</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">user_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">uploaded_at</span>
+                        <span class="field-type">DATETIME</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">filename</span>
+                        <span class="field-type">VARCHAR(255)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">success_count</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">error_count</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="record-count">📈 21 records</div>
+                </div>
+            </div>
+
+            <!-- Audit Log Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <span>📊 core_accessrequestauditlog</span>
+                    <span class="table-icon">🔍</span>
+                </div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name">id <span class="badge badge-pk">PK</span></span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">timestamp</span>
+                        <span class="field-type">DATETIME</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">actor_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">action</span>
+                        <span class="field-type">VARCHAR(30)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">target_user_id <span class="badge badge-fk">FK</span></span>
+                        <span class="field-type">BIGINT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">details</span>
+                        <span class="field-type">JSON</span>
+                    </div>
+                    <div class="record-count">📈 6 records</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Relationship Diagram -->
+        <div class="relationships">
+            <h2>🔗 Visual Table Relationships</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: #4a5568;">
+                Click on any relationship to see details
+            </p>
+            
+            <div class="visual-diagram">
+                <svg width="100%" height="800" style="background: white; border-radius: 15px;">
+                    <!-- Company (Center Top) -->
+                    <g id="company">
+                        <rect x="400" y="20" width="200" height="80" rx="10" fill="#667eea" stroke="#4c51bf" stroke-width="2"/>
+                        <text x="500" y="50" text-anchor="middle" fill="white" font-weight="bold" font-size="14">🏢 COMPANY</text>
+                        <text x="500" y="70" text-anchor="middle" fill="white" font-size="11">104 records</text>
+                        <text x="500" y="88" text-anchor="middle" fill="white" font-size="10">PK: id</text>
+                    </g>
+
+                    <!-- User (Left) -->
+                    <g id="user">
+                        <rect x="50" y="200" width="200" height="80" rx="10" fill="#48bb78" stroke="#38a169" stroke-width="2"/>
+                        <text x="150" y="230" text-anchor="middle" fill="white" font-weight="bold" font-size="14">👤 USER</text>
+                        <text x="150" y="250" text-anchor="middle" fill="white" font-size="11">3 records</text>
+                        <text x="150" y="268" text-anchor="middle" fill="white" font-size="10">FK: company_id</text>
+                    </g>
+
+                    <!-- Attendance Record (Right Top) -->
+                    <g id="attendance">
+                        <rect x="750" y="150" width="220" height="80" rx="10" fill="#ed8936" stroke="#dd6b20" stroke-width="2"/>
+                        <text x="860" y="180" text-anchor="middle" fill="white" font-weight="bold" font-size="14">📋 ATTENDANCE</text>
+                        <text x="860" y="200" text-anchor="middle" fill="white" font-size="11">96,315 records</text>
+                        <text x="860" y="218" text-anchor="middle" fill="white" font-size="10">FK: company_id</text>
+                    </g>
+
+                    <!-- Mandays (Right Bottom) -->
+                    <g id="mandays">
+                        <rect x="750" y="280" width="220" height="80" rx="10" fill="#ed8936" stroke="#dd6b20" stroke-width="2"/>
+                        <text x="860" y="310" text-anchor="middle" fill="white" font-weight="bold" font-size="14">⏰ MANDAYS</text>
+                        <text x="860" y="330" text-anchor="middle" fill="white" font-size="11">37,086 records</text>
+                        <text x="860" y="348" text-anchor="middle" fill="white" font-size="10">FK: company_id</text>
+                    </g>
+
+                    <!-- Employee Assignment (Bottom Left) -->
+                    <g id="assignment">
+                        <rect x="50" y="400" width="220" height="80" rx="10" fill="#4299e1" stroke="#3182ce" stroke-width="2"/>
+                        <text x="160" y="430" text-anchor="middle" fill="white" font-weight="bold" font-size="13">🔐 ASSIGNMENT</text>
+                        <text x="160" y="450" text-anchor="middle" fill="white" font-size="11">1 record</text>
+                        <text x="160" y="468" text-anchor="middle" fill="white" font-size="10">FK: user_id, company_id</text>
+                    </g>
+
+                    <!-- Access Request (Bottom Center) -->
+                    <g id="request">
+                        <rect x="350" y="400" width="220" height="80" rx="10" fill="#9f7aea" stroke="#805ad5" stroke-width="2"/>
+                        <text x="460" y="430" text-anchor="middle" fill="white" font-weight="bold" font-size="13">📝 ACCESS REQUEST</text>
+                        <text x="460" y="450" text-anchor="middle" fill="white" font-size="11">1 record</text>
+                        <text x="460" y="468" text-anchor="middle" fill="white" font-size="10">FK: requester_id, company_id</text>
+                    </g>
+
+                    <!-- Upload Log (Bottom Right) -->
+                    <g id="uploadlog">
+                        <rect x="650" y="500" width="180" height="80" rx="10" fill="#38b2ac" stroke="#319795" stroke-width="2"/>
+                        <text x="740" y="530" text-anchor="middle" fill="white" font-weight="bold" font-size="13">📤 UPLOAD LOG</text>
+                        <text x="740" y="550" text-anchor="middle" fill="white" font-size="11">21 records</text>
+                        <text x="740" y="568" text-anchor="middle" fill="white" font-size="10">FK: user_id</text>
+                    </g>
+
+                    <!-- Audit Log (Far Bottom) -->
+                    <g id="auditlog">
+                        <rect x="350" y="600" width="200" height="80" rx="10" fill="#f56565" stroke="#e53e3e" stroke-width="2"/>
+                        <text x="450" y="630" text-anchor="middle" fill="white" font-weight="bold" font-size="13">📊 AUDIT LOG</text>
+                        <text x="450" y="650" text-anchor="middle" fill="white" font-size="11">6 records</text>
+                        <text x="450" y="668" text-anchor="middle" fill="white" font-size="10">FK: actor_id, target_user_id</text>
+                    </g>
+
+                    <!-- Relationship Lines -->
+                    <!-- Company to User -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#4a5568" />
+                        </marker>
+                    </defs>
+
+                    <!-- Company → User (1:N) -->
+                    <line x1="400" y1="80" x2="200" y2="200" stroke="#4a5568" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="280" y="130" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- Company → Attendance (1:N) -->
+                    <line x1="600" y1="70" x2="750" y2="180" stroke="#4a5568" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="660" y="110" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- Company → Mandays (1:N) -->
+                    <line x1="600" y1="80" x2="750" y2="310" stroke="#4a5568" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="660" y="180" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- User → Assignment (1:N) -->
+                    <line x1="150" y1="280" x2="160" y2="400" stroke="#4a5568" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="120" y="340" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- User → Access Request (1:N) -->
+                    <line x1="250" y1="250" x2="380" y2="400" stroke="#4a5568" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="300" y="320" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- User → Upload Log (1:N) -->
+                    <line x1="250" y1="260" x2="650" y2="530" stroke="#4a5568" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="420" y="380" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- Company → Assignment (1:N) -->
+                    <line x1="450" y1="100" x2="200" y2="400" stroke="#4a5568" stroke-width="3" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+                    <text x="310" y="240" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- Company → Access Request (1:N) -->
+                    <line x1="480" y1="100" x2="460" y2="400" stroke="#4a5568" stroke-width="3" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+                    <text x="450" y="240" fill="#2d3748" font-weight="bold" font-size="12">1:N</text>
+
+                    <!-- Access Request → Assignment (1:1 when approved) -->
+                    <line x1="350" y1="440" x2="270" y2="440" stroke="#9f7aea" stroke-width="3" stroke-dasharray="10,5" marker-end="url(#arrowhead)"/>
+                    <text x="290" y="430" fill="#9f7aea" font-weight="bold" font-size="12">1:1</text>
+                    <text x="280" y="460" fill="#9f7aea" font-size="10">(approved)</text>
+
+                    <!-- Access Request → Audit Log -->
+                    <line x1="460" y1="480" x2="450" y2="600" stroke="#4a5568" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrowhead)"/>
+                    <text x="420" y="540" fill="#2d3748" font-size="11">logs</text>
+
+                    <!-- Assignment → Audit Log -->
+                    <line x1="200" y1="480" x2="380" y2="600" stroke="#4a5568" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrowhead)"/>
+                    <text x="270" y="540" fill="#2d3748" font-size="11">logs</text>
+
+                    <!-- User → Audit Log (actor) -->
+                    <line x1="150" y1="280" x2="380" y2="620" stroke="#4a5568" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrowhead)"/>
+                    <text x="240" y="440" fill="#2d3748" font-size="11">performs</text>
+                </svg>
+            </div>
+
+            <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 10px;">
+                <h3 style="color: #2d3748; margin-bottom: 15px;">📖 Relationship Legend</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                    <div style="padding: 10px; background: #f7fafc; border-radius: 8px;">
+                        <strong style="color: #667eea;">Solid Line (━━━)</strong><br>
+                        <span style="color: #4a5568;">Direct Foreign Key Relationship</span>
+                    </div>
+                    <div style="padding: 10px; background: #f7fafc; border-radius: 8px;">
+                        <strong style="color: #667eea;">Dashed Line (- - -)</strong><br>
+                        <span style="color: #4a5568;">Indirect/Secondary Relationship</span>
+                    </div>
+                    <div style="padding: 10px; background: #f7fafc; border-radius: 8px;">
+                        <strong style="color: #667eea;">Dotted Line (· · ·)</strong><br>
+                        <span style="color: #4a5568;">Audit/Logging Relationship</span>
+                    </div>
+                    <div style="padding: 10px; background: #f7fafc; border-radius: 8px;">
+                        <strong style="color: #667eea;">1:N</strong><br>
+                        <span style="color: #4a5568;">One-to-Many Relationship</span>
+                    </div>
+                    <div style="padding: 10px; background: #f7fafc; border-radius: 8px;">
+                        <strong style="color: #667eea;">1:1</strong><br>
+                        <span style="color: #4a5568;">One-to-One Relationship</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Relationships Section -->
+        <div class="relationships" style="margin-top: 30px;">
+            <h2>📋 Detailed Relationship Descriptions</h2>
+            <div class="relationship-item">
+                <strong>🏢 core_company</strong> → <strong>👤 core_user</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One company can employ multiple users. Each user belongs to one company.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: user.company_id → company.id</code>
+            </div>
+            <div class="relationship-item">
+                <strong>🏢 core_company</strong> → <strong>📋 core_attendancerecord</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One company has many attendance records. Each record belongs to one company.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: attendancerecord.company_id → company.id</code>
+            </div>
+            <div class="relationship-item">
+                <strong>🏢 core_company</strong> → <strong>⏰ core_mandaysummaryrecord</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One company has many mandays records. Each record belongs to one company.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: mandaysummaryrecord.company_id → company.id</code>
+            </div>
+            <div class="relationship-item">
+                <strong>👤 core_user</strong> → <strong>📤 core_uploadlog</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One user can create multiple upload logs. Each log is created by one user.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: uploadlog.user_id → user.id</code>
+            </div>
+            <div class="relationship-item">
+                <strong>👤 core_user</strong> → <strong>🔐 core_employeeassignment</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One User1 supervisor can have multiple employee assignments.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: employeeassignment.user_id → user.id</code>
+            </div>
+            <div class="relationship-item">
+                <strong>👤 core_user</strong> → <strong>📝 core_accessrequest</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One user can make multiple access requests.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: accessrequest.requester_id → user.id</code>
+            </div>
+            <div class="relationship-item">
+                <strong>🏢 core_company</strong> → <strong>🔐 core_employeeassignment</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One company has many employee assignments.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: employeeassignment.company_id → company.id</code>
+            </div>
+            <div class="relationship-item">
+                <strong>🏢 core_company</strong> → <strong>📝 core_accessrequest</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">One company has many access requests.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: accessrequest.company_id → company.id</code>
+            </div>
+            <div class="relationship-item" style="border-left-color: #9f7aea;">
+                <strong>📝 core_accessrequest</strong> → <strong>🔐 core_employeeassignment</strong> (One-to-One)<br>
+                <span style="color: #4a5568;">When an access request is approved, it creates one employee assignment.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">Workflow: approved request → new assignment</code>
+            </div>
+            <div class="relationship-item" style="border-left-color: #f56565;">
+                <strong>📝 core_accessrequest</strong> → <strong>📊 core_accessrequestauditlog</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">Each request action is logged in the audit trail.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">Audit: create, approve, reject, cancel</code>
+            </div>
+            <div class="relationship-item" style="border-left-color: #f56565;">
+                <strong>🔐 core_employeeassignment</strong> → <strong>📊 core_accessrequestauditlog</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">Each assignment action is logged in the audit trail.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">Audit: create, remove, expire</code>
+            </div>
+            <div class="relationship-item" style="border-left-color: #f56565;">
+                <strong>👤 core_user</strong> → <strong>📊 core_accessrequestauditlog</strong> (One-to-Many)<br>
+                <span style="color: #4a5568;">Users perform actions that are logged in the audit trail.</span><br>
+                <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">FK: auditlog.actor_id → user.id</code>
+            </div>
+        </div>
+
+        <!-- Database Design Principles -->
+        <div style="background: linear-gradient(135deg, #667eea 0%,
+            <h2>📐 Database Normalization Analysis</h2>
+            
+            <div class="norm-item">
+                <h3>✅ First Normal Form (1NF)</h3>
+                <p>✓ All tables have atomic values (no repeating groups)</p>
+                <p>✓ Each column contains only one value</p>
+                <p>✓ All entries in a column are of the same data type</p>
+                <p>✓ Each table has a primary key</p>
+            </div>
+            
+            <div class="norm-item">
+                <h3>✅ Second Normal Form (2NF)</h3>
+                <p>✓ Meets all 1NF requirements</p>
+                <p>✓ No partial dependencies (all non-key attributes depend on the entire primary key)</p>
+                <p>✓ Composite keys like (ep_no, date) ensure uniqueness</p>
+            </div>
+            
+            <div class="norm-item">
+                <h3>✅ Third Normal Form (3NF)</h3>
+                <p>✓ Meets all 2NF requirements</p>
+                <p>✓ No transitive dependencies</p>
+                <p>✓ Company data separated into core_company table</p>
+                <p>✓ User data separated from attendance data</p>
+                <p>✓ Foreign keys maintain referential integrity</p>
+            </div>
+            
+            <div class="norm-item">
+                <h3>🎯 Design Decisions</h3>
+                <p><strong>Multi-Tenancy:</strong> company_id in all data tables ensures data isolation</p>
+                <p><strong>Audit Trail:</strong> Separate audit log table tracks all changes</p>
+                <p><strong>Access Control:</strong> Separate tables for requests and assignments</p>
+                <p><strong>Performance:</strong> Denormalized ep_name in some tables for query optimization</p>
+            </div>
+        </div>
+
+        <!-- Database Design Principles -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 15px; margin-top: 40px;">
+            <h2 style="margin-bottom: 30px; font-size: 2em; text-align: center;">🎯 Key Database Design Principles</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 12px; backdrop-filter: blur(10px);">
+                    <h3 style="margin-bottom: 15px; font-size: 1.3em;">🔒 Data Integrity & Consistency</h3>
+                    <p style="line-height: 1.6; margin-bottom: 10px;">
+                        The database must ensure that data is accurate, consistent, and trustworthy.
+                    </p>
+                    <ul style="line-height: 1.8; margin-left: 20px;">
+                        <li><strong>Primary Keys:</strong> Unique identifiers for each record</li>
+                        <li><strong>Foreign Keys:</strong> Links between tables maintaining referential integrity</li>
+                        <li><strong>Constraints:</strong> Rules for data values (NOT NULL, UNIQUE, CHECK)</li>
+                    </ul>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                        <strong>✅ Applied in this database:</strong><br>
+                        • All tables have PRIMARY KEYS<br>
+                        • Foreign keys link Company → User, Attendance, Mandays<br>
+                        • Unique constraints on (ep_no, date) prevent duplicates
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 12px; backdrop-filter: blur(10px);">
+                    <h3 style="margin-bottom: 15px; font-size: 1.3em;">📊 Minimal Redundancy (Normalization)</h3>
+                    <p style="line-height: 1.6; margin-bottom: 10px;">
+                        Avoid storing the same information in multiple places. Normalization organizes data into subject-based tables.
+                    </p>
+                    <ul style="line-height: 1.8; margin-left: 20px;">
+                        <li><strong>1NF:</strong> Atomic values, no repeating groups</li>
+                        <li><strong>2NF:</strong> No partial dependencies</li>
+                        <li><strong>3NF:</strong> No transitive dependencies</li>
+                    </ul>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                        <strong>✅ Applied in this database:</strong><br>
+                        • Company data separated into core_company table<br>
+                        • User data normalized (not duplicated in attendance)<br>
+                        • Achieves 3NF with proper foreign key relationships
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 12px; backdrop-filter: blur(10px);">
+                    <h3 style="margin-bottom: 15px; font-size: 1.3em;">⚡ Performance Optimization</h3>
+                    <p style="line-height: 1.6; margin-bottom: 10px;">
+                        The structure should allow for efficient data retrieval through proper indexing and query optimization.
+                    </p>
+                    <ul style="line-height: 1.8; margin-left: 20px;">
+                        <li><strong>Appropriate Data Types:</strong> Use correct types for efficiency</li>
+                        <li><strong>Strategic Indexes:</strong> On frequently queried columns</li>
+                        <li><strong>Query Optimization:</strong> Efficient JOIN operations</li>
+                    </ul>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                        <strong>✅ Applied in this database:</strong><br>
+                        • Indexes on (ep_no, date), (company_id, date)<br>
+                        • Composite indexes for multi-column queries<br>
+                        • Optimized for date-range and employee lookups
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 12px; backdrop-filter: blur(10px);">
+                    <h3 style="margin-bottom: 15px; font-size: 1.3em;">📈 Scalability & Flexibility</h3>
+                    <p style="line-height: 1.6; margin-bottom: 10px;">
+                        The design should accommodate future growth in data volume and user load without significant performance degradation.
+                    </p>
+                    <ul style="line-height: 1.8; margin-left: 20px;">
+                        <li><strong>Modular Design:</strong> Easy to add new features</li>
+                        <li><strong>Partitioning Ready:</strong> Can split large tables</li>
+                        <li><strong>Extensible Schema:</strong> Add columns without breaking existing code</li>
+                    </ul>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                        <strong>✅ Applied in this database:</strong><br>
+                        • Multi-tenant design (company_id isolation)<br>
+                        • Modular access control system<br>
+                        • Can scale to millions of records with proper indexing
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 12px; backdrop-filter: blur(10px);">
+                    <h3 style="margin-bottom: 15px; font-size: 1.3em;">🔐 Security</h3>
+                    <p style="line-height: 1.6; margin-bottom: 10px;">
+                        Measures such as user authentication, access controls, and data encryption must be planned to protect sensitive information.
+                    </p>
+                    <ul style="line-height: 1.8; margin-left: 20px;">
+                        <li><strong>Authentication:</strong> User login and password hashing</li>
+                        <li><strong>Authorization:</strong> Role-based access control (RBAC)</li>
+                        <li><strong>Audit Trail:</strong> Track all data access and changes</li>
+                    </ul>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                        <strong>✅ Applied in this database:</strong><br>
+                        • Role-based access (root, admin, user1)<br>
+                        • Company-level data isolation<br>
+                        • Complete audit log for access control actions
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Design Lifecycle -->
+        <div style="background: #f7fafc; padding: 40px; border-radius: 15px; margin-top: 40px;">
+            <h2 style="color: #2d3748; margin-bottom: 30px; font-size: 2em; text-align: center;">🔄 Database Design & Implementation Lifecycle</h2>
+            
+            <div style="position: relative;">
+                <!-- Timeline -->
+                <div style="display: grid; gap: 30px;">
+                    <!-- Phase 1 -->
+                    <div style="display: flex; gap: 20px; align-items: start;">
+                        <div style="min-width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">1</div>
+                        <div style="flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.4em;">📋 Requirements Analysis</h3>
+                            <p style="color: #4a5568; line-height: 1.6; margin-bottom: 15px;">
+                                Thoroughly understand the purpose of the database, the types of data to be stored, who will use it, and their specific needs and desired reports.
+                            </p>
+                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+                                <strong style="color: #2d3748;">Key Activities:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                                    <li>Identify stakeholders and their needs</li>
+                                    <li>Document functional requirements (what the system must do)</li>
+                                    <li>Document non-functional requirements (performance, security)</li>
+                                    <li>Define data entities and their attributes</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px; background: #e6fffa; border-radius: 8px;">
+                                <strong style="color: #234e52;">✅ For this database:</strong> Track employee attendance, manage mandays/overtime, implement role-based access control
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 2 -->
+                    <div style="display: flex; gap: 20px; align-items: start;">
+                        <div style="min-width: 60px; height: 60px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">2</div>
+                        <div style="flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #48bb78; margin-bottom: 10px; font-size: 1.4em;">🎨 Conceptual Design</h3>
+                            <p style="color: #4a5568; line-height: 1.6; margin-bottom: 15px;">
+                                Create a high-level, abstract model of the database using an Entity-Relationship Diagram (ERD). This visual blueprint identifies main entities, their attributes, and relationships.
+                            </p>
+                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #48bb78;">
+                                <strong style="color: #2d3748;">Key Activities:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                                    <li>Identify entities (Company, User, Attendance, Mandays)</li>
+                                    <li>Define attributes for each entity</li>
+                                    <li>Determine relationships (one-to-many, many-to-many)</li>
+                                    <li>Create ERD diagram</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px; background: #e6fffa; border-radius: 8px;">
+                                <strong style="color: #234e52;">✅ For this database:</strong> 13 entities with clear relationships, multi-tenant architecture with Company as central entity
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 3 -->
+                    <div style="display: flex; gap: 20px; align-items: start;">
+                        <div style="min-width: 60px; height: 60px; background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">3</div>
+                        <div style="flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #ed8936; margin-bottom: 10px; font-size: 1.4em;">🔧 Logical Design</h3>
+                            <p style="color: #4a5568; line-height: 1.6; margin-bottom: 15px;">
+                                Refine the conceptual model into a logical structure that maps to a specific database type. Define all tables, columns, data types, keys, and apply normalization rules.
+                            </p>
+                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #ed8936;">
+                                <strong style="color: #2d3748;">Key Activities:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                                    <li>Define table schemas with specific data types</li>
+                                    <li>Establish primary and foreign keys</li>
+                                    <li>Apply normalization (1NF, 2NF, 3NF)</li>
+                                    <li>Define constraints and validation rules</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px; background: #e6fffa; border-radius: 8px;">
+                                <strong style="color: #234e52;">✅ For this database:</strong> Normalized to 3NF, proper data types (VARCHAR, INTEGER, DATE, DECIMAL), unique constraints on (ep_no, date)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 4 -->
+                    <div style="display: flex; gap: 20px; align-items: start;">
+                        <div style="min-width: 60px; height: 60px; background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">4</div>
+                        <div style="flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #4299e1; margin-bottom: 10px; font-size: 1.4em;">💾 Physical Design</h3>
+                            <p style="color: #4a5568; line-height: 1.6; margin-bottom: 15px;">
+                                Translate the logical design into a physical implementation plan, considering the specific DBMS. Focus on physical storage, access methods, and performance.
+                            </p>
+                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #4299e1;">
+                                <strong style="color: #2d3748;">Key Activities:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                                    <li>Choose DBMS (MySQL, PostgreSQL, SQLite)</li>
+                                    <li>Design indexing strategy for performance</li>
+                                    <li>Plan partitioning for large tables</li>
+                                    <li>Define storage and backup strategies</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px; background: #e6fffa; border-radius: 8px;">
+                                <strong style="color: #234e52;">✅ For this database:</strong> SQLite with strategic indexes on (ep_no, date), (company_id, date), optimized for date-range queries
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 5 -->
+                    <div style="display: flex; gap: 20px; align-items: start;">
+                        <div style="min-width: 60px; height: 60px; background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">5</div>
+                        <div style="flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #9f7aea; margin-bottom: 10px; font-size: 1.4em;">🚀 Implementation</h3>
+                            <p style="color: #4a5568; line-height: 1.6; margin-bottom: 15px;">
+                                Create the actual database using the chosen DBMS and SQL scripts or visual tools. Build tables, implement constraints, and load initial data.
+                            </p>
+                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #9f7aea;">
+                                <strong style="color: #2d3748;">Key Activities:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                                    <li>Write and execute CREATE TABLE statements</li>
+                                    <li>Implement constraints and indexes</li>
+                                    <li>Create views and stored procedures</li>
+                                    <li>Load initial/seed data for testing</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px; background: #e6fffa; border-radius: 8px;">
+                                <strong style="color: #234e52;">✅ For this database:</strong> Django ORM migrations created all tables, constraints, and indexes. Currently holds 133,438+ records
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 6 -->
+                    <div style="display: flex; gap: 20px; align-items: start;">
+                        <div style="min-width: 60px; height: 60px; background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">6</div>
+                        <div style="flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #f56565; margin-bottom: 10px; font-size: 1.4em;">🧪 Testing & Evaluation</h3>
+                            <p style="color: #4a5568; line-height: 1.6; margin-bottom: 15px;">
+                                Rigorously test the database to ensure it meets all requirements, handles data operations correctly, maintains integrity, and performs efficiently.
+                            </p>
+                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #f56565;">
+                                <strong style="color: #2d3748;">Key Activities:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                                    <li>Test CRUD operations (Create, Read, Update, Delete)</li>
+                                    <li>Verify data integrity and constraints</li>
+                                    <li>Performance testing under load</li>
+                                    <li>Security and access control testing</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px; background: #e6fffa; border-radius: 8px;">
+                                <strong style="color: #234e52;">✅ For this database:</strong> Unit tests for models, integration tests for access control, property-based tests for data validation
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 7 -->
+                    <div style="display: flex; gap: 20px; align-items: start;">
+                        <div style="min-width: 60px; height: 60px; background: linear-gradient(135deg, #38b2ac 0%, #319795 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">7</div>
+                        <div style="flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #38b2ac; margin-bottom: 10px; font-size: 1.4em;">🔧 Maintenance & Optimization</h3>
+                            <p style="color: #4a5568; line-height: 1.6; margin-bottom: 15px;">
+                                Once deployed, the database requires ongoing maintenance, including regular backups, performance monitoring, security audits, and necessary updates.
+                            </p>
+                            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #38b2ac;">
+                                <strong style="color: #2d3748;">Key Activities:</strong>
+                                <ul style="margin-top: 10px; margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                                    <li>Regular database backups and disaster recovery</li>
+                                    <li>Performance monitoring and query optimization</li>
+                                    <li>Security audits and updates</li>
+                                    <li>Schema evolution as business needs change</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top: 15px; padding: 12px; background: #e6fffa; border-radius: 8px;">
+                                <strong style="color: #234e52;">✅ For this database:</strong> Backup/restore functionality built-in, audit logs track all changes, upload logs monitor data imports
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="badge badge-pk">PK</span>
+                <span>Primary Key</span>
+            </div>
+            <div class="legend-item">
+                <span class="badge badge-fk">FK</span>
+                <span>Foreign Key</span>
+            </div>
+            <div class="legend-item">
+                <span class="badge badge-uk">UK</span>
+                <span>Unique Key</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

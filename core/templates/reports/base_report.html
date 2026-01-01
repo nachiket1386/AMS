@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{% block report_title %}Reports{% endblock %} - Attendance Management System{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+        <div>
+            <h1 class="text-2xl md:text-4xl font-extrabold text-black flex items-center gap-3">
+                {% block report_icon %}
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                {% endblock %}
+                {% block report_heading %}Reports{% endblock %}
+            </h1>
+            <p class="text-black/70 mt-1 hidden md:block">{% block report_description %}View report data{% endblock %}</p>
+        </div>
+    </div>
+
+    <!-- Report Tabs -->
+    <div class="bg-cream border border-light-blue rounded-xl p-2">
+        <div class="flex gap-2 overflow-x-auto">
+            <a href="{% url 'core:attendance_list' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'attendance_list' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+                📋 Attendance
+            </a>
+            <a href="{% url 'core:arc_summary_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'arc_summary_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+                📊 ARC Summary
+            </a>
+            <a href="{% url 'core:overtime_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'overtime_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+                ⏰ Overtime
+            </a>
+            <a href="{% url 'core:partial_day_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'partial_day_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+                📅 Partial Day
+            </a>
+            <a href="{% url 'core:regularization_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'regularization_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+                ✏️ Regularization
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters - Compact -->
+    <div class="bg-cream border border-light-blue rounded-xl p-3">
+        <form method="get" class="flex flex-wrap gap-2 items-center">
+            <input type="text" name="ep_no" value="{{ request.GET.ep_no }}" placeholder="Search EP NO..." class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black placeholder:text-black/50 text-xs w-32">
+            <input type="date" name="date_from" value="{{ date_from }}" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-32">
+            <input type="date" name="date_to" value="{{ date_to }}" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-32">
+            {% block extra_filters %}{% endblock %}
+            <button type="submit" class="bg-dark-blue text-cream px-3 py-1.5 rounded-lg font-semibold hover:bg-black transition text-xs whitespace-nowrap">Filter</button>
+            <a href="{% block clear_url %}{{ request.path }}{% endblock %}" class="bg-light-blue text-black px-3 py-1.5 rounded-lg font-semibold hover:bg-light-blue/70 transition text-xs whitespace-nowrap">Clear</a>
+        </form>
+    </div>
+
+    <!-- Record Count -->
+    <div class="flex justify-between items-center text-xs">
+        <p class="text-black/70 font-medium">{{ total_count }} records ({{ page_obj|length }} shown)</p>
+    </div>
+
+    <!-- Report Content -->
+    {% block report_content %}{% endblock %}
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center items-center gap-2 bg-cream border border-light-blue rounded-lg p-2">
+        {% if page_obj.has_previous %}
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">First</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Previous</a>
+        {% endif %}
+        
+        <span class="px-3 py-1 bg-dark-blue text-cream rounded font-semibold text-xs">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Next</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

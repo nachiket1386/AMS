@@ -1,3 +1,1 @@
-"""
-Template tags for core app
-"""
+# Template tags package
