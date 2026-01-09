@@ -1,15 +1,28 @@
 {% extends 'reports/base_report.html' %}
 
-{% block report_title %}Overtime Report{% endblock %}
+{% block report_title %}Comprehensive Report{% endblock %}
 
 {% block report_icon %}
 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
 </svg>
 {% endblock %}
 
-{% block report_heading %}⏰ Overtime Report{% endblock %}
-{% block report_description %}Overtime requests and approvals{% endblock %}
+{% block report_heading %}📋 Comprehensive Report{% endblock %}
+{% block report_description %}Complete attendance data with punch records, request statuses, and ARC summary{% endblock %}
+
+{% block extra_filters %}
+<select name="show_incomplete" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-32">
+    <option value="">✓ Complete Only</option>
+    <option value="yes" {% if show_incomplete == 'yes' %}selected{% endif %}>📋 Show All</option>
+</select>
+<a href="{% url 'core:comprehensive_report_export' %}?{{ request.GET.urlencode }}" class="bg-black text-cream px-3 py-1.5 rounded-lg font-semibold hover:bg-black/80 transition text-xs whitespace-nowrap inline-flex items-center gap-1">
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+    Export
+</a>
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -60,13 +73,103 @@
     }
     
     /* Badge Styles */
-    .badge-present { @apply px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-bold; }
-    .badge-late { @apply px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-bold; }
-    .badge-absent { @apply px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-bold; }
+    .badge-approved { @apply px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-bold; }
+    .badge-pending { @apply px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-bold; }
+    .badge-rejected { @apply px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-bold; }
+    .badge-none { @apply px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs; }
+    
+    /* Enhanced table styling for better readability */
+    .comprehensive-table {
+        font-size: 13px;
+        table-layout: fixed;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+        padding: 0;
+    }
+    .comprehensive-table th,
+    .comprehensive-table td {
+        padding: 8px 6px;
+        border: 1px solid #e5e7eb;
+        vertical-align: middle;
+        text-align: center;
+        word-wrap: break-word;
+        overflow: hidden;
+        background-color: white;
+    }
+    .comprehensive-table th {
+        font-size: 12px;
+        background-color: #4A70A9 !important;
+        color: #F5F5DC !important;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .comprehensive-table tbody tr:nth-child(even) {
+        background-color: rgba(245, 245, 220, 0.3) !important;
+    }
+    .comprehensive-table tbody tr:hover {
+        background-color: rgba(173, 216, 230, 0.4) !important;
+    }
+    .comprehensive-table tbody td {
+        background-color: white;
+    }
+    .comprehensive-table tbody tr:nth-child(even) td {
+        background-color: rgba(245, 245, 220, 0.3);
+    }
+    
+    /* Ensure table is visible and properly sized */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        border: 2px solid #4A70A9;
+        border-radius: 8px;
+        background-color: white;
+    }
+    
+    /* Debug styles to ensure visibility */
+    .comprehensive-table * {
+        box-sizing: border-box;
+    }
 </style>
 {% endblock %}
 
 {% block report_content %}
+<!-- Information Banner -->
+{% if show_incomplete == 'yes' %}
+<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm text-yellow-700">
+                <strong>Showing All Records:</strong> This includes records with status "P" but no actual time data. These may be placeholder entries without real attendance.
+            </p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm text-green-700">
+                <strong>Complete Records Only:</strong> Filtering out records with status "P" but no actual time data. Only showing records with real attendance data.
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Mobile Card View (below xl) -->
 <div class="xl:hidden space-y-4">
     {% for record in page_obj %}
@@ -75,34 +178,124 @@
             <div class="font-bold text-dark-blue text-sm font-mono">{{ record.ep_no }}</div>
             <div class="text-xs text-black/60">{{ record.date|date:"d/m/Y" }}</div>
         </div>
-        <div class="space-y-2 text-sm">
+        <div class="space-y-2 text-base">
             <div><span class="font-semibold text-black/70">Name:</span> {{ record.get_display_name }}</div>
-            <div class="grid grid-cols-2 gap-2">
-                <div><span class="font-semibold text-black/70">Actual OT:</span> {% if record.actual_overstay %}{{ record.actual_overstay|slice:":5" }}{% else %}-{% endif %}</div>
-                <div><span class="font-semibold text-black/70">Req OT:</span> {% if record.requested_overtime %}{{ record.requested_overtime|slice:":5" }}{% else %}-{% endif %}</div>
-                <div><span class="font-semibold text-black/70">App OT:</span> {% if record.approved_overtime %}{{ record.approved_overtime|slice:":5" }}{% else %}-{% endif %}</div>
-                <div><span class="font-semibold text-black/70">Status:</span> 
-                    {% if record.ot_request_status == 'Approved' %}
-                    <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold">✓</span>
-                    {% elif record.ot_request_status == 'Rejected' %}
-                    <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-semibold">✗</span>
-                    {% elif record.ot_request_status == 'Pending' %}
-                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">⏳</span>
-                    {% else %}
-                    <span class="text-black/50">-</span>
+
+            <div><span class="font-semibold text-black/70">Shift:</span> {{ record.shift|default:"-" }}</div>
+            
+            <!-- Consolidated Time Pairs -->
+            <div class="pt-2 border-t border-light-blue/30">
+                <div class="text-sm font-semibold text-black/70 mb-1">Time Pairs:</div>
+                <div class="space-y-1 text-sm">
+                    {% if record.in_time or record.out_time %}
+                        <div class="flex justify-between">
+                            <span class="text-green-600 font-mono">IN: {{ record.in_time|time:"H:i"|default:"-" }}</span>
+                            <span class="text-red-600 font-mono">OUT: {{ record.out_time|time:"H:i"|default:"-" }}</span>
+                        </div>
+                    {% endif %}
+                    {% if record.in_time_2 or record.out_time_2 %}
+                        <div class="flex justify-between">
+                            <span class="text-green-600 font-mono">IN2: {{ record.in_time_2|time:"H:i"|default:"-" }}</span>
+                            <span class="text-red-600 font-mono">OUT2: {{ record.out_time_2|time:"H:i"|default:"-" }}</span>
+                        </div>
+                    {% endif %}
+                    {% if record.in_time_3 or record.out_time_3 %}
+                        <div class="flex justify-between">
+                            <span class="text-green-600 font-mono">IN3: {{ record.in_time_3|time:"H:i"|default:"-" }}</span>
+                            <span class="text-red-600 font-mono">OUT3: {{ record.out_time_3|time:"H:i"|default:"-" }}</span>
+                        </div>
+                    {% endif %}
+                    {% if not record.in_time and not record.out_time and not record.in_time_2 and not record.out_time_2 and not record.in_time_3 and not record.out_time_3 %}
+                        <span>No time data</span>
+                    {% endif %}
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div><span class="font-semibold text-black/70">Hours:</span> {{ record.hours|default:"-" }}</div>
+                    <div><span class="font-semibold text-black/70">Status:</span> {{ record.status|default:"-" }}</div>
+                </div>
+            </div>
+            
+            <!-- Consolidated Request Statuses -->
+            <div class="pt-2 border-t border-light-blue/30">
+                <div class="text-sm font-semibold text-black/70 mb-1">Request Status:</div>
+                <div class="space-y-1">
+                    <!-- Regularization Status -->
+                    {% if record.in_time_2 or record.out_time_2 %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-black/60">Regularization:</span>
+                            {% if record.ot_request_status == 'Approved' %}
+                                <span class="badge-approved">✓ Approved</span>
+                            {% elif record.ot_request_status == 'Pending' %}
+                                <span class="badge-pending">⏳ Pending</span>
+                            {% elif record.ot_request_status == 'Rejected' %}
+                                <span class="badge-rejected">✗ Rejected</span>
+                            {% else %}
+                                <span class="badge-none">-</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Partial Day Status -->
+                    {% if record.status == 'PD' %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-black/60">Partial Day:</span>
+                            {% if record.ot_request_status == 'Approved' %}
+                                <span class="badge-approved">✓ Approved</span>
+                            {% elif record.ot_request_status == 'Pending' %}
+                                <span class="badge-pending">⏳ Pending</span>
+                            {% elif record.ot_request_status == 'Rejected' %}
+                                <span class="badge-rejected">✗ Rejected</span>
+                            {% else %}
+                                <span class="badge-none">-</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Overtime Status -->
+                    {% if record.requested_overtime or record.actual_overstay %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-black/60">Overtime:</span>
+                            {% if record.ot_request_status == 'Approved' %}
+                                <span class="badge-approved">✓ Approved</span>
+                            {% elif record.ot_request_status == 'Pending' %}
+                                <span class="badge-pending">⏳ Pending</span>
+                            {% elif record.ot_request_status == 'Rejected' %}
+                                <span class="badge-rejected">✗ Rejected</span>
+                            {% else %}
+                                <span class="badge-none">-</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Show message if no requests -->
+                    {% if not record.in_time_2 and not record.out_time_2 and record.status != 'PD' and not record.requested_overtime and not record.actual_overstay %}
+                        <span class="text-sm text-gray-500">No requests</span>
                     {% endif %}
                 </div>
             </div>
-            <div><span class="font-semibold text-black/70">EIC Name:</span> {{ record.requested_eic_name|default:"-" }}</div>
-            <div><span class="font-semibold text-black/70">Remarks:</span> {{ record.contractor_ot_remarks|truncatewords:3|default:"-" }}</div>
+            
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-light-blue/30">
+                    <div class="text-center">
+                        <div class="text-sm text-black/60">Mandays</div>
+                        <div class="font-semibold">{{ record.mandays|default:"0.00" }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-black/60">Trade</div>
+                        <div class="font-semibold">{{ record.trade|default:"-" }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-black/60">OT</div>
+                        <div class="font-semibold">{{ record.ot|default:"-" }}</div>
+                    </div>
+                </div>
         </div>
     </div>
     {% empty %}
     <div class="text-center py-8 text-black/50">
         <svg class="w-12 h-12 mx-auto mb-2 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
         </svg>
-        <p class="font-semibold">No overtime records found</p>
+        <p class="font-semibold">No records found</p>
         <p class="text-xs mt-1">Try adjusting your filters</p>
     </div>
     {% endfor %}
@@ -126,125 +319,132 @@
             Clear All Filters
         </button>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-black text-sm min-w-max border-collapse" id="overtimeTable">
+    <div class="table-container">
+        <table class="comprehensive-table" id="comprehensiveTable" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; background-color: white;">
             <thead class="text-xs font-bold uppercase bg-dark-blue text-cream sticky top-0" style="z-index: 5;">
                 <tr>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                    <!-- Basic Info -->
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
                         <div class="flex items-center justify-center gap-1">
                             <span>EP NO</span>
                             <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="0">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
                         </div>
                     </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 relative group">
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 relative group">
                         <div class="flex items-center gap-1">
                             <span>NAME</span>
                             <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="1">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
                         </div>
                     </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
                         <div class="flex items-center justify-center gap-1">
                             <span>DATE</span>
                             <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="2">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
                         </div>
                     </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
                         <div class="flex items-center justify-center gap-1">
-                            <span>ACTUAL OT</span>
+                            <span>SHIFT</span>
                             <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="3">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
                         </div>
                     </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                    
+                    <!-- Time Pairs - Combined -->
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
                         <div class="flex items-center justify-center gap-1">
-                            <span>REQ OT</span>
+                            <span>TIME PAIRS</span>
                             <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="4">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
                         </div>
                     </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
                         <div class="flex items-center justify-center gap-1">
-                            <span>APP OT</span>
+                            <span>HOURS</span>
                             <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="5">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
                         </div>
                     </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
-                        <div class="flex items-center justify-center gap-1">
-                            <span>REQ HRS</span>
-                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="6">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
-                        <div class="flex items-center justify-center gap-1">
-                            <span>APP HRS</span>
-                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="7">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
-                        <div class="flex items-center justify-center gap-1">
-                            <span>REMARKS</span>
-                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="8">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
-                        <div class="flex items-center justify-center gap-1">
-                            <span>REASON</span>
-                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="9">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
-                        <div class="flex items-center justify-center gap-1">
-                            <span>EIC NAME</span>
-                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="10">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </th>
-                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap text-center relative group">
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
                         <div class="flex items-center justify-center gap-1">
                             <span>STATUS</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="6">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    
+                    <!-- Request Status - Combined -->
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>REQUEST STATUS</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="7">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    
+                    <!-- ARC Summary Columns -->
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>TRADE</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="8">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>MANDAYS</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="9">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>REG HR</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="10">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1 py-1 whitespace-nowrap text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>OT</span>
                             <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="11">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
@@ -254,39 +454,115 @@
             </thead>
             <tbody>
                 {% for record in page_obj %}
-                <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition-colors duration-75 border-b border-light-blue/50">
-                    <td class="px-1.5 py-1 font-bold whitespace-nowrap border-r border-light-blue/50 text-center text-dark-blue font-mono text-xs">{{ record.ep_no }}</td>
-                    <td class="px-1.5 py-1 font-semibold whitespace-nowrap border-r border-light-blue/50 text-xs">{{ record.get_display_name }}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.date|date:"d/m/y" }}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{% if record.actual_overstay %}{{ record.actual_overstay|slice:":5" }}{% else %}-{% endif %}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{% if record.requested_overtime %}{{ record.requested_overtime|slice:":5" }}{% else %}-{% endif %}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs text-green-600">{% if record.approved_overtime %}{{ record.approved_overtime|slice:":5" }}{% else %}-{% endif %}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{% if record.requested_regular_manday_hours %}{{ record.requested_regular_manday_hours|slice:":5" }}{% else %}-{% endif %}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{% if record.approved_regular_manday_hours %}{{ record.approved_regular_manday_hours|slice:":5" }}{% else %}-{% endif %}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.contractor_ot_remarks|truncatewords:3|default:"-" }}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.contractor_ot_reason|truncatewords:3|default:"-" }}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.requested_eic_name|default:"-" }}</td>
-                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center">
-                        {% if record.ot_request_status == 'Approved' %}
-                        <span class="badge-present">✓</span>
-                        {% elif record.ot_request_status == 'Rejected' %}
-                        <span class="badge-absent">✗</span>
-                        {% elif record.ot_request_status == 'Pending' %}
-                        <span class="badge-late">⏳</span>
-                        {% else %}
-                        <span class="text-black/50">-</span>
-                        {% endif %}
+                <tr style="border-bottom: 1px solid #e5e7eb;" class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                    <!-- Basic Info -->
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: bold; text-align: center; font-family: monospace; font-size: 13px; color: #4A70A9;">{{ record.ep_no }}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 600; font-size: 13px;">{{ record.get_display_name }}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; font-size: 13px;">{{ record.date|date:"d/m/y" }}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; font-size: 13px;">{{ record.shift|default:"-" }}</td>
+                    
+                    <!-- Consolidated Time Pairs -->
+                    <td style="padding: 8px; border: 1px solid #e5e7eb;">
+                        <div style="font-size: 12px; text-align: center;">
+                            {% if record.in_time or record.out_time %}
+                                <div style="margin-bottom: 2px;">
+                                    <span style="color: green; font-family: monospace;">{{ record.in_time|time:"H:i"|default:"-" }}</span>
+                                    <span style="color: red; font-family: monospace;">{{ record.out_time|time:"H:i"|default:"-" }}</span>
+                                </div>
+                            {% endif %}
+                            {% if record.in_time_2 or record.out_time_2 %}
+                                <div style="margin-bottom: 2px;">
+                                    <span style="color: green; font-family: monospace;">{{ record.in_time_2|time:"H:i"|default:"-" }}</span>
+                                    <span style="color: red; font-family: monospace;">{{ record.out_time_2|time:"H:i"|default:"-" }}</span>
+                                </div>
+                            {% endif %}
+                            {% if record.in_time_3 or record.out_time_3 %}
+                                <div style="margin-bottom: 2px;">
+                                    <span style="color: green; font-family: monospace;">{{ record.in_time_3|time:"H:i"|default:"-" }}</span>
+                                    <span style="color: red; font-family: monospace;">{{ record.out_time_3|time:"H:i"|default:"-" }}</span>
+                                </div>
+                            {% endif %}
+                            {% if not record.in_time and not record.out_time and not record.in_time_2 and not record.out_time_2 and not record.in_time_3 and not record.out_time_3 %}
+                                <span>-</span>
+                            {% endif %}
+                        </div>
                     </td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">{{ record.hours|default:"-" }}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">{{ record.status|default:"-" }}</td>
+                    
+                    <!-- Consolidated Request Status -->
+                    <td style="padding: 8px; border: 1px solid #e5e7eb;">
+                        <div style="font-size: 12px; text-align: center;">
+                            <!-- Regularization Status -->
+                            {% if record.in_time_2 or record.out_time_2 %}
+                                <div style="margin-bottom: 2px;">
+                                    <span style="font-size: 11px; color: #666;">REG:</span>
+                                    {% if record.ot_request_status == 'Approved' %}
+                                        <span style="background: #dcfce7; color: #166534; padding: 2px 4px; border-radius: 4px; font-size: 11px;">✓</span>
+                                    {% elif record.ot_request_status == 'Pending' %}
+                                        <span style="background: #fef3c7; color: #92400e; padding: 2px 4px; border-radius: 4px; font-size: 11px;">⏳</span>
+                                    {% elif record.ot_request_status == 'Rejected' %}
+                                        <span style="background: #fecaca; color: #991b1b; padding: 2px 4px; border-radius: 4px; font-size: 11px;">✗</span>
+                                    {% else %}
+                                        <span style="background: #f3f4f6; color: #4b5563; padding: 2px 4px; border-radius: 4px; font-size: 11px;">-</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Partial Day Status -->
+                            {% if record.status == 'PD' %}
+                                <div style="margin-bottom: 2px;">
+                                    <span style="font-size: 11px; color: #666;">PD:</span>
+                                    {% if record.ot_request_status == 'Approved' %}
+                                        <span style="background: #dcfce7; color: #166534; padding: 2px 4px; border-radius: 4px; font-size: 11px;">✓</span>
+                                    {% elif record.ot_request_status == 'Pending' %}
+                                        <span style="background: #fef3c7; color: #92400e; padding: 2px 4px; border-radius: 4px; font-size: 11px;">⏳</span>
+                                    {% elif record.ot_request_status == 'Rejected' %}
+                                        <span style="background: #fecaca; color: #991b1b; padding: 2px 4px; border-radius: 4px; font-size: 11px;">✗</span>
+                                    {% else %}
+                                        <span style="background: #f3f4f6; color: #4b5563; padding: 2px 4px; border-radius: 4px; font-size: 11px;">-</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Overtime Status -->
+                            {% if record.requested_overtime or record.actual_overstay %}
+                                <div style="margin-bottom: 2px;">
+                                    <span style="font-size: 11px; color: #666;">OT:</span>
+                                    {% if record.ot_request_status == 'Approved' %}
+                                        <span style="background: #dcfce7; color: #166534; padding: 2px 4px; border-radius: 4px; font-size: 11px;">✓</span>
+                                    {% elif record.ot_request_status == 'Pending' %}
+                                        <span style="background: #fef3c7; color: #92400e; padding: 2px 4px; border-radius: 4px; font-size: 11px;">⏳</span>
+                                    {% elif record.ot_request_status == 'Rejected' %}
+                                        <span style="background: #fecaca; color: #991b1b; padding: 2px 4px; border-radius: 4px; font-size: 11px;">✗</span>
+                                    {% else %}
+                                        <span style="background: #f3f4f6; color: #4b5563; padding: 2px 4px; border-radius: 4px; font-size: 11px;">-</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Show dash if no requests -->
+                            {% if not record.in_time_2 and not record.out_time_2 and record.status != 'PD' and not record.requested_overtime and not record.actual_overstay %}
+                                <span>-</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    
+                    <!-- ARC Summary Columns -->
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">{{ record.trade|default:"-" }}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; font-weight: 500;">{{ record.mandays|default:"0.00" }}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">{{ record.regular_manday_hr|default:"-" }}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">{{ record.ot|default:"-" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
                     <td colspan="12" class="px-6 py-12 text-center text-black/50">
                         <div class="flex flex-col items-center">
                             <svg class="w-12 h-12 mb-4 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
                             </svg>
-                            <p class="font-semibold text-lg">No overtime records found</p>
-                            <p class="text-sm mt-1">No overtime data available for the selected date range</p>
+                            <p class="font-semibold text-lg">No records found</p>
+                            <p class="text-sm mt-1">No attendance data available for the selected date range</p>
                         </div>
                     </td>
                 </tr>
@@ -301,7 +577,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Excel-like Column Filters
-    const table = document.getElementById('overtimeTable');
+    const table = document.getElementById('comprehensiveTable');
     console.log('Table found:', table);
     if (table) {
         const columnFilters = {};
@@ -382,8 +658,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const cell = row.cells[columnIndex];
                     if (cell) {
                         let value = cell.textContent.trim();
-                        // For status column, extract text from badge
-                        if (columnIndex === 11) { // STATUS column
+                        // For status columns, extract text from badge
+                        if (columnIndex >= 7 && columnIndex <= 7) { // Request Status column only
                             const badge = cell.querySelector('span');
                             if (badge) {
                                 value = badge.textContent.trim();
@@ -576,8 +852,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (cell) {
                         let cellValue = cell.textContent.trim();
                         
-                        // For status column, extract text from badge
-                        if (colIdx === 11) {
+                        // For status columns, extract text from badge
+                        if (colIdx >= 7 && colIdx <= 7) { // Request Status column only
                             const badge = cell.querySelector('span');
                             if (badge) {
                                 cellValue = badge.textContent.trim();

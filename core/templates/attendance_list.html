@@ -46,6 +46,9 @@
             <a href="{% url 'core:regularization_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap bg-white text-black hover:bg-light-blue">
                 ✏️ Regularization
             </a>
+            <a href="{% url 'core:comprehensive_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap bg-white text-black hover:bg-light-blue">
+                📋 Comprehensive
+            </a>
         </div>
     </div>
 
@@ -68,6 +71,12 @@
                         <option value="-0.5" {% if request.GET.status == '-0.5' %}selected{% endif %}>-0.5</option>
                         <option value="-1" {% if request.GET.status == '-1' %}selected{% endif %}>-1</option>
                     </select>
+                    <select name="show_incomplete" class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs">
+                        <option value="">Complete Only</option>
+                        <option value="yes" {% if request.GET.show_incomplete == 'yes' %}selected{% endif %}>Show All</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-1 gap-2">
                     <select name="overstay_filter" class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs">
                         <option value="">Overstay</option>
                         <option value="has_overstay" {% if request.GET.overstay_filter == 'has_overstay' %}selected{% endif %}>Has</option>
@@ -77,6 +86,10 @@
                         <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4h</option>
                         <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5h</option>
                         <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>>5h</option>
+                    </select>
+                    <select name="show_incomplete" class="w-full px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs">
+                        <option value="">Complete Records Only</option>
+                        <option value="yes" {% if request.GET.show_incomplete == 'yes' %}selected{% endif %}>Show All Records</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
@@ -108,6 +121,10 @@
                     <option value="range_3_4" {% if request.GET.overstay_filter == 'range_3_4' %}selected{% endif %}>3-4h</option>
                     <option value="range_4_5" {% if request.GET.overstay_filter == 'range_4_5' %}selected{% endif %}>4-5h</option>
                     <option value="gt_5" {% if request.GET.overstay_filter == 'gt_5' %}selected{% endif %}>>5h</option>
+                </select>
+                <select name="show_incomplete" class="px-2 py-1.5 bg-white border border-light-blue rounded-lg focus:ring-1 focus:ring-dark-blue text-black text-xs w-28">
+                    <option value="">Complete Only</option>
+                    <option value="yes" {% if request.GET.show_incomplete == 'yes' %}selected{% endif %}>Show All</option>
                 </select>
                 <button type="submit" class="bg-dark-blue text-cream px-3 py-1.5 rounded-lg font-semibold hover:bg-black transition text-xs whitespace-nowrap">Filter</button>
                 <a href="{% url 'core:attendance_list' %}" class="bg-light-blue text-black px-3 py-1.5 rounded-lg font-semibold hover:bg-light-blue/70 transition text-xs whitespace-nowrap">Clear</a>
@@ -179,8 +196,8 @@
             <!-- Top Row: Name/EP NO and Status Badge -->
             <div class="flex justify-between items-start mb-4">
                 <div class="flex-1">
-                    <p class="font-bold text-black text-base">{{ record.ep_name }}</p>
-                    <p class="text-sm text-black/60 mt-0.5">{{ record.ep_no }}</p>
+                    <p class="font-bold text-black text-base">{{ record.get_display_name }}</p>
+                    <p class="text-sm text-black/60 mt-0.5 font-mono">{{ record.ep_no }}</p>
                     <p class="text-xs text-black/50 mt-1">{{ record.date|date:"d M Y" }}</p>
                 </div>
                 <div class="flex-shrink-0 ml-3">
@@ -378,8 +395,8 @@
                 <tbody>
                     {% for record in page_obj %}
                     <tr class="{% if record.overstay|has_excessive_overstay %}bg-red-50{% else %}{% cycle 'bg-white' 'bg-cream/30' %}{% endif %} hover:bg-light-blue/20 transition-colors duration-75 border-b border-light-blue/50">
-                        <td class="px-1.5 py-1 font-bold whitespace-nowrap border-r border-light-blue/50 text-center text-dark-blue text-xs">{{ record.ep_no }}</td>
-                        <td class="px-1.5 py-1 font-semibold whitespace-nowrap border-r border-light-blue/50 text-xs">{{ record.ep_name }}</td>
+                        <td class="px-1.5 py-1 font-bold whitespace-nowrap border-r border-light-blue/50 text-center text-dark-blue font-mono text-xs">{{ record.ep_no }}</td>
+                        <td class="px-1.5 py-1 font-semibold whitespace-nowrap border-r border-light-blue/50 text-xs">{{ record.get_display_name }}</td>
                         <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.date|date:"d/m/y" }}</td>
                         <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-medium text-xs">{{ record.shift_code }}</td>
                         <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-mono text-xs font-bold text-dark-blue">{{ record|format_time_pairs }}</td>

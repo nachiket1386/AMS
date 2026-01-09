@@ -100,4 +100,6 @@ urlpatterns = [
     path('reports/overtime/', views.overtime_report, name='overtime_report'),
     path('reports/partial-day/', views.partial_day_report, name='partial_day_report'),
     path('reports/regularization/', views.regularization_report, name='regularization_report'),
+    path('reports/comprehensive/', views.comprehensive_report, name='comprehensive_report'),
+    path('reports/comprehensive/export/', views.comprehensive_report_export_view, name='comprehensive_report_export'),
 ]

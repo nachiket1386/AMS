@@ -193,6 +193,32 @@ def dashboard_view(request):
     import calendar
     from datetime import datetime, date
     
+    # Get calendar month (this now controls both calendar and all summaries)
+    calendar_month = request.GET.get('calendar_month', '').strip()
+    
+    # Auto-select current month if not provided (default behavior)
+    if not calendar_month:
+        today = date.today()
+        calendar_month = f"{today.year}-{today.month:02d}"
+    
+    # Parse month for filtering summaries
+    calendar_month_name = ''
+    calendar_year = ''
+    dashboard_year_int = None
+    dashboard_month_int = None
+    
+    try:
+        dashboard_year_int, dashboard_month_int = map(int, calendar_month.split('-'))
+        calendar_month_name = calendar.month_name[dashboard_month_int]
+        calendar_year = dashboard_year_int
+    except (ValueError, IndexError):
+        today = date.today()
+        calendar_month = f"{today.year}-{today.month:02d}"
+        dashboard_year_int = today.year
+        dashboard_month_int = today.month
+        calendar_month_name = calendar.month_name[dashboard_month_int]
+        calendar_year = dashboard_year_int
+    
     # Calculate statistics based on user role
     if request.user.role == 'root':
         total_records = AttendanceRecord.objects.count()
@@ -213,24 +239,14 @@ def dashboard_view(request):
     # Handle calendar view
     calendar_data = None
     calendar_ep = request.GET.get('calendar_ep', '').strip()
-    calendar_month = request.GET.get('calendar_month', '').strip()
     calendar_stats = None
-    
-    # Auto-select current month if not provided
-    if not calendar_month:
-        today = date.today()
-        calendar_month = f"{today.year}-{today.month:02d}"
-    
-    calendar_month_name = ''
-    calendar_year = ''
     employee_name = None
     
     if calendar_ep:
         try:
-            # Parse month (format: YYYY-MM)
-            year, month = map(int, calendar_month.split('-'))
-            calendar_month_name = calendar.month_name[month]
-            calendar_year = year
+            # Use the already parsed month values
+            year = dashboard_year_int
+            month = dashboard_month_int
             
             # Get attendance records for the EP and month
             if request.user.role == 'root':
@@ -255,59 +271,67 @@ def dashboard_view(request):
                     date__month=month
                 )
             
-            # Calculate statistics
-            present_days = records.filter(status='P').count()
-            absent_days = records.filter(status='A').count()
-            late_days = records.filter(status='L').count()
-            partial_days = records.filter(status='PD').count()
-            total_logged = records.count()
-            total_days_in_month = calendar.monthrange(year, month)[1]
-            
-            # Calculate exceptions (late + partial + absent)
-            exception_days = late_days + partial_days + absent_days
-            exception_type = "Days"
-            if partial_days > 0:
-                exception_type = "Deduction"
-            
-            calendar_stats = {
-                'present_days': present_days,
-                'exception_days': exception_days if exception_days > 0 else partial_days,
-                'exception_type': exception_type,
-                'total_logged': total_logged,
-                'total_days': total_days_in_month,
-            }
-            
-            # Create a dictionary of dates to records
-            records_dict = {record.date.day: record for record in records}
-            
-            # Get employee name from first record
-            employee_name = records.first().ep_name if records.exists() else None
-            
-            # Generate calendar data
-            cal = calendar.monthcalendar(year, month)
-            calendar_data = []
-            
-            for week in cal:
-                for day in week:
-                    if day == 0:
-                        # Day from previous/next month
-                        calendar_data.append({
-                            'day': '',
-                            'is_other_month': True,
-                            'status': None,
-                            'hours': None,
-                            'ep_name': employee_name
-                        })
-                    else:
-                        record = records_dict.get(day)
-                        calendar_data.append({
-                            'day': day,
-                            'is_other_month': False,
-                            'status': record.status if record else None,
-                            'hours': record.hours if record and record.hours else None,
-                            'ep_name': employee_name,
-                            'deduction': record.deduction if record and hasattr(record, 'deduction') else None
-                        })
+            # Only generate calendar if records exist
+            if records.exists():
+                # Calculate statistics
+                present_days = records.filter(status='P').count()
+                absent_days = records.filter(status='A').count()
+                late_days = records.filter(status='L').count()
+                partial_days = records.filter(status='PD').count()
+                total_logged = records.count()
+                total_days_in_month = calendar.monthrange(year, month)[1]
+                
+                # Calculate exceptions (late + partial + absent)
+                exception_days = late_days + partial_days + absent_days
+                exception_type = "Days"
+                if partial_days > 0:
+                    exception_type = "Deduction"
+                
+                calendar_stats = {
+                    'present_days': present_days,
+                    'exception_days': exception_days if exception_days > 0 else partial_days,
+                    'exception_type': exception_type,
+                    'total_logged': total_logged,
+                    'total_days': total_days_in_month,
+                }
+                
+                # Create a dictionary of dates to records
+                records_dict = {record.date.day: record for record in records}
+                
+                # Get employee name from first record
+                employee_name = records.first().ep_name
+                
+                # Generate calendar data
+                cal = calendar.monthcalendar(year, month)
+                calendar_data = []
+                
+                for week in cal:
+                    for day in week:
+                        if day == 0:
+                            # Day from previous/next month
+                            calendar_data.append({
+                                'day': '',
+                                'is_other_month': True,
+                                'status': None,
+                                'hours': None,
+                                'ep_name': employee_name
+                            })
+                        else:
+                            record = records_dict.get(day)
+                            calendar_data.append({
+                                'day': day,
+                                'is_other_month': False,
+                                'status': record.status if record else None,
+                                'hours': record.hours if record and record.hours else None,
+                                'ep_name': employee_name,
+                                'deduction': record.deduction if record and hasattr(record, 'deduction') else None
+                            })
+                
+                # Debug logging
+                logger.info(f'Calendar data generated: {len(calendar_data)} days, first 5: {calendar_data[:5]}')
+            else:
+                # No records found - calendar_data remains None
+                logger.info(f'No records found for EP: {calendar_ep}, Month: {calendar_month_name} {calendar_year}')
         except (ValueError, AttributeError):
             pass
     
@@ -368,12 +392,20 @@ def dashboard_view(request):
                 Q(in_time_2__isnull=False) | Q(out_time_2__isnull=False)
             ).exclude(requested_eic_name='').exclude(Q(ot_request_status='') | Q(ot_request_status__isnull=True))
         
+        # Apply calendar month filter to all summaries (calendar_month is always set to current month by default)
+        if dashboard_year_int and dashboard_month_int:
+            eic_queryset = eic_queryset.filter(date__year=dashboard_year_int, date__month=dashboard_month_int)
+            pd_queryset = pd_queryset.filter(date__year=dashboard_year_int, date__month=dashboard_month_int)
+            reg_queryset = reg_queryset.filter(date__year=dashboard_year_int, date__month=dashboard_month_int)
+        
         # Group by EIC name and count by status for OT
         eic_pending_requests = eic_queryset.values('requested_eic_name').annotate(
             approved_count=Count('id', filter=Q(ot_request_status='Approved')),
             pending_count=Count('id', filter=Q(ot_request_status='Pending')),
             total_count=Count('id')
         ).order_by('-total_count')[:10]  # Top 10 EICs with most requests
+        
+        logger.info(f'EIC Overtime Summary: Found {len(list(eic_pending_requests))} EICs')
         
         # Calculate grand totals for OT
         grand_total_approved = eic_queryset.filter(ot_request_status='Approved').count()
@@ -402,16 +434,20 @@ def dashboard_view(request):
         
         # Get base queryset for ARC
         if request.user.role == 'root':
-            arc_queryset = AttendanceRecord.objects.exclude(cont_code='Unknown').exclude(cont_code='')
+            arc_queryset = AttendanceRecord.objects.exclude(cont_code='Unknown').exclude(cont_code='').exclude(trade='').exclude(trade__isnull=True)
         elif request.user.role == 'user1':
             arc_queryset = AttendanceRecord.objects.filter(
                 company=request.user.company
-            ).exclude(cont_code='Unknown').exclude(cont_code='')
+            ).exclude(cont_code='Unknown').exclude(cont_code='').exclude(trade='').exclude(trade__isnull=True)
             arc_queryset = AccessControlService.filter_queryset_by_access(arc_queryset, request.user)
         else:
             arc_queryset = AttendanceRecord.objects.filter(
                 company=request.user.company
-            ).exclude(cont_code='Unknown').exclude(cont_code='')
+            ).exclude(cont_code='Unknown').exclude(cont_code='').exclude(trade='').exclude(trade__isnull=True)
+        
+        # Apply calendar month filter to ARC Summary (calendar_month is always set to current month by default)
+        if dashboard_year_int and dashboard_month_int:
+            arc_queryset = arc_queryset.filter(date__year=dashboard_year_int, date__month=dashboard_month_int)
         
         # Get top 7 contractors by total mandays
         top_contractors = arc_queryset.values('cont_code', 'contract').annotate(
@@ -433,7 +469,9 @@ def dashboard_view(request):
         arc_records = arc_queryset.filter(cont_code__in=arc_contractor_codes).values('trade', 'cont_code', 'contract', 'mandays')
         
         for record in arc_records:
-            trade = record['trade'] or 'Unknown'
+            trade = record['trade']
+            if not trade:  # Skip if trade is empty or None
+                continue
             cont_code = record['cont_code']
             cont_name = record['contract'] or cont_code
             mandays = float(record['mandays'] or 0)
@@ -509,6 +547,7 @@ def dashboard_view(request):
 def attendance_list_view(request):
     """List attendance records with filtering and pagination"""
     from .services.access_control_service import AccessControlService
+    from django.db.models import Q
     
     # Base queryset based on user role
     if request.user.role == 'root':
@@ -536,6 +575,19 @@ def attendance_list_view(request):
     ep_no = request.GET.get('ep_no', '').strip()
     status = request.GET.get('status', '').strip()
     overstay_filter = request.GET.get('overstay_filter', '').strip()
+    show_incomplete = request.GET.get('show_incomplete', '').strip()
+    
+    # Filter out incomplete records by default (unless explicitly requested)
+    if show_incomplete != 'yes':
+        # Exclude records that have status 'P' but missing essential time data
+        # These are typically records with only status but no actual punch times
+        queryset = queryset.exclude(
+            Q(status='P') & 
+            Q(in_time__isnull=True) & 
+            Q(out_time__isnull=True) &
+            Q(in_time_2__isnull=True) & 
+            Q(out_time_2__isnull=True)
+        )
     
     # Debug logging
     import logging
@@ -2589,19 +2641,50 @@ def upload_remarks_log_view(request):
 def arc_summary_report(request):
     """ARC Summary Report - Daily Summary Data from AttendanceRecord"""
     from django.core.paginator import Paginator
+    from datetime import date
+    import calendar
     
     # Get filter parameters
     ep_no = request.GET.get('ep_no', '').strip()
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    dashboard_month = request.GET.get('dashboard_month', '').strip()
+    
+    # Auto-set date range based on dashboard month or current month
+    if not date_from or not date_to:
+        if dashboard_month:
+            try:
+                year, month = map(int, dashboard_month.split('-'))
+            except (ValueError, IndexError):
+                today = date.today()
+                year, month = today.year, today.month
+        else:
+            today = date.today()
+            year, month = today.year, today.month
+        
+        # Set first day and last day of the month
+        first_day = date(year, month, 1)
+        last_day = date(year, month, calendar.monthrange(year, month)[1])
+        
+        if not date_from:
+            date_from = first_day.strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = last_day.strftime('%Y-%m-%d')
     
     # Base queryset - Query AttendanceRecord, exclude records with Unknown contractor
+    # Also exclude records with missing essential data
     queryset = AttendanceRecord.objects.select_related('company').exclude(
         cont_code='Unknown'
     ).exclude(
         cont_code=''
     ).exclude(
         company__name='Unknown'
+    ).exclude(
+        ep_no=''
+    ).exclude(
+        ep_no__isnull=True
+    ).filter(
+        company__isnull=False
     )
     
     # Apply company filter based on user role
@@ -2649,11 +2732,35 @@ def overtime_report(request):
     """Overtime Report - Records with Overtime requests from AttendanceRecord"""
     from django.core.paginator import Paginator
     from django.db.models import Q
+    from datetime import date
+    import calendar
     
     # Get filter parameters
     ep_no = request.GET.get('ep_no', '').strip()
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    dashboard_month = request.GET.get('dashboard_month', '').strip()
+    
+    # Auto-set date range based on dashboard month or current month
+    if not date_from or not date_to:
+        if dashboard_month:
+            try:
+                year, month = map(int, dashboard_month.split('-'))
+            except (ValueError, IndexError):
+                today = date.today()
+                year, month = today.year, today.month
+        else:
+            today = date.today()
+            year, month = today.year, today.month
+        
+        # Set first day and last day of the month
+        first_day = date(year, month, 1)
+        last_day = date(year, month, calendar.monthrange(year, month)[1])
+        
+        if not date_from:
+            date_from = first_day.strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = last_day.strftime('%Y-%m-%d')
     
     # Base queryset - Query AttendanceRecord with any overtime request data
     # Show records that have actual_overstay, requested_overtime, or ot_request_status
@@ -2707,11 +2814,35 @@ def overtime_report(request):
 def partial_day_report(request):
     """Partial Day Report - Records with status PD from AttendanceRecord"""
     from django.core.paginator import Paginator
+    from datetime import date
+    import calendar
     
     # Get filter parameters
     ep_no = request.GET.get('ep_no', '').strip()
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    dashboard_month = request.GET.get('dashboard_month', '').strip()
+    
+    # Auto-set date range based on dashboard month or current month
+    if not date_from or not date_to:
+        if dashboard_month:
+            try:
+                year, month = map(int, dashboard_month.split('-'))
+            except (ValueError, IndexError):
+                today = date.today()
+                year, month = today.year, today.month
+        else:
+            today = date.today()
+            year, month = today.year, today.month
+        
+        # Set first day and last day of the month
+        first_day = date(year, month, 1)
+        last_day = date(year, month, calendar.monthrange(year, month)[1])
+        
+        if not date_from:
+            date_from = first_day.strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = last_day.strftime('%Y-%m-%d')
     
     # Base queryset - Query AttendanceRecord with PD status
     queryset = AttendanceRecord.objects.select_related('company').filter(status='PD')
@@ -2758,11 +2889,36 @@ def partial_day_report(request):
 def regularization_report(request):
     """Regularization Report - All attendance records (for regularization tracking)"""
     from django.core.paginator import Paginator
+    from django.db.models import Q
+    from datetime import date
+    import calendar
     
     # Get filter parameters
     ep_no = request.GET.get('ep_no', '').strip()
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    dashboard_month = request.GET.get('dashboard_month', '').strip()
+    
+    # Auto-set date range based on dashboard month or current month
+    if not date_from or not date_to:
+        if dashboard_month:
+            try:
+                year, month = map(int, dashboard_month.split('-'))
+            except (ValueError, IndexError):
+                today = date.today()
+                year, month = today.year, today.month
+        else:
+            today = date.today()
+            year, month = today.year, today.month
+        
+        # Set first day and last day of the month
+        first_day = date(year, month, 1)
+        last_day = date(year, month, calendar.monthrange(year, month)[1])
+        
+        if not date_from:
+            date_from = first_day.strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = last_day.strftime('%Y-%m-%d')
     
     # Base queryset - Query all AttendanceRecord
     queryset = AttendanceRecord.objects.select_related('company').all()
@@ -2805,3 +2961,300 @@ def regularization_report(request):
     }
     
     return render(request, 'reports/regularization.html', context)
+
+
+@login_required
+@company_access_required
+def comprehensive_report(request):
+    """Comprehensive Report - Combined view of all attendance data with request statuses"""
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    from datetime import date
+    import calendar
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    # Get filter parameters
+    ep_no = request.GET.get('ep_no', '').strip()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    dashboard_month = request.GET.get('dashboard_month', '').strip()
+    show_incomplete = request.GET.get('show_incomplete', '').strip()
+    
+    # Auto-set date range based on dashboard month or current month
+    if not date_from or not date_to:
+        if dashboard_month:
+            try:
+                year, month = map(int, dashboard_month.split('-'))
+            except (ValueError, IndexError):
+                today = date.today()
+                year, month = today.year, today.month
+        else:
+            today = date.today()
+            year, month = today.year, today.month
+        
+        # Set first day and last day of the month
+        first_day = date(year, month, 1)
+        last_day = date(year, month, calendar.monthrange(year, month)[1])
+        
+        if not date_from:
+            date_from = first_day.strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = last_day.strftime('%Y-%m-%d')
+    
+    # Base queryset - Get all AttendanceRecord data, excluding incomplete records
+    queryset = AttendanceRecord.objects.select_related('company').exclude(
+        ep_no=''
+    ).exclude(
+        ep_no__isnull=True
+    ).filter(
+        company__isnull=False
+    )
+    
+    # Filter out incomplete records by default (unless explicitly requested)
+    if show_incomplete != 'yes':
+        # Exclude records that have status 'P' but missing essential time data
+        # These are typically records with only status but no actual punch times
+        before_count = queryset.count()
+        queryset = queryset.exclude(
+            Q(status='P') & 
+            Q(in_time__isnull=True) & 
+            Q(out_time__isnull=True) &
+            Q(in_time_2__isnull=True) & 
+            Q(out_time_2__isnull=True) &
+            Q(in_time_3__isnull=True) & 
+            Q(out_time_3__isnull=True)
+        )
+        after_count = queryset.count()
+        logger.info(f'Comprehensive Report: Filtered out {before_count - after_count} incomplete records (show_incomplete={show_incomplete})')
+    
+    # Apply company filter based on user role
+    if request.user.role == 'admin':
+        # Admin sees only their company's data
+        if request.user.company:
+            queryset = queryset.filter(company=request.user.company)
+    elif request.user.role == 'user1':
+        # User1 sees only assigned employees
+        from core.services.access_control_service import AccessControlService
+        access_service = AccessControlService()
+        accessible_ep_nos = access_service.get_accessible_ep_numbers(request.user)
+        queryset = queryset.filter(ep_no__in=accessible_ep_nos)
+    
+    # Apply filters
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+    if date_from:
+        queryset = queryset.filter(date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date__lte=date_to)
+    
+    # Order by date descending
+    queryset = queryset.order_by('-date', 'ep_no')
+    
+    # Debug: Log some sample data and filtering info
+    logger.info(f'Comprehensive Report - User: {request.user.username}, Role: {request.user.role}')
+    logger.info(f'Filters - EP: "{ep_no}", Date: {date_from} to {date_to}, Show Incomplete: "{show_incomplete}"')
+    logger.info(f'Final queryset count: {queryset.count()}')
+    
+    sample_records = queryset[:3]
+    for record in sample_records:
+        logger.info(f'Sample record: EP={record.ep_no}, Name={record.get_display_name()}, Date={record.date}, Status={record.status}, In={record.in_time}, Out={record.out_time}')
+    
+    # Pagination
+    paginator = Paginator(queryset, 50)  # Smaller page size due to more columns
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Add additional context for template
+    context = {
+        'page_obj': page_obj,
+        'ep_no': ep_no,
+        'date_from': date_from,
+        'date_to': date_to,
+        'show_incomplete': show_incomplete,
+        'total_count': paginator.count,
+        'is_filtered': show_incomplete != 'yes',  # Whether incomplete records are filtered out
+    }
+    
+    return render(request, 'reports/comprehensive.html', context)
+
+
+@login_required
+@company_access_required
+def comprehensive_report_export_view(request):
+    """Export comprehensive report to XLSX with same filters as report view"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.db.models import Q
+    from datetime import date
+    import calendar
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    # Get filter parameters (same as comprehensive_report view)
+    ep_no = request.GET.get('ep_no', '').strip()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    dashboard_month = request.GET.get('dashboard_month', '').strip()
+    show_incomplete = request.GET.get('show_incomplete', '').strip()
+    
+    # Auto-set date range based on dashboard month or current month
+    if not date_from or not date_to:
+        if dashboard_month:
+            try:
+                year, month = map(int, dashboard_month.split('-'))
+            except (ValueError, IndexError):
+                today = date.today()
+                year, month = today.year, today.month
+        else:
+            today = date.today()
+            year, month = today.year, today.month
+        
+        # Set first day and last day of the month
+        first_day = date(year, month, 1)
+        last_day = date(year, month, calendar.monthrange(year, month)[1])
+        
+        if not date_from:
+            date_from = first_day.strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = last_day.strftime('%Y-%m-%d')
+    
+    # Base queryset - Get all AttendanceRecord data, excluding incomplete records
+    queryset = AttendanceRecord.objects.select_related('company').exclude(
+        ep_no=''
+    ).exclude(
+        ep_no__isnull=True
+    ).filter(
+        company__isnull=False
+    )
+    
+    # Filter out incomplete records by default (unless explicitly requested)
+    if show_incomplete != 'yes':
+        # Exclude records that have status 'P' but missing essential time data
+        # These are typically records with only status but no actual punch times
+        queryset = queryset.exclude(
+            Q(status='P') & 
+            Q(in_time__isnull=True) & 
+            Q(out_time__isnull=True) &
+            Q(in_time_2__isnull=True) & 
+            Q(out_time_2__isnull=True) &
+            Q(in_time_3__isnull=True) & 
+            Q(out_time_3__isnull=True)
+        )
+    
+    # Apply company filter based on user role
+    if request.user.role == 'admin':
+        # Admin sees only their company's data
+        if request.user.company:
+            queryset = queryset.filter(company=request.user.company)
+    elif request.user.role == 'user1':
+        # User1 sees only assigned employees
+        from core.services.access_control_service import AccessControlService
+        access_service = AccessControlService()
+        accessible_ep_nos = access_service.get_accessible_ep_numbers(request.user)
+        queryset = queryset.filter(ep_no__in=accessible_ep_nos)
+    
+    # Apply filters
+    if ep_no:
+        queryset = queryset.filter(ep_no__icontains=ep_no)
+    if date_from:
+        queryset = queryset.filter(date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date__lte=date_to)
+    
+    # Order by date descending
+    queryset = queryset.order_by('-date', 'ep_no')
+    
+    # Create workbook and worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Comprehensive Report"
+    
+    # Define headers
+    headers = [
+        'EP NO', 'NAME', 'DATE', 'SHIFT', 'IN TIME', 'OUT TIME', 'IN TIME 2', 'OUT TIME 2', 
+        'IN TIME 3', 'OUT TIME 3', 'HOURS', 'STATUS', 'REG STATUS', 'PD STATUS', 'OT STATUS',
+        'TRADE', 'MANDAYS', 'REG HR', 'OT'
+    ]
+    
+    # Add headers
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill(start_color="4A70A9", end_color="4A70A9", fill_type="solid")
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Add data
+    row_num = 2
+    for record in queryset:
+        # Determine request statuses
+        reg_status = "-"
+        pd_status = "-"
+        ot_status = "-"
+        
+        if record.in_time_2 or record.out_time_2:
+            reg_status = record.ot_request_status or "-"
+        
+        if record.status == 'PD':
+            pd_status = record.ot_request_status or "-"
+        
+        if record.requested_overtime or record.actual_overstay:
+            ot_status = record.ot_request_status or "-"
+        
+        # Add row data
+        row_data = [
+            record.ep_no,
+            record.get_display_name(),
+            record.date.strftime('%d/%m/%Y') if record.date else '',
+            record.shift or '-',
+            record.in_time.strftime('%H:%M') if record.in_time else '-',
+            record.out_time.strftime('%H:%M') if record.out_time else '-',
+            record.in_time_2.strftime('%H:%M') if record.in_time_2 else '-',
+            record.out_time_2.strftime('%H:%M') if record.out_time_2 else '-',
+            record.in_time_3.strftime('%H:%M') if record.in_time_3 else '-',
+            record.out_time_3.strftime('%H:%M') if record.out_time_3 else '-',
+            record.hours or '-',
+            record.status or '-',
+            reg_status,
+            pd_status,
+            ot_status,
+            record.trade or '-',
+            str(record.mandays) if record.mandays else '0.00',
+            record.regular_manday_hr or '-',
+            record.ot or '-'
+        ]
+        
+        for col, value in enumerate(row_data, 1):
+            ws.cell(row=row_num, column=col, value=value)
+        
+        row_num += 1
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # Create response
+    from django.http import HttpResponse
+    from datetime import datetime
+    
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="comprehensive_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    
+    wb.save(response)
+    
+    logger.info(f'User {request.user.username} exported comprehensive report with {queryset.count()} records')
+    
+    return response

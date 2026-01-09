@@ -127,6 +127,60 @@ class AttendanceRecord(models.Model):
 
     def __str__(self):
         return f"{self.ep_no} - {self.ep_name} ({self.date})"
+    
+    def get_display_name(self):
+        """Get the proper employee name, preferring Employee table over fallback format"""
+        # If the current name is not a fallback format and not empty, use it
+        if self.ep_name and not self.ep_name.startswith('Employee ') and self.ep_name.strip():
+            return self.ep_name.strip()
+        
+        # Try to get the proper name from Employee table
+        try:
+            from core.models import Employee
+            employee = Employee.objects.get(ep_no=self.ep_no)
+            if employee.ep_name and employee.ep_name.strip():
+                return employee.ep_name.strip()
+        except Employee.DoesNotExist:
+            pass
+        except Exception:
+            pass
+        
+        # Fall back to the existing name, but ensure it's not empty
+        fallback_name = self.ep_name or f"Employee {self.ep_no}"
+        return fallback_name.strip() if fallback_name else f"Employee {self.ep_no}"
+    
+    def get_contractor_name(self):
+        """Get the proper contractor name, resolving codes to full names"""
+        # First, check if cont_code is already a full name (contains spaces or is long)
+        if self.cont_code and (len(self.cont_code) > 10 or ' ' in self.cont_code):
+            return self.cont_code.strip()
+        
+        # Try to resolve contractor code to full name from Contractor table
+        if self.cont_code and self.cont_code.isdigit():
+            try:
+                from core.models import Contractor
+                contractor = Contractor.objects.get(contractor_code=int(self.cont_code))
+                return contractor.contractor_name.strip()
+            except (Contractor.DoesNotExist, ValueError):
+                pass
+        
+        # Try to resolve company name (which might be a contractor code) to full name
+        if self.company and self.company.name and self.company.name.isdigit():
+            try:
+                from core.models import Contractor
+                contractor = Contractor.objects.get(contractor_code=int(self.company.name))
+                return contractor.contractor_name.strip()
+            except (Contractor.DoesNotExist, ValueError):
+                pass
+        
+        # Fall back to company name or cont_code
+        if self.company and self.company.name:
+            return self.company.name.strip()
+        
+        if self.cont_code:
+            return self.cont_code.strip()
+        
+        return "-"
 
 
 class UploadLog(models.Model):

@@ -11,35 +11,223 @@
 {% block report_heading %}📅 Partial Day Report{% endblock %}
 {% block report_description %}Records with partial day (PD) status{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Column Filter Styles */
+    .column-filter-btn {
+        transition: all 0.2s ease;
+    }
+    
+    .column-filter-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .filter-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 2px solid #4A70A9;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+        min-width: 200px;
+    }
+    
+    .filter-option {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 12px;
+        transition: background-color 0.15s ease;
+    }
+    
+    .filter-option:hover {
+        background-color: #f8fafc;
+    }
+    
+    .filter-option.selected {
+        background-color: #4A70A9;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .filter-option:last-child {
+        border-bottom: none;
+    }
+    
+    /* Badge Styles */
+    .badge-present { @apply px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-bold; }
+    .badge-late { @apply px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-bold; }
+    .badge-absent { @apply px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-bold; }
+</style>
+{% endblock %}
+
 {% block report_content %}
-<div class="bg-white border border-light-blue rounded-xl overflow-hidden">
+<!-- Mobile Card View (below xl) -->
+<div class="xl:hidden space-y-4">
+    {% for record in page_obj %}
+    <div class="bg-white border-2 border-dark-blue/20 rounded-lg p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="font-bold text-dark-blue text-sm font-mono">{{ record.ep_no }}</div>
+            <div class="text-xs text-black/60">{{ record.date|date:"d/m/Y" }}</div>
+        </div>
+        <div class="space-y-2 text-sm">
+            <div><span class="font-semibold text-black/70">Name:</span> {{ record.get_display_name }}</div>
+            <div><span class="font-semibold text-black/70">Contractor:</span> {{ record.get_contractor_name }}</div>
+            <div class="grid grid-cols-2 gap-2">
+                <div><span class="font-semibold text-black/70">Shift:</span> {{ record.shift|default:"-" }}</div>
+                <div><span class="font-semibold text-black/70">Hours:</span> {{ record.hours|default:"-" }}</div>
+                <div><span class="font-semibold text-black/70">In Time:</span> {{ record.in_time|default:"-" }}</div>
+                <div><span class="font-semibold text-black/70">Out Time:</span> {{ record.out_time|default:"-" }}</div>
+            </div>
+            <div><span class="font-semibold text-black/70">Status:</span> 
+                <span class="px-2 py-1 rounded text-xs font-bold bg-yellow-100 text-yellow-800">
+                    {{ record.status }}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-8 text-black/50">
+        <svg class="w-12 h-12 mx-auto mb-2 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <p class="font-semibold">No partial day records found</p>
+        <p class="text-xs mt-1">Try adjusting your filters</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Desktop Table View (xl and up) - Excel-like Style -->
+<div class="bg-white border-2 border-dark-blue/20 rounded-lg overflow-hidden hidden xl:block shadow-lg">
+    <!-- Clear All Filters Button -->
+    <div id="clearAllFiltersContainer" class="bg-cream border-b-2 border-light-blue p-3 flex items-center justify-between" style="display: none;">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-dark-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-black">Active Column Filters</span>
+            <span id="activeFilterCount" class="px-2 py-0.5 bg-dark-blue text-cream rounded-full text-xs font-bold">0</span>
+        </div>
+        <button id="clearAllFiltersBtn" class="px-4 py-2 bg-black text-cream rounded-lg font-semibold hover:bg-black/80 transition text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Clear All Filters
+        </button>
+    </div>
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-black text-sm min-w-max">
-            <thead class="text-xs font-bold uppercase bg-dark-blue text-cream">
+        <table class="w-full text-left text-black text-sm min-w-max border-collapse" id="partialDayTable">
+            <thead class="text-xs font-bold uppercase bg-dark-blue text-cream sticky top-0" style="z-index: 5;">
                 <tr>
-                    <th class="px-3 py-2 whitespace-nowrap">EP NO</th>
-                    <th class="px-3 py-2 whitespace-nowrap">NAME</th>
-                    <th class="px-3 py-2 whitespace-nowrap">CONTRACTOR</th>
-                    <th class="px-3 py-2 whitespace-nowrap text-center">DATE</th>
-                    <th class="px-3 py-2 whitespace-nowrap text-center">SHIFT</th>
-                    <th class="px-3 py-2 whitespace-nowrap text-center">HOURS</th>
-                    <th class="px-3 py-2 whitespace-nowrap text-center">IN TIME</th>
-                    <th class="px-3 py-2 whitespace-nowrap text-center">OUT TIME</th>
-                    <th class="px-3 py-2 whitespace-nowrap text-center">STATUS</th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>EP NO</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="0">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 relative group">
+                        <div class="flex items-center gap-1">
+                            <span>NAME</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="1">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 relative group">
+                        <div class="flex items-center gap-1">
+                            <span>CONTRACTOR</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="2">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>DATE</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="3">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>SHIFT</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="4">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>HOURS</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="5">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>IN TIME</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="6">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap border-r border-dark-blue/30 text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>OUT TIME</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="7">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-1.5 py-1.5 whitespace-nowrap text-center relative group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span>STATUS</span>
+                            <button type="button" class="column-filter-btn opacity-70 hover:opacity-100 transition" data-column="8">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 {% for record in page_obj %}
-                <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition border-b border-light-blue/50">
-                    <td class="px-3 py-2 font-bold text-dark-blue">{{ record.ep_no }}</td>
-                    <td class="px-3 py-2 font-semibold">{{ record.ep_name }}</td>
-                    <td class="px-3 py-2 text-xs">{{ record.company.name }}</td>
-                    <td class="px-3 py-2 text-center">{{ record.date|date:"d/m/Y" }}</td>
-                    <td class="px-3 py-2 text-center text-xs">{{ record.shift|default:"-" }}</td>
-                    <td class="px-3 py-2 text-center font-semibold">{{ record.hours|default:"-" }}</td>
-                    <td class="px-3 py-2 text-center">{{ record.in_time|default:"-" }}</td>
-                    <td class="px-3 py-2 text-center">{{ record.out_time|default:"-" }}</td>
-                    <td class="px-3 py-2 text-center">
+                <tr class="{% cycle 'bg-white' 'bg-cream/30' %} hover:bg-light-blue/20 transition-colors duration-75 border-b border-light-blue/50">
+                    <td class="px-1.5 py-1 font-bold whitespace-nowrap border-r border-light-blue/50 text-center text-dark-blue font-mono text-xs">{{ record.ep_no }}</td>
+                    <td class="px-1.5 py-1 font-semibold whitespace-nowrap border-r border-light-blue/50 text-xs">{{ record.get_display_name }}</td>
+                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-xs">{{ record.get_contractor_name }}</td>
+                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.date|date:"d/m/y" }}</td>
+                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.shift|default:"-" }}</td>
+                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center font-semibold text-xs">{{ record.hours|default:"-" }}</td>
+                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.in_time|default:"-" }}</td>
+                    <td class="px-1.5 py-1 whitespace-nowrap border-r border-light-blue/50 text-center text-xs">{{ record.out_time|default:"-" }}</td>
+                    <td class="px-1.5 py-1 whitespace-nowrap text-center">
                         <span class="px-2 py-1 rounded text-xs font-bold bg-yellow-100 text-yellow-800">
                             {{ record.status }}
                         </span>
@@ -47,12 +235,14 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="px-3 py-8 text-center text-black/50">
-                        <svg class="w-12 h-12 mx-auto mb-2 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <p class="font-semibold">No partial day records found</p>
-                        <p class="text-xs mt-1">Try adjusting your filters</p>
+                    <td colspan="9" class="px-6 py-12 text-center text-black/50">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-12 h-12 mb-4 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="font-semibold text-lg">No partial day records found</p>
+                            <p class="text-sm mt-1">No partial day data available for the selected date range</p>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -60,4 +250,311 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Excel-like Column Filters
+    const table = document.getElementById('partialDayTable');
+    console.log('Table found:', table);
+    if (table) {
+        const columnFilters = {};
+        let activeFilterDropdown = null;
+        
+        // Get all filter buttons
+        const filterButtons = table.querySelectorAll('.column-filter-btn');
+        console.log('Filter buttons found:', filterButtons.length);
+        
+        // Clear All Filters button
+        const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
+        const clearAllFiltersContainer = document.getElementById('clearAllFiltersContainer');
+        const activeFilterCount = document.getElementById('activeFilterCount');
+        
+        if (clearAllFiltersBtn) {
+            clearAllFiltersBtn.addEventListener('click', function() {
+                // Clear all filters
+                Object.keys(columnFilters).forEach(key => delete columnFilters[key]);
+                
+                // Reset all filter button colors
+                filterButtons.forEach(btn => {
+                    btn.style.color = '';
+                });
+                
+                // Reapply filters (which will show all rows)
+                applyAllFilters();
+                
+                // Hide the clear all button
+                updateClearAllButton();
+            });
+        }
+        
+        function updateClearAllButton() {
+            const filterCount = Object.keys(columnFilters).length;
+            if (filterCount > 0) {
+                clearAllFiltersContainer.style.display = 'flex';
+                activeFilterCount.textContent = filterCount;
+            } else {
+                clearAllFiltersContainer.style.display = 'none';
+            }
+        }
+        
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                const columnIndex = parseInt(this.dataset.column);
+                
+                console.log('Filter button clicked for column:', columnIndex);
+                
+                // Close existing dropdown if clicking same button
+                if (activeFilterDropdown && activeFilterDropdown.dataset.column === this.dataset.column) {
+                    console.log('Closing existing dropdown');
+                    activeFilterDropdown.remove();
+                    activeFilterDropdown = null;
+                    return;
+                }
+                
+                // Close any existing dropdown
+                if (activeFilterDropdown) {
+                    console.log('Removing previous dropdown');
+                    activeFilterDropdown.remove();
+                }
+                
+                // Create and show dropdown
+                console.log('Creating new dropdown');
+                showColumnFilterDropdown(this, columnIndex);
+            });
+        });
+        
+        function showColumnFilterDropdown(button, columnIndex) {
+            // Get unique values from column
+            const rows = table.querySelectorAll('tbody tr');
+            const values = new Set();
+            
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const cell = row.cells[columnIndex];
+                    if (cell) {
+                        let value = cell.textContent.trim();
+                        if (value && value !== '-') {
+                            values.add(value);
+                        }
+                    }
+                }
+            });
+            
+            // Sort values
+            const sortedValues = Array.from(values).sort((a, b) => {
+                // Try numeric sort first
+                const numA = parseFloat(a);
+                const numB = parseFloat(b);
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return numA - numB;
+                }
+                return a.localeCompare(b);
+            }).map(v => ({ label: v, value: v }));
+            
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'absolute top-full left-0 mt-1 bg-white border-2 border-dark-blue rounded-lg shadow-xl min-w-[200px] max-h-[400px] overflow-hidden flex flex-col text-black';
+            dropdown.style.zIndex = '9999';
+            dropdown.dataset.column = columnIndex;
+            
+            // Search box
+            const searchBox = document.createElement('div');
+            searchBox.className = 'p-2 border-b border-light-blue sticky top-0 bg-white';
+            searchBox.innerHTML = `
+                <input type="text" 
+                    placeholder="Search..." 
+                    class="w-full px-2 py-1 text-xs border border-light-blue rounded focus:ring-1 focus:ring-dark-blue focus:outline-none text-black"
+                    id="filterSearch${columnIndex}">
+            `;
+            dropdown.appendChild(searchBox);
+            
+            // Options container
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'overflow-y-auto flex-1 bg-white';
+            
+            // Select All option
+            const selectAllDiv = document.createElement('div');
+            selectAllDiv.className = 'px-3 py-2 hover:bg-light-blue cursor-pointer border-b border-light-blue/30 sticky top-0 bg-cream font-semibold text-xs text-black';
+            selectAllDiv.innerHTML = `
+                <label class="flex items-center gap-2 cursor-pointer text-black">
+                    <input type="checkbox" class="filter-select-all" checked>
+                    <span class="text-black">(Select All)</span>
+                </label>
+            `;
+            optionsContainer.appendChild(selectAllDiv);
+            
+            // Add value options
+            sortedValues.forEach(item => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'px-3 py-2 hover:bg-light-blue cursor-pointer text-xs filter-option bg-white';
+                optionDiv.dataset.value = item.value;
+                optionDiv.innerHTML = `
+                    <label class="flex items-center gap-2 cursor-pointer text-black">
+                        <input type="checkbox" class="filter-checkbox" value="${item.value}" data-label="${item.label}" checked>
+                        <span class="text-black">${item.label}</span>
+                    </label>
+                `;
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            dropdown.appendChild(optionsContainer);
+            
+            // Action buttons
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'p-2 border-t border-light-blue bg-cream flex gap-2';
+            actionsDiv.innerHTML = `
+                <button class="flex-1 px-3 py-1.5 bg-dark-blue text-cream rounded text-xs font-semibold hover:bg-black transition" id="applyFilter${columnIndex}">
+                    Apply
+                </button>
+                <button class="flex-1 px-3 py-1.5 bg-light-blue text-black rounded text-xs font-semibold hover:bg-light-blue/70 transition" id="clearFilter${columnIndex}">
+                    Clear
+                </button>
+            `;
+            dropdown.appendChild(actionsDiv);
+            
+            // Position dropdown
+            const buttonRect = button.getBoundingClientRect();
+            const thElement = button.closest('th');
+            thElement.style.position = 'relative';
+            thElement.style.overflow = 'visible';
+            thElement.appendChild(dropdown);
+            
+            console.log('Filter dropdown created for column:', columnIndex, 'with', sortedValues.length, 'values');
+            
+            activeFilterDropdown = dropdown;
+            
+            // Focus search box
+            const searchInput = dropdown.querySelector(`#filterSearch${columnIndex}`);
+            setTimeout(() => searchInput.focus(), 50);
+            
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const options = dropdown.querySelectorAll('.filter-option');
+                
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Select all functionality
+            const selectAllCheckbox = dropdown.querySelector('.filter-select-all');
+            const checkboxes = dropdown.querySelectorAll('.filter-checkbox');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                checkboxes.forEach(cb => {
+                    if (cb.closest('.filter-option').style.display !== 'none') {
+                        cb.checked = this.checked;
+                    }
+                });
+            });
+            
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const visibleCheckboxes = Array.from(checkboxes).filter(
+                        c => c.closest('.filter-option').style.display !== 'none'
+                    );
+                    const allChecked = visibleCheckboxes.every(c => c.checked);
+                    selectAllCheckbox.checked = allChecked;
+                });
+            });
+            
+            // Apply filter
+            dropdown.querySelector(`#applyFilter${columnIndex}`).addEventListener('click', function() {
+                const selectedValues = new Set();
+                checkboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedValues.add(cb.value);
+                    }
+                });
+                
+                columnFilters[columnIndex] = selectedValues;
+                applyAllFilters();
+                
+                // Update button appearance
+                if (selectedValues.size < sortedValues.length) {
+                    button.style.color = '#FFD700'; // Gold color for active filter
+                } else {
+                    button.style.color = '';
+                    delete columnFilters[columnIndex]; // Remove if all selected
+                }
+                
+                // Update clear all button visibility
+                updateClearAllButton();
+                
+                dropdown.remove();
+                activeFilterDropdown = null;
+            });
+            
+            // Clear filter
+            dropdown.querySelector(`#clearFilter${columnIndex}`).addEventListener('click', function() {
+                delete columnFilters[columnIndex];
+                applyAllFilters();
+                button.style.color = '';
+                
+                // Update clear all button visibility
+                updateClearAllButton();
+                
+                dropdown.remove();
+                activeFilterDropdown = null;
+            });
+        }
+        
+        function applyAllFilters() {
+            const rows = table.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                let shouldShow = true;
+                
+                // Check each active filter
+                for (const [columnIndex, allowedValues] of Object.entries(columnFilters)) {
+                    const colIdx = parseInt(columnIndex);
+                    const cell = row.cells[colIdx];
+                    
+                    if (cell) {
+                        let cellValue = cell.textContent.trim();
+                        
+                        if (!allowedValues.has(cellValue) && cellValue !== '-') {
+                            shouldShow = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if (shouldShow) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (activeFilterDropdown && !activeFilterDropdown.contains(e.target)) {
+                activeFilterDropdown.remove();
+                activeFilterDropdown = null;
+            }
+        });
+        
+        // Prevent dropdown from closing when clicking inside
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.column-filter-btn')) {
+                e.stopPropagation();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

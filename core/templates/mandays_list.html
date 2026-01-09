@@ -105,7 +105,7 @@
             <!-- Top Row: EP NO and Date -->
             <div class="flex justify-between items-start mb-4">
                 <div class="flex-1">
-                    <p class="font-bold text-black text-base">{{ record.ep_no }}</p>
+                    <p class="font-bold text-black text-base font-mono">{{ record.ep_no }}</p>
                     <p class="text-xs text-black/50 mt-1">{{ record.punch_date|date:"d M Y" }}</p>
                 </div>
             </div>
@@ -179,7 +179,7 @@
                 <tbody class="divide-y divide-light-blue/30">
                     {% for record in page_obj %}
                     <tr class="bg-white hover:bg-light-blue/10 transition-colors duration-200">
-                        <td class="px-4 py-3 font-semibold whitespace-nowrap">{{ record.ep_no }}</td>
+                        <td class="px-4 py-3 font-semibold whitespace-nowrap font-mono">{{ record.ep_no }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ record.punch_date|date:"d/m/y" }}</td>
                         <td class="px-4 py-3 font-medium whitespace-nowrap">{{ record.company.name }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ record.mandays }}</td>

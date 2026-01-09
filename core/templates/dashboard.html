@@ -4,360 +4,518 @@
 {% block title %}Dashboard - AMS{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-cream p-4 md:p-6 lg:p-8">
-    <!-- Page Header -->
-    <div class="mb-6">
-        <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-dark-blue mb-2">Dashboard</h1>
-        <p class="text-sm md:text-base text-black/70">{% now "l, F j, Y" %}</p>
-    </div>
+<!-- Custom CSS Variables matching React design -->
+<style>
+:root {
+--background: 40 23% 94%;
+--foreground: 220 20% 15%;
+--card: 0 0% 100%;
+--card-foreground: 220 20% 15%;
+--primary: 216 40% 48%;
+--primary-foreground: 0 0% 100%;
+--secondary: 216 40% 70%;
+--muted: 40 15% 90%;
+--muted-foreground: 220 10% 45%;
+--success: 142 71% 45%;
+--success-foreground: 0 0% 100%;
+--warning: 45 93% 47%;
+--warning-foreground: 220 20% 15%;
+--destructive: 0 72% 51%;
+--destructive-foreground: 0 0% 100%;
+--border: 220 13% 85%;
+--ring: 216 40% 48%;
+--radius: 0.5rem;
+}
 
-    <!-- Main Grid Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-        
-        <!-- Left Column: Attendance Calendar (Full width on mobile, 4 cols on large screens) -->
-        <div class="lg:col-span-4">
-            <div class="bg-white rounded-xl shadow-lg border border-light-blue/30 overflow-hidden h-full">
-                <!-- Widget Header -->
-                <div class="bg-gradient-to-r from-dark-blue to-light-blue p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">📅</span>
-                        </div>
-                        <h2 class="text-lg md:text-xl font-bold text-white">Attendance Calendar</h2>
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+background-color: hsl(var(--background));
+color: hsl(var(--foreground));
+}
+
+.bg-background { background-color: hsl(var(--background)); }
+.bg-card { background-color: hsl(var(--card)); }
+.bg-muted { background-color: hsl(var(--muted)); }
+.bg-primary { background-color: hsl(var(--primary)); }
+.bg-success { background-color: hsl(var(--success)) !important; }
+.bg-warning { background-color: hsl(var(--warning)) !important; }
+.bg-destructive { background-color: hsl(var(--destructive)) !important; }
+.text-primary { color: hsl(var(--primary)); }
+.text-success { color: hsl(var(--success)); }
+.text-warning { color: hsl(var(--warning)); }
+.text-destructive { color: hsl(var(--destructive)); }
+.text-muted-foreground { color: hsl(var(--muted-foreground)); }
+.text-white { color: white !important; }
+.border-border { border-color: hsl(var(--border)); }
+
+.bg-success-light { background-color: hsla(142, 71%, 45%, 0.15); }
+.bg-warning-light { background-color: hsla(45, 93%, 47%, 0.15); }
+.bg-destructive-light { background-color: hsla(0, 72%, 51%, 0.15); }
+</style>
+
+<div class="min-h-screen bg-background text-sm">
+<div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+
+<!-- Calendar and ARC Summary Side by Side -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
+    
+    <!-- Attendance Calendar (3 cols on lg, 4 on md) -->
+    <div class="md:col-span-4 lg:col-span-3">
+        <div class="bg-card rounded-xl border border-border/40 overflow-hidden h-full">
+            <!-- Header -->
+            <div class="px-3 py-2 border-b border-border" style="background-color: hsla(40, 15%, 90%, 0.3);">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+                    </svg>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-semibold">Attendance Calendar</span>
+                        {% if calendar_month %}
+                        <span class="text-[9px] text-muted-foreground">Dashboard: {{ calendar_month_name }} {{ calendar_year }}</span>
+                        {% endif %}
                     </div>
                 </div>
-                
-                <!-- Calendar Content -->
-                <div class="p-4">
-                    <!-- Search Form -->
-                    <form method="get" action="{% url 'core:dashboard' %}" class="mb-4">
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <div class="flex-1 relative">
-                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
-                                <input type="text" name="calendar_ep" value="{{ calendar_ep }}" 
-                                       placeholder="Enter EP Number..." 
-                                       class="w-full pl-10 pr-4 py-2.5 border border-light-blue rounded-lg focus:ring-2 focus:ring-dark-blue focus:border-dark-blue transition text-sm">
-                            </div>
-                            <input type="month" name="calendar_month" value="{{ calendar_month }}" 
-                                   class="px-4 py-2.5 border border-light-blue rounded-lg focus:ring-2 focus:ring-dark-blue focus:border-dark-blue transition text-sm">
-                        </div>
-                    </form>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-2 md:p-2.5 space-y-2">
+                <!-- Search Form -->
+                <form method="get" action="{% url 'core:dashboard' %}" id="calendarForm">
+                    <div class="flex gap-1.5">
+                        <input type="text" name="calendar_ep" value="{{ calendar_ep }}" 
+                               placeholder="EP Number" 
+                               id="epInput"
+                               class="flex-1 text-xs h-7 md:h-8 px-2 rounded-md border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                        {% if calendar_ep %}
+                        <button type="button" onclick="clearEP()" class="h-7 md:h-8 px-2 rounded-md bg-muted text-muted-foreground hover:bg-destructive hover:text-white transition-colors" title="Clear EP">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                        {% endif %}
+                        <button type="submit" class="h-7 md:h-8 px-2 rounded-md bg-primary text-white hover:opacity-90 transition-opacity">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                            </svg>
+                        </button>
+                    </div>
 
+                    <!-- Month Navigation (controls entire dashboard) -->
+                    <div class="flex items-center justify-between rounded-lg px-2 py-1 {% if calendar_data %}mb-2{% elif calendar_ep %}mt-2 mb-2{% else %}mt-2 mb-2{% endif %}" style="background-color: hsla(40, 15%, 90%, 0.5);">
+                        <button type="button" onclick="previousMonth()" class="h-5 w-5 md:h-6 md:w-6 flex items-center justify-center hover:bg-muted rounded transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="m15 18-6-6 6-6"/>
+                            </svg>
+                        </button>
+                        <input type="month" name="calendar_month" value="{{ calendar_month }}" 
+                               onchange="document.getElementById('calendarForm').submit()"
+                               class="font-semibold text-[11px] md:text-xs text-center bg-transparent border-0 focus:outline-none cursor-pointer">
+                        <button type="button" onclick="nextMonth()" class="h-5 w-5 md:h-6 md:w-6 flex items-center justify-center hover:bg-muted rounded transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    {% if calendar_ep %}
+                    <!-- Employee Info (only show if EP entered and data exists) -->
                     {% if calendar_data %}
-                    <!-- Employee Info -->
-                    <div class="mb-4 p-3 bg-cream rounded-lg">
-                        <div class="flex items-center gap-2">
-                            <span class="text-lg">👤</span>
-                            <div>
-                                <p class="font-semibold text-dark-blue">{{ calendar_ep }}</p>
-                                {% if employee_name %}
-                                <p class="text-xs text-black/60">{{ employee_name }}</p>
-                                {% endif %}
-                            </div>
+                    <div class="flex items-center gap-2 p-1.5 rounded-lg mt-2 mb-2" style="background-color: hsla(40, 15%, 90%, 0.5);">
+                        <svg class="w-3.5 h-3.5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[10px] md:text-xs font-semibold truncate">{{ employee_name|default:"Rahul Sharma" }}</p>
                         </div>
-                    </div>
-
-                    <!-- Stats Cards -->
-                    <div class="grid grid-cols-3 gap-2 mb-4">
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                            <p class="text-xs font-semibold text-green-700 mb-1">✅ Present</p>
-                            <p class="text-2xl font-bold text-green-600">{{ calendar_stats.present_days }}</p>
-                            <p class="text-xs text-green-600">Days</p>
-                        </div>
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                            <p class="text-xs font-semibold text-yellow-700 mb-1">⚠️ Exceptions</p>
-                            <p class="text-2xl font-bold text-yellow-600">{{ calendar_stats.exception_days }}</p>
-                            <p class="text-xs text-yellow-600">{{ calendar_stats.exception_type }}</p>
-                        </div>
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-                            <p class="text-xs font-semibold text-red-700 mb-1">🗓️ Total</p>
-                            <p class="text-2xl font-bold text-red-600">{{ calendar_stats.total_logged }}</p>
-                            <p class="text-xs text-red-600">of {{ calendar_stats.total_days }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Calendar Grid -->
-                    <div class="mb-4">
-                        <!-- Week Days -->
-                        <div class="grid grid-cols-7 gap-1 mb-2">
-                            {% for day in "SMTWTFS" %}
-                            <div class="text-center text-xs font-semibold text-black/60 py-1">{{ day }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <!-- Calendar Days -->
-                        <div class="grid grid-cols-7 gap-1">
-                            {% for day in calendar_data %}
-                            <div class="aspect-square flex items-center justify-center rounded-lg transition-all hover:scale-110 cursor-pointer
-                                {% if not day.is_other_month %}
-                                    {% if day.status == 'P' %}bg-green-100 hover:bg-green-200
-                                    {% elif day.status == 'A' %}bg-red-100 hover:bg-red-200
-                                    {% elif day.status == 'L' or day.status == 'PD' %}bg-yellow-100 hover:bg-yellow-200
-                                    {% else %}bg-gray-50 hover:bg-gray-100{% endif %}
-                                {% endif %}"
-                                 title="{% if day.day %}Day {{ day.day }}: {% if day.status == 'P' %}Present ✓{% elif day.status == 'A' %}Absent ✗{% elif day.status == 'L' or day.status == 'PD' %}{{ day.deduction }} Deduction{% else %}No data{% endif %}{% endif %}">
-                                {% if day.day %}
-                                    {% if day.status == 'P' %}
-                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold">{{ day.day }}</div>
-                                    {% elif day.status == 'A' %}
-                                    <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold">{{ day.day }}</div>
-                                    {% elif day.status == 'L' or day.status == 'PD' %}
-                                    <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs font-bold">{{ day.day }}</div>
-                                    {% else %}
-                                    <div class="w-8 h-8 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-400 text-xs font-bold">{{ day.day }}</div>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <!-- Legend -->
-                    <div class="flex flex-wrap justify-center gap-3 pt-3 border-t border-gray-200">
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                            <span class="text-xs font-medium text-black/70">Present</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                            <span class="text-xs font-medium text-black/70">Half Day</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                            <span class="text-xs font-medium text-black/70">Absent</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-white border-2 border-gray-300"></div>
-                            <span class="text-xs font-medium text-black/70">No Data</span>
-                        </div>
-                    </div>
-                    {% elif calendar_ep %}
-                    <div class="text-center py-12">
-                        <div class="text-6xl mb-4">📅</div>
-                        <p class="font-semibold text-black/70 mb-1">No records found</p>
-                        <p class="text-sm text-black/50">No attendance for EP: {{ calendar_ep }}</p>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-12">
-                        <div class="text-6xl mb-4">📅</div>
-                        <p class="font-semibold text-black/70 mb-1">View Attendance Calendar</p>
-                        <p class="text-sm text-black/50">Enter an EP Number to view calendar</p>
                     </div>
                     {% endif %}
-                </div>
-            </div>
-        </div>
+                    {% endif %}
+                </form>
 
-        <!-- Right Column: Summary Widgets (8 cols on large screens) -->
-        <div class="lg:col-span-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                
-                <!-- Overtime Summary -->
-                {% if eic_pending_requests %}
-                <div class="bg-white rounded-xl shadow-lg border border-light-blue/30 overflow-hidden">
-                    <div class="bg-gradient-to-r from-dark-blue to-light-blue p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <h2 class="text-lg font-bold text-white">Overtime Summary</h2>
-                        </div>
+                {% if calendar_data %}
+                <!-- Stats Row -->
+                <div class="grid grid-cols-4 gap-0.5 py-1.5 border-y border-border">
+                    <div class="text-center">
+                        <p class="text-xs md:text-sm font-bold text-success">{{ calendar_stats.present_days }}</p>
+                        <p class="text-[8px] md:text-[9px] text-muted-foreground">Present</p>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-cream text-dark-blue border-b-2 border-light-blue">
-                                <tr>
-                                    <th class="px-3 py-2 text-left font-bold">EIC NAME</th>
-                                    <th class="px-3 py-2 text-center font-bold">Approved</th>
-                                    <th class="px-3 py-2 text-center font-bold">Pending</th>
-                                    <th class="px-3 py-2 text-center font-bold">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                {% for eic in eic_pending_requests %}
-                                <tr class="hover:bg-light-blue/10 transition">
-                                    <td class="px-3 py-2 font-medium text-black">{{ eic.requested_eic_name|truncatewords:3 }}</td>
-                                    <td class="px-3 py-2 text-center">
-                                        {% if eic.approved_count > 0 %}
-                                        <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-full">{{ eic.approved_count }}</span>
-                                        {% else %}
-                                        <span class="text-gray-300">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-3 py-2 text-center">
-                                        {% if eic.pending_count > 0 %}
-                                        <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">{{ eic.pending_count }}</span>
-                                        {% else %}
-                                        <span class="text-gray-300">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-3 py-2 text-center font-bold text-dark-blue">{{ eic.total_count }}</td>
-                                </tr>
-                                {% endfor %}
-                                <tr class="bg-light-blue font-bold">
-                                    <td class="px-3 py-2 text-dark-blue">Grand Total</td>
-                                    <td class="px-3 py-2 text-center text-dark-blue">{{ grand_total_approved }}</td>
-                                    <td class="px-3 py-2 text-center text-dark-blue">{{ grand_total_pending }}</td>
-                                    <td class="px-3 py-2 text-center text-dark-blue">{{ grand_total_all }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="text-center">
+                        <p class="text-xs md:text-sm font-bold text-destructive">{{ calendar_stats.exception_days }}</p>
+                        <p class="text-[8px] md:text-[9px] text-muted-foreground">Absent</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs md:text-sm font-bold text-warning">0</p>
+                        <p class="text-[8px] md:text-[9px] text-muted-foreground">Exceptions</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs md:text-sm font-bold">{{ calendar_stats.total_logged }}</p>
+                        <p class="text-[8px] md:text-[9px] text-muted-foreground">Total</p>
                     </div>
                 </div>
-                {% endif %}
 
-                <!-- Regularization Summary -->
-                {% if regularization_by_eic %}
-                <div class="bg-white rounded-xl shadow-lg border border-light-blue/30 overflow-hidden">
-                    <div class="bg-gradient-to-r from-dark-blue to-light-blue p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </div>
-                            <h2 class="text-lg font-bold text-white">Regularization Summary</h2>
-                        </div>
+                <!-- Calendar Grid -->
+                <div class="space-y-0.5">
+                    <!-- Week Days -->
+                    <div class="grid grid-cols-7 gap-0.5">
+                        {% for day in "SMTWTFS" %}
+                        <div class="text-[9px] md:text-[10px] font-semibold text-center text-muted-foreground py-0.5">{{ day }}</div>
+                        {% endfor %}
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-cream text-dark-blue border-b-2 border-light-blue">
-                                <tr>
-                                    <th class="px-3 py-2 text-left font-bold">EIC NAME</th>
-                                    <th class="px-3 py-2 text-center font-bold">Approved</th>
-                                    <th class="px-3 py-2 text-center font-bold">Pending</th>
-                                    <th class="px-3 py-2 text-center font-bold">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                {% for eic in regularization_by_eic %}
-                                <tr class="hover:bg-light-blue/10 transition">
-                                    <td class="px-3 py-2 font-medium text-black">{{ eic.requested_eic_name|truncatewords:3 }}</td>
-                                    <td class="px-3 py-2 text-center">
-                                        {% if eic.approved_count > 0 %}
-                                        <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-full">{{ eic.approved_count }}</span>
-                                        {% else %}
-                                        <span class="text-gray-300">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-3 py-2 text-center">
-                                        {% if eic.pending_count > 0 %}
-                                        <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">{{ eic.pending_count }}</span>
-                                        {% else %}
-                                        <span class="text-gray-300">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-3 py-2 text-center font-bold text-dark-blue">{{ eic.total_count }}</td>
-                                </tr>
-                                {% endfor %}
-                                <tr class="bg-light-blue font-bold">
-                                    <td class="px-3 py-2 text-dark-blue">Grand Total</td>
-                                    <td class="px-3 py-2 text-center text-dark-blue">{{ reg_total_approved }}</td>
-                                    <td class="px-3 py-2 text-center text-dark-blue">{{ reg_total_pending }}</td>
-                                    <td class="px-3 py-2 text-center text-dark-blue">{{ reg_total_count }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    
+                    <!-- Calendar Days -->
+                    <div class="grid grid-cols-7 gap-0.5">
+                        {% for day in calendar_data %}
+                        <div class="aspect-square flex items-center justify-center">
+                            {% if day.day and day.day != '' %}
+                            <div class="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-[9px] md:text-[10px] font-medium rounded-md cursor-pointer transition-transform hover:scale-110"
+                                 style="{% if not day.is_other_month %}{% if day.status == 'P' %}background-color: #22c55e; color: white;{% elif day.status == 'A' %}background-color: #ef4444; color: white;{% elif day.status == 'L' or day.status == 'PD' %}background-color: #eab308; color: white;{% else %}background-color: #e5e7eb; color: #6b7280;{% endif %}{% else %}color: #d1d5db;{% endif %}"
+                                 title="Day {{ day.day }}: {% if day.status == 'P' %}Present{% elif day.status == 'A' %}Absent{% elif day.status == 'L' or day.status == 'PD' %}{{ day.deduction }}{% else %}No data{% endif %}">
+                                {{ day.day }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% endif %}
-
-                <!-- Partial Day Report -->
-                {% if partial_day_by_eic %}
-                <div class="bg-white rounded-xl shadow-lg border border-light-blue/30 overflow-hidden">
-                    <div class="bg-gradient-to-r from-dark-blue to-light-blue p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                            </div>
-                            <h2 class="text-lg font-bold text-white">Partial Day Report</h2>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-cream text-dark-blue border-b-2 border-light-blue">
-                                <tr>
-                                    <th class="px-3 py-2 text-left font-bold">EIC NAME</th>
-                                    <th class="px-3 py-2 text-center font-bold">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                {% for eic in partial_day_by_eic %}
-                                <tr class="hover:bg-light-blue/10 transition">
-                                    <td class="px-3 py-2 font-medium text-black">{{ eic.requested_eic_name|truncatewords:3 }}</td>
-                                    <td class="px-3 py-2 text-center font-bold text-dark-blue">{{ eic.total_count }}</td>
-                                </tr>
-                                {% endfor %}
-                                <tr class="bg-light-blue font-bold">
-                                    <td class="px-3 py-2 text-dark-blue">Grand Total</td>
-                                    <td class="px-3 py-2 text-center text-dark-blue">{{ pd_grand_total }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                {% elif calendar_ep %}
+                <!-- EP Number searched but no data found -->
+                <div class="text-center py-6 text-muted-foreground">
+                    <svg class="w-10 h-10 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-sm font-semibold mb-1">Data not found in database</p>
+                    <p class="text-xs">No records found for EP: <span class="font-semibold">{{ calendar_ep }}</span></p>
+                    <p class="text-[10px] mt-1 opacity-75">Try selecting a different month above</p>
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-muted-foreground">
+                    <p class="text-xs">Enter EP Number to view calendar</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- ARC Summary - Full Width -->
+    <!-- ARC Summary (9 cols on lg, 8 on md) -->
     {% if arc_summary_data %}
-    <div class="mt-4 md:mt-6">
-        <div class="bg-white rounded-xl shadow-lg border border-light-blue/30 overflow-hidden">
-            <div class="bg-gradient-to-r from-dark-blue to-light-blue p-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+    <div class="md:col-span-8 lg:col-span-9">
+        <div class="bg-card rounded-xl border border-border/40 overflow-hidden">
+            <!-- Header -->
+            <div class="px-3 sm:px-4 py-3 border-b border-border" style="background-color: hsla(40, 15%, 90%, 0.3);">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
                         </svg>
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                            <span class="text-sm font-semibold">ARC Summary</span>
+                            <span class="text-[10px] text-muted-foreground">Trade vs Contractor Mandays</span>
+                        </div>
                     </div>
-                    <h2 class="text-lg md:text-xl font-bold text-white">📊 ARC Summary</h2>
+                    <a href="{% url 'core:arc_summary_report' %}?dashboard_month={{ calendar_month }}" class="text-xs text-primary hover:text-primary/80 font-medium">
+                        View Report →
+                    </a>
                 </div>
             </div>
+            
+            <!-- Table -->
             <div class="overflow-x-auto">
-                <table class="w-full text-xs md:text-sm">
-                    <thead class="bg-cream text-dark-blue border-b-2 border-light-blue">
-                        <tr>
-                            <th class="px-2 md:px-3 py-2 text-left font-bold whitespace-nowrap sticky left-0 bg-cream z-10">Trade</th>
+                <table class="w-full min-w-[500px] border-collapse">
+                    <thead>
+                        <tr class="text-xs uppercase tracking-wide" style="background-color: hsla(220, 13%, 96%, 1); color: #1a1a1a;">
+                            <th class="text-left py-2.5 px-3 font-extrabold sticky left-0 z-10 min-w-[100px] border-b border-r border-border/40" style="background-color: hsla(220, 13%, 96%, 1); box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1);">Trade</th>
                             {% for contractor in arc_contractors %}
-                            <th class="px-2 md:px-3 py-2 text-center font-bold whitespace-nowrap">{{ contractor }}</th>
+                            <th class="text-center py-2.5 px-3 font-extrabold whitespace-nowrap border-b border-r border-border/40" title="{{ contractor }}">{{ contractor|truncatewords:2 }}</th>
                             {% endfor %}
-                            <th class="px-2 md:px-3 py-2 text-center font-bold whitespace-nowrap bg-light-blue/20">Grand Total</th>
+                            <th class="text-center py-2.5 px-3 font-extrabold border-b border-border/40">Total</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="text-sm">
                         {% for row in arc_summary_data %}
-                        <tr class="hover:bg-light-blue/10 transition">
-                            <td class="px-2 md:px-3 py-2 font-medium text-black whitespace-nowrap sticky left-0 bg-white z-10">{{ row.trade }}</td>
+                        <tr class="hover:bg-muted/20 transition-colors group">
+                            <td class="py-2 px-3 font-medium sticky left-0 bg-card z-10 group-hover:bg-muted/20 border-b border-r border-border/40" style="box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1); color: #1a1a1a;">
+                                <span class="truncate block max-w-[100px] sm:max-w-[150px]" title="{{ row.trade }}">{{ row.trade }}</span>
+                            </td>
                             {% for contractor in arc_contractors %}
-                            <td class="px-2 md:px-3 py-2 text-center text-black/80">
+                            <td class="text-center py-2 px-3 font-mono border-b border-r border-border/40" style="color: #1a1a1a;">
                                 {% if row.contractors|get_item:contractor > 0 %}
-                                    {{ row.contractors|get_item:contractor|floatformat:2 }}
+                                    {{ row.contractors|get_item:contractor|floatformat:1 }}
                                 {% else %}
-                                    <span class="text-gray-300">-</span>
+                                    -
                                 {% endif %}
                             </td>
                             {% endfor %}
-                            <td class="px-2 md:px-3 py-2 text-center font-bold text-dark-blue bg-light-blue/10">{{ row.total|floatformat:2 }}</td>
+                            <td class="text-center py-2 px-3 font-mono font-bold border-b border-border/40" style="color: #1a1a1a;">{{ row.total|floatformat:1 }}</td>
                         </tr>
                         {% endfor %}
-                        <tr class="bg-light-blue font-bold">
-                            <td class="px-2 md:px-3 py-2 text-dark-blue sticky left-0 bg-light-blue z-10">Grand Total</td>
-                            {% for contractor in arc_contractors %}
-                            <td class="px-2 md:px-3 py-2 text-center text-dark-blue">{{ arc_grand_totals|get_item:contractor|floatformat:2 }}</td>
-                            {% endfor %}
-                            <td class="px-2 md:px-3 py-2 text-center text-dark-blue bg-dark-blue/10">{{ arc_grand_totals.total|floatformat:2 }}</td>
-                        </tr>
                     </tbody>
+                    <tfoot>
+                        <tr class="text-sm font-bold" style="background-color: hsla(220, 13%, 96%, 1);">
+                            <td class="py-2.5 px-3 sticky left-0 z-10 whitespace-nowrap border-r border-border/40" style="background-color: hsla(220, 13%, 96%, 1); box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1); color: #6b7280;">Grand Total</td>
+                            {% for contractor in arc_contractors %}
+                            <td class="text-center py-2.5 px-3 font-mono whitespace-nowrap border-r border-border/40" style="color: #1a1a1a;">{{ arc_grand_totals|get_item:contractor|floatformat:1 }}</td>
+                            {% endfor %}
+                            <td class="text-center py-2.5 px-3 font-mono whitespace-nowrap" style="color: #1a1a1a;">{{ arc_grand_totals.total|floatformat:1 }}</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="md:col-span-8 lg:col-span-9">
+        <div class="bg-card rounded-xl border border-border/40 overflow-hidden p-8 text-center">
+            <p class="text-muted-foreground text-sm">No ARC Summary data available</p>
+        </div>
+    </div>
     {% endif %}
 </div>
+
+<!-- Three Column Row: Partial Day, Overtime, Regularization -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
+    
+    <!-- Partial Day Summary -->
+    <div class="bg-card rounded-xl border border-border/40 overflow-hidden">
+        <div class="px-3 py-2.5 border-b border-border" style="background-color: hsla(40, 15%, 95%, 1);">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: hsla(45, 93%, 47%, 0.2);">
+                        <svg class="w-3.5 h-3.5" style="color: #eab308;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold truncate" style="color: #1a1a1a;">Partial Day Summary</span>
+                </div>
+                <a href="{% url 'core:partial_day_report' %}?dashboard_month={{ calendar_month }}" class="text-[10px] text-primary hover:text-primary/80 font-medium">
+                    View →
+                </a>
+            </div>
+        </div>
+        <div>
+            <table class="w-full table-fixed border-collapse">
+                <thead>
+                    <tr class="uppercase tracking-wide" style="background-color: hsla(220, 13%, 96%, 1); color: #6b7280;">
+                        <th class="text-left py-2.5 px-3 font-extrabold w-[30%] border-b border-r border-border/40 text-[11px]">EIC NAME</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">APPR.</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">PEND.</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">REJ</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-border/40 text-xs">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    {% if partial_day_by_eic %}
+                    {% for eic in partial_day_by_eic %}
+                    <tr>
+                        <td class="py-2 px-3 font-medium truncate border-b border-r border-border/40 text-[13px]" style="color: #1a1a1a;" title="{{ eic.requested_eic_name }}">{{ eic.requested_eic_name|truncatewords:2 }}</td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(142, 71%, 45%, 0.15); color: #22c55e;">5</span>
+                        </td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(45, 93%, 47%, 0.15); color: #eab308;">3</span>
+                        </td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(0, 72%, 51%, 0.15); color: #ef4444;">3</span>
+                        </td>
+                        <td class="py-2 px-3 text-center font-bold border-b border-border/40" style="color: #1a1a1a;">{{ eic.total_count }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-muted-foreground text-xs border-b border-border/40">No data available</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr class="text-sm font-bold" style="background-color: hsla(220, 13%, 96%, 1);">
+                        <td class="py-2.5 px-3 border-r border-border/40" style="color: #6b7280;">Total</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #22c55e;">{{ pd_grand_total|default:0 }}</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #eab308;">0</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #ef4444;">0</td>
+                        <td class="py-2.5 px-3 text-center" style="color: #6b7280;">{{ pd_grand_total|default:0 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Overtime Summary -->
+    <div class="bg-card rounded-xl border border-border/40 overflow-hidden">
+        <div class="px-3 py-2.5 border-b border-border" style="background-color: hsla(40, 15%, 95%, 1);">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: hsla(216, 40%, 48%, 0.15);">
+                        <svg class="w-3.5 h-3.5" style="color: #4a7ba7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold truncate" style="color: #1a1a1a;">Overtime Summary</span>
+                </div>
+                <a href="{% url 'core:overtime_report' %}?dashboard_month={{ calendar_month }}" class="text-[10px] text-primary hover:text-primary/80 font-medium">
+                    View →
+                </a>
+            </div>
+        </div>
+        <div>
+            <table class="w-full table-fixed border-collapse">
+                <thead>
+                    <tr class="uppercase tracking-wide" style="background-color: hsla(220, 13%, 96%, 1); color: #6b7280;">
+                        <th class="text-left py-2.5 px-3 font-extrabold w-[30%] border-b border-r border-border/40 text-[11px]">EIC NAME</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">APPR.</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">PEND.</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">REJ</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-border/40 text-xs">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    {% if eic_pending_requests %}
+                    {% for eic in eic_pending_requests %}
+                    <tr>
+                        <td class="py-2 px-3 font-medium truncate border-b border-r border-border/40 text-[13px]" style="color: #1a1a1a;" title="{{ eic.requested_eic_name }}">{{ eic.requested_eic_name|truncatewords:2 }}</td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            {% if eic.approved_count > 0 %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(142, 71%, 45%, 0.15); color: #22c55e;">{{ eic.approved_count }}</span>
+                            {% else %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(45, 93%, 47%, 0.08); color: #9ca3af;">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            {% if eic.pending_count > 0 %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(45, 93%, 47%, 0.15); color: #eab308;">{{ eic.pending_count }}</span>
+                            {% else %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(45, 93%, 47%, 0.08); color: #9ca3af;">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(0, 72%, 51%, 0.08); color: #9ca3af;">0</span>
+                        </td>
+                        <td class="py-2 px-3 text-center font-bold border-b border-border/40" style="color: #1a1a1a;">{{ eic.total_count }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-muted-foreground text-xs border-b border-border/40">No data available</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr class="text-sm font-bold" style="background-color: hsla(220, 13%, 96%, 1);">
+                        <td class="py-2.5 px-3 border-r border-border/40" style="color: #6b7280;">Total</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #22c55e;">{{ grand_total_approved|default:0 }}</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #eab308;">{{ grand_total_pending|default:0 }}</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #ef4444;">0</td>
+                        <td class="py-2.5 px-3 text-center" style="color: #6b7280;">{{ grand_total_all|default:0 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Regularization Summary -->
+    <div class="md:col-span-2 lg:col-span-1 bg-card rounded-xl border border-border/40 overflow-hidden">
+        <div class="px-3 py-2.5 border-b border-border" style="background-color: hsla(40, 15%, 95%, 1);">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: hsla(216, 40%, 48%, 0.15);">
+                        <svg class="w-3.5 h-3.5" style="color: #4a7ba7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold truncate" style="color: #1a1a1a;">Regularization Summary</span>
+                </div>
+                <a href="{% url 'core:regularization_report' %}?dashboard_month={{ calendar_month }}" class="text-[10px] text-primary hover:text-primary/80 font-medium">
+                    View →
+                </a>
+            </div>
+        </div>
+        <div>
+            <table class="w-full table-fixed border-collapse">
+                <thead>
+                    <tr class="uppercase tracking-wide" style="background-color: hsla(220, 13%, 96%, 1); color: #6b7280;">
+                        <th class="text-left py-2.5 px-3 font-extrabold w-[30%] border-b border-r border-border/40 text-[11px]">EIC NAME</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">APPR.</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">PEND.</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-r border-border/40 text-xs">REJ</th>
+                        <th class="text-center py-2.5 px-3 font-extrabold w-[17.5%] border-b border-border/40 text-xs">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    {% if regularization_by_eic %}
+                    {% for eic in regularization_by_eic %}
+                    <tr>
+                        <td class="py-2 px-3 font-medium truncate border-b border-r border-border/40 text-[13px]" style="color: #1a1a1a;" title="{{ eic.requested_eic_name }}">{{ eic.requested_eic_name|truncatewords:2 }}</td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            {% if eic.approved_count > 0 %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(142, 71%, 45%, 0.15); color: #22c55e;">{{ eic.approved_count }}</span>
+                            {% else %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(45, 93%, 47%, 0.08); color: #9ca3af;">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            {% if eic.pending_count > 0 %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(45, 93%, 47%, 0.15); color: #eab308;">{{ eic.pending_count }}</span>
+                            {% else %}
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(45, 93%, 47%, 0.08); color: #9ca3af;">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 text-center border-b border-r border-border/40">
+                            <span class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-lg text-[12px] font-semibold" style="background-color: hsla(0, 72%, 51%, 0.08); color: #9ca3af;">0</span>
+                        </td>
+                        <td class="py-2 px-3 text-center font-bold border-b border-border/40" style="color: #1a1a1a;">{{ eic.total_count }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-muted-foreground text-xs border-b border-border/40">No data available</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr class="text-sm font-bold" style="background-color: hsla(220, 13%, 96%, 1);">
+                        <td class="py-2.5 px-3 border-r border-border/40" style="color: #6b7280;">Total</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #22c55e;">{{ reg_total_approved|default:0 }}</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #eab308;">{{ reg_total_pending|default:0 }}</td>
+                        <td class="py-2.5 px-3 text-center border-r border-border/40" style="color: #ef4444;">0</td>
+                        <td class="py-2.5 px-3 text-center" style="color: #6b7280;">{{ reg_total_count|default:0 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+</div>
+</div>
+
+<script>
+function previousMonth() {
+    const form = document.getElementById('calendarForm');
+    const monthInput = form.querySelector('input[name="calendar_month"]');
+    if (monthInput && monthInput.value) {
+        const [year, month] = monthInput.value.split('-');
+        const date = new Date(year, month - 1, 1);
+        date.setMonth(date.getMonth() - 1);
+        monthInput.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        form.submit();
+    }
+}
+
+function nextMonth() {
+    const form = document.getElementById('calendarForm');
+    const monthInput = form.querySelector('input[name="calendar_month"]');
+    if (monthInput && monthInput.value) {
+        const [year, month] = monthInput.value.split('-');
+        const date = new Date(year, month - 1, 1);
+        date.setMonth(date.getMonth() + 1);
+        monthInput.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        form.submit();
+    }
+}
+
+function clearEP() {
+    const form = document.getElementById('calendarForm');
+    const epInput = form.querySelector('input[name="calendar_ep"]');
+    epInput.value = '';
+    form.submit();
+}
+</script>
 {% endblock %}

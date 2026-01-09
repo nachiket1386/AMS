@@ -469,10 +469,6 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span class="hidden xl:inline">Request</span>
                     </a>
-                    <a href="{% url 'core:my_requests' %}" class="nav-link flex items-center rounded-lg text-sm font-semibold transition-all duration-200 {% if request.resolver_match.url_name == 'my_requests' %}text-dark-blue bg-dark-blue/10 active{% else %}text-black hover:bg-black/5{% endif %} gap-2 px-4 py-2.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                        <span class="hidden xl:inline">Requests</span>
-                    </a>
                     {% endif %}
                     {% if user.role == 'admin' or user.role == 'root' %}
                     <!-- Desktop Admin Dropdown -->
@@ -584,10 +580,6 @@
             <a href="{% url 'core:request_access' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'request_access' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 <span class="text-xs mt-0.5 font-bold">Request</span>
-            </a>
-            <a href="{% url 'core:my_requests' %}" class="mobile-nav-item flex flex-col items-center justify-center flex-1 py-2 rounded-lg transition-all {% if request.resolver_match.url_name == 'my_requests' %}text-dark-blue bg-dark-blue/10{% else %}text-black hover:bg-black/5{% endif %}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                <span class="text-xs mt-0.5 font-bold">My Req</span>
             </a>
             {% endif %}
             {% if user.role == 'admin' or user.role == 'root' %}

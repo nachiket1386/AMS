@@ -23,11 +23,11 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <p class="text-sm text-black/60 font-semibold">EP Number</p>
-                <p class="text-lg font-bold text-dark-blue">{{ record.ep_no }}</p>
+                <p class="text-lg font-bold text-dark-blue font-mono">{{ record.ep_no }}</p>
             </div>
             <div>
                 <p class="text-sm text-black/60 font-semibold">Employee Name</p>
-                <p class="text-lg font-bold text-black">{{ record.ep_name }}</p>
+                <p class="text-lg font-bold text-black">{{ record.get_display_name }}</p>
             </div>
             <div>
                 <p class="text-sm text-black/60 font-semibold">Date</p>

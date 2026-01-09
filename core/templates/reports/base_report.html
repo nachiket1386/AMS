@@ -25,17 +25,20 @@
             <a href="{% url 'core:attendance_list' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'attendance_list' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
                 📋 Attendance
             </a>
-            <a href="{% url 'core:arc_summary_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'arc_summary_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+            <a href="{% url 'core:arc_summary_report' %}{% if request.GET.dashboard_month %}?dashboard_month={{ request.GET.dashboard_month }}{% endif %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'arc_summary_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
                 📊 ARC Summary
             </a>
-            <a href="{% url 'core:overtime_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'overtime_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+            <a href="{% url 'core:overtime_report' %}{% if request.GET.dashboard_month %}?dashboard_month={{ request.GET.dashboard_month }}{% endif %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'overtime_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
                 ⏰ Overtime
             </a>
-            <a href="{% url 'core:partial_day_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'partial_day_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+            <a href="{% url 'core:partial_day_report' %}{% if request.GET.dashboard_month %}?dashboard_month={{ request.GET.dashboard_month }}{% endif %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'partial_day_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
                 📅 Partial Day
             </a>
-            <a href="{% url 'core:regularization_report' %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'regularization_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+            <a href="{% url 'core:regularization_report' %}{% if request.GET.dashboard_month %}?dashboard_month={{ request.GET.dashboard_month }}{% endif %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'regularization_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
                 ✏️ Regularization
+            </a>
+            <a href="{% url 'core:comprehensive_report' %}{% if request.GET.dashboard_month %}?dashboard_month={{ request.GET.dashboard_month }}{% endif %}" class="px-4 py-2 rounded-lg font-semibold transition text-sm whitespace-nowrap {% if request.resolver_match.url_name == 'comprehensive_report' %}bg-dark-blue text-cream{% else %}bg-white text-black hover:bg-light-blue{% endif %}">
+                📋 Comprehensive
             </a>
         </div>
     </div>
@@ -64,15 +67,15 @@
     {% if page_obj.has_other_pages %}
     <div class="flex justify-center items-center gap-2 bg-cream border border-light-blue rounded-lg p-2">
         {% if page_obj.has_previous %}
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">First</a>
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Previous</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.show_incomplete %}show_incomplete={{ request.GET.show_incomplete }}&{% endif %}page=1" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">First</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.show_incomplete %}show_incomplete={{ request.GET.show_incomplete }}&{% endif %}page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Previous</a>
         {% endif %}
         
         <span class="px-3 py-1 bg-dark-blue text-cream rounded font-semibold text-xs">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
         
         {% if page_obj.has_next %}
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Next</a>
-        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Last</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.show_incomplete %}show_incomplete={{ request.GET.show_incomplete }}&{% endif %}page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Next</a>
+        <a href="?{% if request.GET.ep_no %}ep_no={{ request.GET.ep_no }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.show_incomplete %}show_incomplete={{ request.GET.show_incomplete }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-white border border-light-blue text-black rounded hover:bg-light-blue transition text-xs">Last</a>
         {% endif %}
     </div>
     {% endif %}
